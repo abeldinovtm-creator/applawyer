@@ -48374,21 +48374,27 @@ s=k.gbO()
 k=m.d
 r=k!=null&&B.f4.h(0,k).length!==0
 k=m.d
-if(!(k!=null))k=s==="kk"?"\u0410\u0439\u043c\u0430\u049b":"\u0420\u0435\u0433\u0438\u043e\u043d"
+if(!(k!=null))if(s==="kk")k="\u0410\u0439\u043c\u0430\u049b"
+else k=s==="en"?"Region":"\u0420\u0435\u0433\u0438\u043e\u043d"
 k=A.a5(k,l,l,l,l,l,l)
 q=A.hg(l,l,B.t5,l,l,new A.aDR(m,a),l,l,l)
 p=s==="kk"
-o=t.p
-k=A.ja(A.b([A.kS(A.a5(p?"\u0411\u0430\u0440\u043b\u044b\u0493\u044b":"\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c",l,l,l,B.K7,l,l),new A.aDS(a),l)],o),q,k)
-q=p?"\u049a\u0430\u043b\u0430, \u0430\u0443\u0434\u0430\u043d, \u0435\u043b":"\u0413\u043e\u0440\u043e\u0434, \u043e\u0431\u043b\u0430\u0441\u0442\u044c, \u0441\u0442\u0440\u0430\u043d\u0430"
-n=m.e.length!==0?A.hg(l,l,B.RS,l,l,new A.aDT(m),l,l,l):l
-n=A.b([new A.b7(B.rd,A.VS(l,B.cK,!1,l,!0,B.B,l,A.aJJ(),m.f,l,l,l,l,l,2,A.dz(l,new A.hm(4,A.cj(12),B.o),l,B.mG,l,l,l,l,!0,l,l,l,l,l,l,B.iC,!0,l,l,l,l,l,l,l,l,l,l,l,l,l,l,q,l,l,l,l,l,l,l,l,l,!0,!0,!1,l,B.RC,l,l,l,l,l,l,n,l,l,l,l,l),B.aw,!0,l,!0,l,!1,l,B.db,l,l,l,l,l,l,l,l,1,l,l,!1,"\u2022",l,new A.aDU(m),l,l,l,!1,l,l,!1,l,!0,l,B.dT,l,l,l,l,l,l,l,l,l,l,l,l,!0,B.aZ,l,B.b3,l,l,l,l),l)],o)
-if(m.d==null&&m.e.length===0)n.push(A.ku(!1,l,!0,new A.b7(B.mG,A.dE(A.b([B.RV,B.oO,A.a5(p?"\u041e\u043d\u043b\u0430\u0439\u043d (\u043a\u0435\u0437 \u043a\u0435\u043b\u0433\u0435\u043d \u0430\u0439\u043c\u0430\u049b)":"\u041e\u043d\u043b\u0430\u0439\u043d (\u043b\u044e\u0431\u043e\u0439 \u0440\u0435\u0433\u0438\u043e\u043d)",l,l,l,B.acM,l,l)],o),B.a0,B.I,B.S,0),l),l,!0,l,l,l,l,l,l,l,l,l,new A.aDV(m),l,l,l,l,l,l,l))
-if(!r||m.e.length!==0){q=p?"\u049a\u0430\u0437\u0430\u049b\u0441\u0442\u0430\u043d\u043d\u044b\u04a3 \u0431\u0430\u0440\u043b\u044b\u049b \u0430\u0439\u043c\u0430\u049b\u0442\u0430\u0440\u044b":"\u0412\u0441\u0435 \u0440\u0435\u0433\u0438\u043e\u043d\u044b \u041a\u0430\u0437\u0430\u0445\u0441\u0442\u0430\u043d\u0430"
-n.push(new A.b7(B.rh,new A.dY(B.ig,l,l,A.a5(q,l,l,l,A.cg(l,l,B.dS,l,l,l,l,l,l,l,l,13,l,l,l,l,l,!0,l,l,l,l,l,l,l,l),l,l),l),l))}if(r&&m.e.length===0)q=m.gRi().length
+if(p)o="\u0411\u0430\u0440\u043b\u044b\u0493\u044b"
+else o=s==="en"?"Reset":"\u0421\u0431\u0440\u043e\u0441\u0438\u0442\u044c"
+n=t.p
+k=A.ja(A.b([A.kS(A.a5(o,l,l,l,B.K7,l,l),new A.aDS(a),l)],n),q,k)
+if(p)q="\u049a\u0430\u043b\u0430, \u0430\u0443\u0434\u0430\u043d, \u0435\u043b"
+else q=s==="en"?"City, region, country":"\u0413\u043e\u0440\u043e\u0434, \u043e\u0431\u043b\u0430\u0441\u0442\u044c, \u0441\u0442\u0440\u0430\u043d\u0430"
+o=m.e.length!==0?A.hg(l,l,B.RS,l,l,new A.aDT(m),l,l,l):l
+o=A.b([new A.b7(B.rd,A.VS(l,B.cK,!1,l,!0,B.B,l,A.aJJ(),m.f,l,l,l,l,l,2,A.dz(l,new A.hm(4,A.cj(12),B.o),l,B.mG,l,l,l,l,!0,l,l,l,l,l,l,B.iC,!0,l,l,l,l,l,l,l,l,l,l,l,l,l,l,q,l,l,l,l,l,l,l,l,l,!0,!0,!1,l,B.RC,l,l,l,l,l,l,o,l,l,l,l,l),B.aw,!0,l,!0,l,!1,l,B.db,l,l,l,l,l,l,l,l,1,l,l,!1,"\u2022",l,new A.aDU(m),l,l,l,!1,l,l,!1,l,!0,l,B.dT,l,l,l,l,l,l,l,l,l,l,l,l,!0,B.aZ,l,B.b3,l,l,l,l),l)],n)
+if(m.d==null&&m.e.length===0){if(p)q="\u041e\u043d\u043b\u0430\u0439\u043d (\u043a\u0435\u0437 \u043a\u0435\u043b\u0433\u0435\u043d \u0430\u0439\u043c\u0430\u049b)"
+else q=s==="en"?"Online (any region)":"\u041e\u043d\u043b\u0430\u0439\u043d (\u043b\u044e\u0431\u043e\u0439 \u0440\u0435\u0433\u0438\u043e\u043d)"
+o.push(A.ku(!1,l,!0,new A.b7(B.mG,A.dE(A.b([B.RV,B.oO,A.a5(q,l,l,l,B.acM,l,l)],n),B.a0,B.I,B.S,0),l),l,!0,l,l,l,l,l,l,l,l,l,new A.aDV(m),l,l,l,l,l,l,l))}if(!r||m.e.length!==0){if(p)q="\u049a\u0430\u0437\u0430\u049b\u0441\u0442\u0430\u043d\u043d\u044b\u04a3 \u0431\u0430\u0440\u043b\u044b\u049b \u0430\u0439\u043c\u0430\u049b\u0442\u0430\u0440\u044b"
+else q=s==="en"?"All regions of Kazakhstan":"\u0412\u0441\u0435 \u0440\u0435\u0433\u0438\u043e\u043d\u044b \u041a\u0430\u0437\u0430\u0445\u0441\u0442\u0430\u043d\u0430"
+o.push(new A.b7(B.rh,new A.dY(B.ig,l,l,A.a5(q,l,l,l,A.cg(l,l,B.dS,l,l,l,l,l,l,l,l,13,l,l,l,l,l,!0,l,l,l,l,l,l,l,l),l,l),l),l))}if(r&&m.e.length===0)q=m.gRi().length
 else{q=m.gRj()
-q=new A.aA(q,new A.aDW(),A.a_(q).i("aA<1>")).gI(0)}n.push(A.hc(A.b2a(new A.aDX(m,r),q,new A.aDY())))
-return A.iK(k,A.ds(n,B.a0,B.I,B.S))}}
+q=new A.aA(q,new A.aDW(),A.a_(q).i("aA<1>")).gI(0)}o.push(A.hc(A.b2a(new A.aDX(m,r),q,new A.aDY())))
+return A.iK(k,A.ds(o,B.a0,B.I,B.S))}}
 A.aDJ.prototype={
 $1(a){var s,r=this.a
 if(B.c.n(a.toLowerCase(),r))return!0
