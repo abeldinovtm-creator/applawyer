@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'region_picker_screen.dart';
 import 'auth_screen.dart';
+import 'privacy_policy_screen.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -463,8 +464,25 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             ),
                     ),
 
-                    const SizedBox(height: 40),
-                    _sectionHeader(lang == 'kk' ? 'Қауіпті аймақ' : 'Опасная зона'),
+                    const SizedBox(height: 32),
+                    _sectionHeader(lang == 'kk' ? 'Құжаттар' : lang == 'en' ? 'Documents' : 'Документы'),
+                    const SizedBox(height: 8),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.shield_outlined, color: Colors.red),
+                      title: Text(lang == 'kk' ? 'Құпиялылық саясаты' : lang == 'en' ? 'Privacy Policy' : 'Политика конфиденциальности'),
+                      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen())),
+                    ),
+                    ListTile(
+                      contentPadding: EdgeInsets.zero,
+                      leading: const Icon(Icons.description_outlined, color: Colors.red),
+                      title: Text(lang == 'kk' ? 'Пайдаланушы келісімі' : lang == 'en' ? 'Terms of Service' : 'Пользовательское соглашение'),
+                      trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsOfServiceScreen())),
+                    ),
+                    const SizedBox(height: 24),
+                    _sectionHeader(lang == 'kk' ? 'Қауіпті аймақ' : lang == 'en' ? 'Danger zone' : 'Опасная зона'),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
