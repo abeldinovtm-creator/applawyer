@@ -30,7 +30,6 @@ Future<void> main() async {
       path: 'assets/translations',
       fallbackLocale: const Locale('kk'),
       startLocale: const Locale('kk'),
-      saveLocale: false,
       child: MyApp(),
     ),
   );
