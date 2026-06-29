@@ -28,7 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _role = 'client';
   String _lawyerSubtype = 'lawyer';
   String _selectedRegion = '';
-  String _preferredLang = 'ru';
+  String _preferredLang = 'kk';
   bool _loading = true;
   bool _saving = false;
   bool _changingPass = false;
@@ -75,7 +75,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _expCtrl.text = (data['experience_years'] ?? 0).toString();
           _aboutCtrl.text = data['about'] ?? '';
           _iinCtrl.text = data['iin'] ?? '';
-          _preferredLang = data['preferred_language'] ?? 'ru';
+          _preferredLang = data['preferred_language'] ?? 'kk';
         });
       }
     } catch (_) {}
