@@ -8020,7 +8020,7 @@ _.Q=i
 _.as="client"
 _.at="lawyer"
 _.ax=""
-_.ay="ru"
+_.ay="kk"
 _.ch=!0
 _.cy=_.cx=_.CW=!1
 _.dx=_.db=!0
@@ -49075,7 +49075,7 @@ q=r.h(0,"iin")
 if(q==null)q=""
 s.y.scK(q)
 r=r.h(0,"preferred_language")
-s.ay=r==null?"ru":r},
+s.ay=r==null?"kk":r},
 $S:0}
 A.aEH.prototype={
 $0(){return this.a.ch=!1},
