@@ -71,17 +71,12 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final lang = context.locale.languageCode;
-
     return Scaffold(
       appBar: AppBar(
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              lang == 'kk' ? 'Заңгерлердің жауаптары' : 'Ответы юристов',
-              style: const TextStyle(fontSize: 16),
-            ),
+            Text('chat.lawyers_responded'.tr(), style: const TextStyle(fontSize: 16)),
             Text(
               widget.caseTitle,
               style: const TextStyle(fontSize: 11, fontWeight: FontWeight.normal),
@@ -107,9 +102,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
               child: Padding(
                 padding: const EdgeInsets.all(32),
                 child: Text(
-                  lang == 'kk'
-                      ? 'Заңгерлер әлі жазбаған'
-                      : 'Юристы пока не написали по этой заявке',
+                  'chat.no_lawyers'.tr(),
                   textAlign: TextAlign.center,
                   style: const TextStyle(color: Colors.grey, fontSize: 16),
                 ),
@@ -139,14 +132,14 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                 final hasPrice = pricePrepay != null || priceCompletion != null || priceResult != null;
 
                 final subtypeLabel = subtype == 'advocate'
-                    ? 'Адвокат'
+                    ? 'specialist.advocate'.tr()
                     : subtype == 'private_court_executor'
-                        ? 'ЧСИ'
-                        : (lang == 'kk' ? 'Заңгер' : 'Юрист');
+                        ? 'specialist.pce'.tr()
+                        : 'specialist.lawyer'.tr();
 
                 final displayName = name.isNotEmpty
                     ? name
-                    : '${lang == 'kk' ? 'Заңгер' : 'Юрист'} ${i + 1}';
+                    : '${'specialist.lawyer'.tr()} ${i + 1}';
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 14),
@@ -211,7 +204,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                                       [
                                         if (city.isNotEmpty) city,
                                         if (exp != null && exp > 0)
-                                          '${lang == 'kk' ? 'тәжірибе' : 'опыт'} $exp ${lang == 'kk' ? 'жыл' : 'лет'}',
+                                          '${'profile_view.experience'.tr()} $exp ${'profile_view.years'.tr()}',
                                       ].join(' · '),
                                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                                     ),
@@ -248,27 +241,18 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                                     Icon(Icons.payments_outlined, size: 15, color: Colors.green[700]),
                                     const SizedBox(width: 6),
                                     Text(
-                                      lang == 'kk' ? 'Төлем шарттары' : lang == 'en' ? 'Payment terms' : 'Условия оплаты',
+                                      'chat.price_terms'.tr(),
                                       style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green[800]),
                                     ),
                                   ],
                                 ),
                                 const SizedBox(height: 6),
                                 if (pricePrepay != null)
-                                  _priceRow(
-                                    lang == 'kk' ? 'Алдын ала төлем' : lang == 'en' ? 'Prepayment' : 'Предоплата',
-                                    pricePrepay,
-                                  ),
+                                  _priceRow('payment.prepayment'.tr(), pricePrepay),
                                 if (priceCompletion != null)
-                                  _priceRow(
-                                    lang == 'kk' ? 'Қызмет көрсетілгеннен кейін' : lang == 'en' ? 'After service' : 'После оказания услуг',
-                                    priceCompletion,
-                                  ),
+                                  _priceRow('payment.after_service'.tr(), priceCompletion),
                                 if (priceResult != null)
-                                  _priceRow(
-                                    lang == 'kk' ? 'Нәтиже бойынша' : lang == 'en' ? 'On result' : 'По результатам',
-                                    priceResult,
-                                  ),
+                                  _priceRow('payment.on_result'.tr(), priceResult),
                               ],
                             ),
                           ),
@@ -284,7 +268,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                               ),
                             ),
                             icon: const Icon(Icons.person_outline, size: 16),
-                            label: Text(lang == 'kk' ? 'Толық профиль' : 'Полный профиль'),
+                            label: Text('chat.full_profile'.tr()),
                             style: TextButton.styleFrom(foregroundColor: Colors.red),
                           ),
                         ),
@@ -304,7 +288,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                                   ),
                                   onPressed: () => _updateStatus(convId, 'rejected'),
                                   icon: const Icon(Icons.close, size: 16),
-                                  label: Text(lang == 'kk' ? 'Бас тарту' : 'Отклонить'),
+                                  label: Text('chat.reject'.tr()),
                                 ),
                               ),
                               const SizedBox(width: 10),
@@ -317,7 +301,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                                   ),
                                   onPressed: () => _updateStatus(convId, 'accepted'),
                                   icon: const Icon(Icons.check, size: 16),
-                                  label: Text(lang == 'kk' ? 'Қабылдау' : 'Принять'),
+                                  label: Text('chat.accept'.tr()),
                                 ),
                               ),
                             ],
@@ -341,7 +325,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                                 ),
                               ),
                               icon: const Icon(Icons.chat_bubble_outline, size: 16),
-                              label: Text(lang == 'kk' ? 'Чатты ашу' : 'Открыть чат'),
+                              label: Text('chat.open_chat'.tr()),
                             ),
                           ),
                         ] else ...[
@@ -357,10 +341,8 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                               children: [
                                 const Icon(Icons.block, size: 14, color: Colors.grey),
                                 const SizedBox(width: 6),
-                                Text(
-                                  lang == 'kk' ? 'Бас тартылды' : 'Отклонён',
-                                  style: const TextStyle(color: Colors.grey, fontSize: 13),
-                                ),
+                                Text('chat.rejected'.tr(),
+                                    style: const TextStyle(color: Colors.grey, fontSize: 13)),
                               ],
                             ),
                           ),
@@ -423,11 +405,9 @@ class _LawyerConversationListScreenState extends State<LawyerConversationListScr
 
   @override
   Widget build(BuildContext context) {
-    final lang = context.locale.languageCode;
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(lang == 'kk' ? 'Менің жауаптарым' : lang == 'en' ? 'My Responses' : 'Мои отклики'),
+        title: Text('lawyer.my_responses'.tr()),
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         key: ValueKey(_refreshKey),
@@ -440,7 +420,7 @@ class _LawyerConversationListScreenState extends State<LawyerConversationListScr
           if (convs.isEmpty) {
             return Center(
               child: Text(
-                lang == 'kk' ? 'Отклик жоқ' : lang == 'en' ? 'No responses yet' : 'Откликов пока нет',
+                'lawyer.no_responses'.tr(),
                 style: const TextStyle(color: Colors.grey, fontSize: 16),
               ),
             );
@@ -464,15 +444,15 @@ class _LawyerConversationListScreenState extends State<LawyerConversationListScr
                 switch (status) {
                   case 'accepted':
                     statusColor = Colors.green;
-                    statusLabel = lang == 'kk' ? 'Қабылданды' : lang == 'en' ? 'Accepted' : 'Принят';
+                    statusLabel = 'lawyer.status_accepted'.tr();
                     break;
                   case 'rejected':
                     statusColor = Colors.red;
-                    statusLabel = lang == 'kk' ? 'Бас тартылды' : lang == 'en' ? 'Rejected' : 'Отклонён';
+                    statusLabel = 'lawyer.status_rejected'.tr();
                     break;
                   default:
                     statusColor = Colors.orange;
-                    statusLabel = lang == 'kk' ? 'Күтілуде' : lang == 'en' ? 'Pending' : 'Ожидает';
+                    statusLabel = 'lawyer.status_pending'.tr();
                 }
 
                 return Card(
@@ -524,7 +504,7 @@ class _LawyerConversationListScreenState extends State<LawyerConversationListScr
                                   ),
                                 ),
                                 icon: const Icon(Icons.chat_bubble_outline, size: 16),
-                                label: Text(lang == 'kk' ? 'Чат' : lang == 'en' ? 'Chat' : 'Чат'),
+                                label: Text('chat.title'.tr()),
                               ),
                           ],
                         ),
@@ -617,7 +597,6 @@ class _ChatScreenState extends State<ChatScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final lang = context.locale.languageCode;
     final myId = _supabase.auth.currentUser?.id;
 
     return Scaffold(
@@ -625,7 +604,7 @@ class _ChatScreenState extends State<ChatScreen> {
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text('Чат', style: TextStyle(fontSize: 16)),
+            Text('chat.title'.tr(), style: const TextStyle(fontSize: 16)),
             Text(
               widget.caseTitle,
               style: const TextStyle(fontSize: 11, fontWeight: FontWeight.normal),
@@ -647,12 +626,8 @@ class _ChatScreenState extends State<ChatScreen> {
                 final msgs = snap.data ?? [];
                 if (msgs.isEmpty) {
                   return Center(
-                    child: Text(
-                      lang == 'kk'
-                          ? 'Хабарламалар жоқ. Алғашқы болып жазыңыз!'
-                          : 'Нет сообщений. Напишите первым!',
-                      style: const TextStyle(color: Colors.grey),
-                    ),
+                    child: Text('chat.no_messages'.tr(),
+                        style: const TextStyle(color: Colors.grey)),
                   );
                 }
                 return ListView.builder(
@@ -668,7 +643,7 @@ class _ChatScreenState extends State<ChatScreen> {
               },
             ),
           ),
-          _inputBar(lang),
+          _inputBar(),
         ],
       ),
     );
@@ -701,7 +676,7 @@ class _ChatScreenState extends State<ChatScreen> {
     );
   }
 
-  Widget _inputBar(String lang) {
+  Widget _inputBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: const BoxDecoration(
@@ -718,7 +693,7 @@ class _ChatScreenState extends State<ChatScreen> {
                 textInputAction: TextInputAction.send,
                 onSubmitted: (_) => _send(),
                 decoration: InputDecoration(
-                  hintText: lang == 'kk' ? 'Хабарлама...' : 'Сообщение...',
+                  hintText: 'chat.message_hint'.tr(),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(24),
                     borderSide: BorderSide.none,

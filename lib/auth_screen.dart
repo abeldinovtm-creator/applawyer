@@ -29,11 +29,10 @@ class _AuthScreenState extends State<AuthScreen> {
 
   // ===== ВОССТАНОВЛЕНИЕ ПАРОЛЯ =====
   Future<void> _handleForgotPassword() async {
-    final lang = context.locale.languageCode;
     if (_emailController.text.trim().isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(lang == 'kk' ? 'Email енгізіңіз' : 'Введите email'),
+          content: Text('auth.email_required'.tr()),
           backgroundColor: Colors.orange,
         ),
       );
@@ -48,9 +47,7 @@ class _AuthScreenState extends State<AuthScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(lang == 'kk'
-                ? 'Құпия сөзді қалпына келтіру сілтемесі email-ге жіберілді'
-                : 'Ссылка для сброса пароля отправлена на email'),
+            content: Text('auth.reset_sent'.tr()),
             backgroundColor: Colors.green,
           ),
         );
@@ -72,7 +69,6 @@ class _AuthScreenState extends State<AuthScreen> {
 
     setState(() => _isLoading = true);
     final supabase = Supabase.instance.client;
-    final lang = context.locale.languageCode;
 
     try {
       if (_isSignUp) {
@@ -91,7 +87,7 @@ class _AuthScreenState extends State<AuthScreen> {
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: Text(lang == 'kk' ? 'Тіркелу сәтті өтті!' : 'Регистрация успешна!'),
+              content: Text('auth.registered_success'.tr()),
               backgroundColor: Colors.green,
             ),
           );
@@ -109,9 +105,7 @@ class _AuthScreenState extends State<AuthScreen> {
       if (e.statusCode == '422' || e.message.contains('already registered')) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(lang == 'kk'
-                ? 'Бұл email тіркелген. Кіру батырмасын басыңыз.'
-                : 'Этот email уже зарегистрирован. Пожалуйста, войдите.'),
+            content: Text('auth.email_registered'.tr()),
             backgroundColor: Colors.orange,
           ),
         );
@@ -173,13 +167,11 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final lang = context.locale.languageCode;
-
     // ===== ЭКРАН ВОССТАНОВЛЕНИЯ ПАРОЛЯ =====
     if (_isForgotPassword) {
       return Scaffold(
         appBar: AppBar(
-          title: Text(lang == 'kk' ? 'Құпия сөзді қалпына келтіру' : 'Восстановление пароля'),
+          title: Text('auth.forgot_title'.tr()),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => setState(() => _isForgotPassword = false),
@@ -199,9 +191,7 @@ class _AuthScreenState extends State<AuthScreen> {
                   children: [
                     const SizedBox(height: 20),
                     Text(
-                      lang == 'kk'
-                          ? 'Email мекенжайыңызды енгізіңіз, біз сізге сілтеме жібереміз'
-                          : 'Введите ваш email — мы отправим ссылку для сброса пароля',
+                      'auth.forgot_hint'.tr(),
                       style: TextStyle(fontSize: 15, color: Colors.grey[700]),
                     ),
                     const SizedBox(height: 24),
@@ -224,7 +214,7 @@ class _AuthScreenState extends State<AuthScreen> {
                       ),
                       onPressed: _handleForgotPassword,
                       child: Text(
-                        lang == 'kk' ? 'Сілтеме жіберу' : 'Отправить ссылку',
+                        'auth.send_link'.tr(),
                         style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ),
@@ -235,17 +225,9 @@ class _AuthScreenState extends State<AuthScreen> {
     }
 
     // ===== ОСНОВНОЙ ЭКРАН ВХОДА/РЕГИСТРАЦИИ =====
-    String title = _isSignUp
-        ? (lang == 'kk' ? 'Тіркелу' : (lang == 'en' ? 'Sign Up' : 'Регистрация'))
-        : (lang == 'kk' ? 'Кіру' : (lang == 'en' ? 'Sign In' : 'Вход в систему'));
-
-    String btnText = _isSignUp
-        ? (lang == 'kk' ? 'Аккаунт жасау' : (lang == 'en' ? 'Create Account' : 'Создать аккаунт'))
-        : (lang == 'kk' ? 'Кіру' : (lang == 'en' ? 'Sign In' : 'Войти'));
-
-    String toggleText = _isSignUp
-        ? (lang == 'kk' ? 'Аккаунтыңыз бар ма? Кіру' : (lang == 'en' ? 'Have an account? Sign In' : 'Уже есть аккаунт? Войти'))
-        : (lang == 'kk' ? 'Аккаунт жоқ па? Тіркелу' : (lang == 'en' ? 'Don\'t have an account? Sign Up' : 'Нет аккаунта? Зарегистрироваться'));
+    final title = _isSignUp ? 'auth.sign_up'.tr() : 'auth.sign_in'.tr();
+    final btnText = _isSignUp ? 'auth.sign_up_btn'.tr() : 'auth.sign_in_btn'.tr();
+    final toggleText = _isSignUp ? 'auth.have_account'.tr() : 'auth.no_account'.tr();
 
     return Scaffold(
       appBar: AppBar(
@@ -277,11 +259,11 @@ class _AuthScreenState extends State<AuthScreen> {
                       TextFormField(
                         controller: _nameController,
                         decoration: InputDecoration(
-                          labelText: lang == 'kk' ? 'Толық атыңыз' : (lang == 'en' ? 'Full Name' : 'Ваше имя и фамилия'),
+                          labelText: 'auth.full_name'.tr(),
                           border: const OutlineInputBorder(),
                           prefixIcon: const Icon(Icons.person_outline),
                         ),
-                        validator: (v) => v!.isEmpty ? (lang == 'kk' ? 'Өрісті толтырыңыз' : 'Заполните поле') : null,
+                        validator: (v) => v!.isEmpty ? 'auth.required'.tr() : null,
                       ),
                       const SizedBox(height: 16),
                     ],
@@ -295,7 +277,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         border: OutlineInputBorder(),
                         prefixIcon: Icon(Icons.email_outlined),
                       ),
-                      validator: (v) => v!.isEmpty ? 'Введите email' : null,
+                      validator: (v) => v!.isEmpty ? 'auth.email_required'.tr() : null,
                     ),
                     const SizedBox(height: 16),
 
@@ -304,13 +286,11 @@ class _AuthScreenState extends State<AuthScreen> {
                       controller: _passwordController,
                       obscureText: true,
                       decoration: InputDecoration(
-                        labelText: lang == 'kk' ? 'Құпия сөз' : (lang == 'en' ? 'Password' : 'Пароль'),
+                        labelText: 'auth.password'.tr(),
                         border: const OutlineInputBorder(),
                         prefixIcon: const Icon(Icons.lock_outline),
                       ),
-                      validator: (v) => v!.length < 6
-                          ? (lang == 'kk' ? 'Кемінде 6 таңба' : 'Минимум 6 символов')
-                          : null,
+                      validator: (v) => v!.length < 6 ? 'auth.password_min'.tr() : null,
                     ),
                     const SizedBox(height: 8),
 
@@ -321,7 +301,7 @@ class _AuthScreenState extends State<AuthScreen> {
                         child: TextButton(
                           onPressed: () => setState(() => _isForgotPassword = true),
                           child: Text(
-                            lang == 'kk' ? 'Құпия сөзді ұмыттыңыз ба?' : (lang == 'en' ? 'Forgot password?' : 'Забыли пароль?'),
+                            'auth.forgot_password'.tr(),
                             style: TextStyle(color: Colors.red[700]),
                           ),
                         ),
@@ -336,17 +316,17 @@ class _AuthScreenState extends State<AuthScreen> {
                         keyboardType: TextInputType.phone,
                         inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-\s()]'))],
                         decoration: InputDecoration(
-                          labelText: lang == 'kk' ? 'Телефон нөмірі*' : (lang == 'en' ? 'Phone number*' : 'Номер телефона*'),
+                          labelText: 'auth.phone'.tr(),
                           hintText: '+7 777 000 00 00',
                           border: const OutlineInputBorder(),
                           prefixIcon: const Icon(Icons.phone_outlined),
                         ),
                         validator: (v) {
                           if (v == null || v.trim().isEmpty) {
-                            return lang == 'kk' ? 'Телефон нөмірін енгізіңіз' : 'Введите номер телефона';
+                            return 'auth.phone_required'.tr();
                           }
                           if (v.trim().length < 10) {
-                            return lang == 'kk' ? 'Дұрыс нөмір енгізіңіз' : 'Введите корректный номер';
+                            return 'auth.phone_invalid'.tr();
                           }
                           return null;
                         },
@@ -357,18 +337,18 @@ class _AuthScreenState extends State<AuthScreen> {
                       DropdownButtonFormField<String>(
                         value: _selectedRole,
                         decoration: InputDecoration(
-                          labelText: lang == 'kk' ? 'Сіз кімсіз?' : (lang == 'en' ? 'Who are you?' : 'Кто вы?'),
+                          labelText: 'auth.who_are_you'.tr(),
                           border: const OutlineInputBorder(),
                           prefixIcon: const Icon(Icons.badge_outlined),
                         ),
                         items: [
                           DropdownMenuItem(
                             value: 'client',
-                            child: Text(lang == 'kk' ? 'Маған заңгер керек (Клиент)' : (lang == 'en' ? 'I need a lawyer' : 'Мне нужен юрист (Клиент)')),
+                            child: Text('auth.i_need_lawyer'.tr()),
                           ),
                           DropdownMenuItem(
                             value: 'lawyer',
-                            child: Text(lang == 'kk' ? 'Мен заң саласындамын' : (lang == 'en' ? 'I am a legal professional' : 'Я юридический специалист')),
+                            child: Text('auth.i_am_professional'.tr()),
                           ),
                         ],
                         onChanged: (v) => setState(() {
@@ -382,22 +362,22 @@ class _AuthScreenState extends State<AuthScreen> {
                         DropdownButtonFormField<String>(
                           value: _selectedLawyerSubtype,
                           decoration: InputDecoration(
-                            labelText: lang == 'kk' ? 'Мамандық' : (lang == 'en' ? 'Specialization' : 'Специализация'),
+                            labelText: 'auth.specialization'.tr(),
                             border: const OutlineInputBorder(),
                             prefixIcon: const Icon(Icons.gavel_outlined),
                           ),
                           items: [
                             DropdownMenuItem(
                               value: 'lawyer',
-                              child: Text(lang == 'kk' ? 'Заңгер' : (lang == 'en' ? 'Lawyer' : 'Юрист')),
+                              child: Text('specialist.lawyer'.tr()),
                             ),
                             DropdownMenuItem(
                               value: 'advocate',
-                              child: Text(lang == 'kk' ? 'Адвокат' : (lang == 'en' ? 'Advocate' : 'Адвокат')),
+                              child: Text('specialist.advocate'.tr()),
                             ),
                             DropdownMenuItem(
                               value: 'private_court_executor',
-                              child: Text(lang == 'kk' ? 'Жеке сот орындаушысы (ЖСО)' : (lang == 'en' ? 'Private Bailiff' : 'Частный судебный исполнитель (ЧСИ)')),
+                              child: Text('specialist.pce_full'.tr()),
                             ),
                           ],
                           onChanged: (v) => setState(() => _selectedLawyerSubtype = v!),
@@ -414,7 +394,7 @@ class _AuthScreenState extends State<AuthScreen> {
                             LengthLimitingTextInputFormatter(12),
                           ],
                           decoration: InputDecoration(
-                            labelText: lang == 'kk' ? 'ЖСН (ИИН)*' : (lang == 'en' ? 'IIN*' : 'ИИН*'),
+                            labelText: 'auth.iin'.tr(),
                             hintText: '000000000000',
                             border: const OutlineInputBorder(),
                             prefixIcon: const Icon(Icons.badge_outlined),
@@ -422,10 +402,10 @@ class _AuthScreenState extends State<AuthScreen> {
                           validator: (v) {
                             if (_selectedRole != 'lawyer') return null;
                             if (v == null || v.trim().isEmpty) {
-                              return lang == 'kk' ? 'ЖСН міндетті' : 'ИИН обязателен';
+                              return 'auth.iin_required'.tr();
                             }
                             if (v.trim().length != 12) {
-                              return lang == 'kk' ? 'ЖСН 12 цифр болуы керек' : 'ИИН должен содержать 12 цифр';
+                              return 'auth.iin_length'.tr();
                             }
                             return null;
                           },

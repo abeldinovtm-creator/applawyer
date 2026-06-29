@@ -57,7 +57,7 @@ class _RegionPickerScreenState extends State<RegionPickerScreen> {
         title: Text(
           _selectedOblast != null
               ? translateRegion(_selectedOblast!, lang)
-              : (lang == 'kk' ? 'Аймақ' : lang == 'en' ? 'Region' : 'Регион'),
+              : 'region_picker.title'.tr(),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -73,7 +73,7 @@ class _RegionPickerScreenState extends State<RegionPickerScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context, 'Все регионы'),
             child: Text(
-              lang == 'kk' ? 'Барлығы' : lang == 'en' ? 'Reset' : 'Сбросить',
+              'region_picker.reset'.tr(),
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
@@ -88,7 +88,7 @@ class _RegionPickerScreenState extends State<RegionPickerScreen> {
               controller: _searchController,
               onChanged: (v) => setState(() => _searchQuery = v),
               decoration: InputDecoration(
-                hintText: lang == 'kk' ? 'Қала, аудан, ел' : lang == 'en' ? 'City, region, country' : 'Город, область, страна',
+                hintText: 'region_picker.search_hint'.tr(),
                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -121,7 +121,7 @@ class _RegionPickerScreenState extends State<RegionPickerScreen> {
                     const Icon(Icons.public, color: Colors.red, size: 20),
                     const SizedBox(width: 12),
                     Text(
-                      lang == 'kk' ? 'Онлайн (кез келген аймақ)' : lang == 'en' ? 'Online (any region)' : 'Онлайн (любой регион)',
+                      'region_picker.online'.tr(),
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                     ),
                   ],
@@ -136,7 +136,7 @@ class _RegionPickerScreenState extends State<RegionPickerScreen> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  lang == 'kk' ? 'Қазақстанның барлық аймақтары' : lang == 'en' ? 'All regions of Kazakhstan' : 'Все регионы Казахстана',
+                  'region_picker.all_regions'.tr(),
                   style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                 ),
               ),

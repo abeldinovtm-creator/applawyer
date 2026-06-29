@@ -6,20 +6,19 @@ class LawyerProfileViewScreen extends StatelessWidget {
 
   const LawyerProfileViewScreen({Key? key, required this.profile}) : super(key: key);
 
-  String _subtypeLabel(String subtype, String lang) {
+  String _subtypeLabel(String subtype) {
     switch (subtype) {
       case 'advocate':
-        return lang == 'kk' ? 'Адвокат' : 'Адвокат';
+        return 'specialist.advocate'.tr();
       case 'private_court_executor':
-        return lang == 'kk' ? 'Жеке сот орындаушысы (ЖСО)' : 'Частный судебный исполнитель (ЧСИ)';
+        return 'specialist.pce_full'.tr();
       default:
-        return lang == 'kk' ? 'Заңгер' : 'Юрист';
+        return 'specialist.lawyer'.tr();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final lang = context.locale.languageCode;
     final name = profile['full_name']?.toString() ?? '';
     final city = profile['city']?.toString() ?? '';
     final expRaw = profile['experience_years'];
@@ -28,11 +27,11 @@ class LawyerProfileViewScreen extends StatelessWidget {
     final phone = profile['phone']?.toString() ?? '';
     final subtype = profile['lawyer_subtype']?.toString() ?? 'lawyer';
 
-    final displayName = name.isNotEmpty ? name : (lang == 'kk' ? 'Маман' : 'Специалист');
+    final displayName = name.isNotEmpty ? name : 'profile_view.specialist'.tr();
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(lang == 'kk' ? 'Маман профилі' : 'Профиль специалиста'),
+        title: Text('profile_view.title'.tr()),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -69,7 +68,7 @@ class LawyerProfileViewScreen extends StatelessWidget {
                       border: Border.all(color: Colors.red.shade200),
                     ),
                     child: Text(
-                      _subtypeLabel(subtype, lang),
+                      _subtypeLabel(subtype),
                       style: TextStyle(
                         color: Colors.red[800],
                         fontWeight: FontWeight.bold,
@@ -83,19 +82,19 @@ class LawyerProfileViewScreen extends StatelessWidget {
             const SizedBox(height: 28),
             _infoRow(
               Icons.location_on_outlined,
-              lang == 'kk' ? 'Қала / Аймақ' : 'Город / Регион',
+              'profile_view.city'.tr(),
               city.isNotEmpty ? city : '—',
             ),
             if (exp > 0)
               _infoRow(
                 Icons.work_history_outlined,
-                lang == 'kk' ? 'Тәжірибе' : 'Опыт работы',
-                '$exp ${lang == 'kk' ? 'жыл' : 'лет'}',
+                'profile_view.experience'.tr(),
+                '$exp ${'profile_view.years'.tr()}',
               ),
             if (phone.isNotEmpty)
               _infoRow(
                 Icons.phone_outlined,
-                lang == 'kk' ? 'Телефон' : 'Телефон',
+                'profile_view.phone'.tr(),
                 phone,
               ),
             if (about.isNotEmpty) ...[
@@ -103,7 +102,7 @@ class LawyerProfileViewScreen extends StatelessWidget {
               const Divider(),
               const SizedBox(height: 12),
               Text(
-                lang == 'kk' ? 'Өзі туралы' : 'О себе',
+                'profile_view.about'.tr(),
                 style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 8),

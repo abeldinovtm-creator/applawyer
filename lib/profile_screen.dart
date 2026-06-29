@@ -108,16 +108,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       });
 
       if (mounted) {
-        _showSnack(
-          context.locale.languageCode == 'kk' ? 'Сақталды' : 'Сохранено',
-          Colors.green,
-        );
+        _showSnack('profile.saved'.tr(), Colors.green);
       }
     } catch (e) {
       if (mounted) {
         final msg = e.toString().contains('profiles_iin_unique')
-            ? (context.locale.languageCode == 'kk'
-                ? 'Бұл ИИН тіркелген' : 'Этот ИИН уже зарегистрирован')
+            ? 'profile.iin_duplicate'.tr()
             : 'Ошибка: $e';
         _showSnack(msg, Colors.red);
       }
@@ -127,16 +123,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _changePassword() async {
-    final lang = context.locale.languageCode;
     final newPass = _newPassCtrl.text.trim();
     final confirmPass = _confirmPassCtrl.text.trim();
 
     if (newPass.length < 6) {
-      _showSnack(lang == 'kk' ? 'Кемінде 6 таңба' : 'Минимум 6 символов', Colors.orange);
+      _showSnack('profile.password_min'.tr(), Colors.orange);
       return;
     }
     if (newPass != confirmPass) {
-      _showSnack(lang == 'kk' ? 'Құпия сөздер сәйкес емес' : 'Пароли не совпадают', Colors.orange);
+      _showSnack('profile.password_mismatch'.tr(), Colors.orange);
       return;
     }
 
@@ -146,7 +141,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       _newPassCtrl.clear();
       _confirmPassCtrl.clear();
       if (mounted) {
-        _showSnack(lang == 'kk' ? 'Құпия сөз өзгертілді' : 'Пароль изменён', Colors.green);
+        _showSnack('profile.password_changed'.tr(), Colors.green);
       }
     } catch (e) {
       if (mounted) _showSnack('Ошибка: $e', Colors.red);
@@ -156,26 +151,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Future<void> _deleteAccount() async {
-    final lang = context.locale.languageCode;
-
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(lang == 'kk' ? 'Аккаунтты жою?' : 'Удалить аккаунт?'),
-        content: Text(lang == 'kk'
-            ? 'Барлық деректер жойылады. Бұл әрекетті қайтаруға болмайды.'
-            : 'Все данные будут удалены. Это действие необратимо.'),
+        title: Text('profile.delete_confirm_title'.tr()),
+        content: Text('profile.delete_confirm_body'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(lang == 'kk' ? 'Бас тарту' : 'Отмена'),
+            child: Text('common.cancel'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(
-              lang == 'kk' ? 'Иә, жою' : 'Да, удалить',
-              style: const TextStyle(color: Colors.red),
-            ),
+            child: Text('common.yes_delete'.tr(), style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -207,24 +195,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
-  String _subtypeName(String lang) {
+  String _subtypeName() {
     switch (_lawyerSubtype) {
-      case 'advocate':
-        return lang == 'kk' ? 'Адвокат' : 'Адвокат';
-      case 'private_court_executor':
-        return lang == 'kk' ? 'Жеке сот орындаушысы (ЖСО)' : 'Частный судебный исполнитель (ЧСИ)';
-      default:
-        return lang == 'kk' ? 'Заңгер' : 'Юрист';
+      case 'advocate': return 'specialist.advocate'.tr();
+      case 'private_court_executor': return 'specialist.pce_full'.tr();
+      default: return 'specialist.lawyer'.tr();
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final lang = context.locale.languageCode;
-
     return Scaffold(
       appBar: AppBar(
-        title: Text(lang == 'kk' ? 'Профиль' : 'Профиль'),
+        title: Text('profile.title'.tr()),
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -263,7 +246,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 border: Border.all(color: Colors.red.shade200),
                               ),
                               child: Text(
-                                _subtypeName(lang),
+                                _subtypeName(),
                                 style: TextStyle(
                                   color: Colors.red[800],
                                   fontWeight: FontWeight.bold,
@@ -277,20 +260,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 28),
 
-                    _sectionHeader(lang == 'kk' ? 'Жеке деректер' : 'Личные данные'),
+                    _sectionHeader('profile.personal_data'.tr()),
                     const SizedBox(height: 12),
 
                     TextFormField(
                       controller: _nameCtrl,
                       textCapitalization: TextCapitalization.words,
                       decoration: InputDecoration(
-                        labelText: lang == 'kk' ? 'Аты-жөні' : 'Имя и фамилия',
+                        labelText: 'profile.full_name'.tr(),
                         prefixIcon: const Icon(Icons.person_outline),
                         border: const OutlineInputBorder(),
                       ),
-                      validator: (v) => v!.trim().isEmpty
-                          ? (lang == 'kk' ? 'Өрісті толтырыңыз' : 'Заполните поле')
-                          : null,
+                      validator: (v) => v!.trim().isEmpty ? 'profile.required'.tr() : null,
                     ),
                     const SizedBox(height: 12),
 
@@ -299,7 +280,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       keyboardType: TextInputType.phone,
                       inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-\s()]'))],
                       decoration: InputDecoration(
-                        labelText: lang == 'kk' ? 'Телефон' : 'Телефон',
+                        labelText: 'profile.phone'.tr(),
                         hintText: '+7 777 000 00 00',
                         prefixIcon: const Icon(Icons.phone_outlined),
                         border: const OutlineInputBorder(),
@@ -319,18 +300,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           LengthLimitingTextInputFormatter(12),
                         ],
                         decoration: InputDecoration(
-                          labelText: lang == 'kk' ? 'ЖСН (ИИН)*' : 'ИИН*',
+                          labelText: 'profile.iin'.tr(),
                           hintText: '000000000000',
                           prefixIcon: const Icon(Icons.badge_outlined),
                           border: const OutlineInputBorder(),
                         ),
                         validator: (v) {
-                          if (v == null || v.trim().isEmpty) {
-                            return lang == 'kk' ? 'ЖСН міндетті' : 'ИИН обязателен';
-                          }
-                          if (v.trim().length != 12) {
-                            return lang == 'kk' ? 'ЖСН 12 цифр болуы керек' : 'ИИН должен содержать 12 цифр';
-                          }
+                          if (v == null || v.trim().isEmpty) return 'profile.iin_required'.tr();
+                          if (v.trim().length != 12) return 'profile.iin_length'.tr();
                           return null;
                         },
                       ),
@@ -342,7 +319,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         borderRadius: BorderRadius.circular(4),
                         child: InputDecorator(
                           decoration: InputDecoration(
-                            labelText: lang == 'kk' ? 'Қала / Аймақ' : 'Город / Регион',
+                            labelText: 'profile.city'.tr(),
                             prefixIcon: const Icon(Icons.location_on_outlined),
                             suffixIcon: const Icon(Icons.arrow_drop_down),
                             border: const OutlineInputBorder(),
@@ -350,7 +327,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           child: Text(
                             _selectedRegion.isNotEmpty
                                 ? _selectedRegion
-                                : (lang == 'kk' ? 'Таңдаңыз...' : 'Выбрать...'),
+                                : 'profile.city_select'.tr(),
                             style: TextStyle(
                               fontSize: 16,
                               color: _selectedRegion.isNotEmpty ? Colors.black87 : Colors.grey,
@@ -365,7 +342,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         keyboardType: TextInputType.number,
                         inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                         decoration: InputDecoration(
-                          labelText: lang == 'kk' ? 'Тәжірибе (жыл)' : 'Опыт работы (лет)',
+                          labelText: 'profile.experience'.tr(),
                           prefixIcon: const Icon(Icons.work_history_outlined),
                           border: const OutlineInputBorder(),
                         ),
@@ -377,10 +354,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         maxLines: 5,
                         maxLength: 600,
                         decoration: InputDecoration(
-                          labelText: lang == 'kk' ? 'Өзіңіз туралы' : 'О себе',
-                          hintText: lang == 'kk'
-                              ? 'Мамандану, жетістіктер, жұмыс тәсілі...'
-                              : 'Специализация, достижения, подход к работе...',
+                          labelText: 'profile.about'.tr(),
+                          hintText: 'profile.about_hint'.tr(),
                           prefixIcon: const Icon(Icons.description_outlined),
                           border: const OutlineInputBorder(),
                           alignLabelWithHint: true,
@@ -403,21 +378,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               width: 20,
                               child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
                             )
-                          : Text(
-                              lang == 'kk' ? 'Сақтау' : 'Сохранить',
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                            ),
+                          : Text('profile.save'.tr(),
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
 
                     const SizedBox(height: 32),
-                    _sectionHeader(lang == 'kk' ? 'Құпия сөзді өзгерту' : 'Смена пароля'),
+                    _sectionHeader('profile.change_password'.tr()),
                     const SizedBox(height: 12),
 
                     TextFormField(
                       controller: _newPassCtrl,
                       obscureText: _obscureNew,
                       decoration: InputDecoration(
-                        labelText: lang == 'kk' ? 'Жаңа құпия сөз' : 'Новый пароль',
+                        labelText: 'profile.new_password'.tr(),
                         prefixIcon: const Icon(Icons.lock_outline),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
@@ -431,7 +404,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       controller: _confirmPassCtrl,
                       obscureText: _obscureConfirm,
                       decoration: InputDecoration(
-                        labelText: lang == 'kk' ? 'Растау' : 'Подтвердить пароль',
+                        labelText: 'profile.confirm_password'.tr(),
                         prefixIcon: const Icon(Icons.lock_outline),
                         border: const OutlineInputBorder(),
                         suffixIcon: IconButton(
@@ -454,8 +427,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               width: 20,
                               child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red),
                             )
-                          : Text(
-                              lang == 'kk' ? 'Құпия сөзді өзгерту' : 'Изменить пароль',
+                          : Text('profile.change_password_btn'.tr(),
                               style: const TextStyle(
                                 color: Colors.red,
                                 fontSize: 16,
@@ -465,24 +437,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
 
                     const SizedBox(height: 32),
-                    _sectionHeader(lang == 'kk' ? 'Құжаттар' : lang == 'en' ? 'Documents' : 'Документы'),
+                    _sectionHeader('profile.documents'.tr()),
                     const SizedBox(height: 8),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: const Icon(Icons.shield_outlined, color: Colors.red),
-                      title: Text(lang == 'kk' ? 'Құпиялылық саясаты' : lang == 'en' ? 'Privacy Policy' : 'Политика конфиденциальности'),
+                      title: Text('profile.privacy_policy'.tr()),
                       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen())),
                     ),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
                       leading: const Icon(Icons.description_outlined, color: Colors.red),
-                      title: Text(lang == 'kk' ? 'Пайдаланушы келісімі' : lang == 'en' ? 'Terms of Service' : 'Пользовательское соглашение'),
+                      title: Text('profile.terms_of_service'.tr()),
                       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsOfServiceScreen())),
                     ),
                     const SizedBox(height: 24),
-                    _sectionHeader(lang == 'kk' ? 'Қауіпті аймақ' : lang == 'en' ? 'Danger zone' : 'Опасная зона'),
+                    _sectionHeader('profile.danger_zone'.tr()),
                     const SizedBox(height: 12),
                     OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
@@ -500,7 +472,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             )
                           : const Icon(Icons.delete_forever_outlined),
                       label: Text(
-                        lang == 'kk' ? 'Аккаунтты жою' : 'Удалить аккаунт',
+                        'profile.delete_account'.tr(),
                         style: const TextStyle(fontSize: 15),
                       ),
                     ),

@@ -110,72 +110,23 @@ class CategorySelectionScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final lang = context.locale.languageCode;
-
-    String screenTitle = lang == 'kk' ? 'Бөлімді таңдаңыз' : (lang == 'en' ? 'Select Category' : 'Выберите раздел');
-    String welcomeText = lang == 'kk' ? 'Сізде қандай заңдық мәселе бар?' : (lang == 'en' ? 'What is your legal issue?' : 'Какая у вас юридическая проблема?');
-
     final List<Map<String, dynamic>> categories = [
-      {
-        'id': 'Составить или проверить договор',
-        'title': lang == 'kk' ? 'Шартты жасау немесе тексеру' : (lang == 'en' ? 'Contract drafting/review' : 'Составить или проверить договор'),
-        'icon': Icons.description_rounded,
-      },
-      {
-        'id': 'Споры, суды и долги',
-        'title': lang == 'kk' ? 'Даулар, соттар және борыштар' : (lang == 'en' ? 'Disputes & Debts' : 'Споры, суды и долги'),
-        'icon': Icons.gavel_rounded,
-      },
-      {
-        'id': 'Трудовые споры',
-        'title': lang == 'kk' ? 'Еңбек даулары' : (lang == 'en' ? 'Labor disputes' : 'Трудовые споры'),
-        'icon': Icons.work_rounded,
-      },
-      {
-        'id': 'Семья, брак и развод',
-        'title': lang == 'kk' ? 'Отбасы, неке және ажырасу' : (lang == 'en' ? 'Family & Divorce' : 'Семья, брак и развод'),
-        'icon': Icons.favorite_rounded,
-      },
-      {
-        'id': 'Штрафы, налоги и госорганы',
-        'title': lang == 'kk' ? 'Айыппұлдар, салықтар және мемлекеттік органдар' : (lang == 'en' ? 'Fines & Taxes' : 'Штрафы, налоги и госорганы'),
-        'icon': Icons.account_balance_rounded,
-      },
-      {
-        'id': 'Бизнес, ИП и ТОО',
-        'title': lang == 'kk' ? 'Бизнес, ЖК және ЖШС' : (lang == 'en' ? 'Business & SME' : 'Бизнес, ИП и ТОО'),
-        'icon': Icons.business_center_rounded,
-      },
-      {
-        'id': 'Земельные вопросы',
-        'title': lang == 'kk' ? 'Жер мәселелері' : (lang == 'en' ? 'Land issues' : 'Земельные вопросы'),
-        'icon': Icons.landscape_rounded,
-      },
-      {
-        'id': 'Долги и коллекторы',
-        'title': lang == 'kk' ? 'Борыштар және коллекторлар' : (lang == 'en' ? 'Debts & collectors' : 'Долги и коллекторы'),
-        'icon': Icons.money_off_rounded,
-      },
-      {
-        'id': 'Уголовные дела',
-        'title': lang == 'kk' ? 'Қылмыстық істер' : (lang == 'en' ? 'Criminal cases' : 'Уголовные дела'),
-        'icon': Icons.security_rounded,
-      },
-      {
-        'id': 'Исполнение решения суда / ЧСИ',
-        'title': lang == 'kk' ? 'Сот шешімін орындау / ЖСО' : (lang == 'en' ? 'Court enforcement / Bailiff' : 'Исполнение решения суда / ЧСИ'),
-        'icon': Icons.assignment_turned_in_rounded,
-      },
-      {
-        'id': 'Другой вопрос',
-        'title': lang == 'kk' ? 'Басқа сұрақ' : (lang == 'en' ? 'Other issue' : 'Другой вопрос'),
-        'icon': Icons.help_outline_rounded,
-      },
+      {'id': 'Составить или проверить договор', 'title': 'category.contract'.tr(), 'icon': Icons.description_rounded},
+      {'id': 'Споры, суды и долги', 'title': 'category.disputes'.tr(), 'icon': Icons.gavel_rounded},
+      {'id': 'Трудовые споры', 'title': 'category.labor'.tr(), 'icon': Icons.work_rounded},
+      {'id': 'Семья, брак и развод', 'title': 'category.family'.tr(), 'icon': Icons.favorite_rounded},
+      {'id': 'Штрафы, налоги и госорганы', 'title': 'category.taxes'.tr(), 'icon': Icons.account_balance_rounded},
+      {'id': 'Бизнес, ИП и ТОО', 'title': 'category.business'.tr(), 'icon': Icons.business_center_rounded},
+      {'id': 'Земельные вопросы', 'title': 'category.land'.tr(), 'icon': Icons.landscape_rounded},
+      {'id': 'Долги и коллекторы', 'title': 'category.debts'.tr(), 'icon': Icons.money_off_rounded},
+      {'id': 'Уголовные дела', 'title': 'category.criminal'.tr(), 'icon': Icons.security_rounded},
+      {'id': 'Исполнение решения суда / ЧСИ', 'title': 'category.enforcement'.tr(), 'icon': Icons.assignment_turned_in_rounded},
+      {'id': 'Другой вопрос', 'title': 'category.other'.tr(), 'icon': Icons.help_outline_rounded},
     ];
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(screenTitle),
+        title: Text('category.screen_title'.tr()),
         leading: IconButton(
           icon: const Icon(Icons.logout_rounded),
           onPressed: () async {
@@ -186,7 +137,7 @@ class CategorySelectionScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.assignment_turned_in_rounded),
-            tooltip: lang == 'kk' ? 'Менің өтінімдерім' : lang == 'en' ? 'My orders' : 'Мои заявки',
+            tooltip: 'client.orders_title'.tr(),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ClientOrdersScreen()),
@@ -194,7 +145,7 @@ class CategorySelectionScreen extends StatelessWidget {
           ),
           IconButton(
             icon: const Icon(Icons.person_outline),
-            tooltip: lang == 'kk' ? 'Профиль' : 'Профиль',
+            tooltip: 'profile.title'.tr(),
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ProfileScreen()),
@@ -212,7 +163,7 @@ class CategorySelectionScreen extends StatelessWidget {
           children: [
             const SizedBox(height: 10),
             Text(
-              welcomeText,
+              'category.welcome'.tr(),
               style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
             ),
             const SizedBox(height: 20),
@@ -381,9 +332,8 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
       final result = _budgetResultCtrl.text.isNotEmpty ? int.tryParse(_budgetResultCtrl.text) : null;
 
       if (prepay == null && completion == null && result == null) {
-        final l = context.locale.languageCode;
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text(l == 'kk' ? 'Кем дегенде бір төлем өрісін толтырыңыз' : l == 'en' ? 'Fill in at least one payment field' : 'Заполните хотя бы одно поле оплаты'),
+          content: Text('payment.fill_error'.tr()),
           backgroundColor: Colors.red,
         ));
         setState(() => _isLoading = false);
@@ -414,11 +364,8 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
       _budgetCompletionCtrl.clear();
       _budgetResultCtrl.clear();
       
-      final _lang = context.locale.languageCode;
-      String successText = _lang == 'kk' ? 'Сәтті жіберілді!' : _lang == 'en' ? 'Successfully submitted!' : 'Успешно отправлено!';
-
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(successText), backgroundColor: Colors.red),
+        SnackBar(content: Text('case.success'.tr()), backgroundColor: Colors.red),
       );
       
       Navigator.pop(context);
@@ -435,38 +382,29 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
   Widget build(BuildContext context) {
     final lang = context.locale.languageCode;
 
-    String screenTitle = lang == 'kk' ? 'Өтінішті сипаттау' : lang == 'en' ? 'Describe your case' : 'Описание обращения';
-    String fieldRequiredMsg = lang == 'kk' ? 'Өрісті толтырыңыз' : lang == 'en' ? 'Required field' : 'Заполните поле';
-    String titleLabel = lang == 'kk' ? 'Мәселенің атауы' : lang == 'en' ? 'Issue title' : 'Название вашей проблемы';
-    String descLabel = lang == 'kk' ? 'Жағдайды толық сипаттаңыз' : lang == 'en' ? 'Describe your situation in detail' : 'Опишите ситуацию подробно';
-    final budgetSectionLabel = lang == 'kk' ? 'Төлем шарттары (кем дегенде біреуін толтырыңыз)' : lang == 'en' ? 'Payment terms (fill at least one)' : 'Условия оплаты (заполните хотя бы одно)';
-    String serviceTypeLabel = lang == 'kk' ? 'Не істеу керек?' : lang == 'en' ? 'What do you need?' : 'Что нужно сделать?';
-    String categoryLabel = lang == 'kk' ? 'Таңдалған тақырып' : lang == 'en' ? 'Selected category' : 'Выбранная тема';
-    String btnText = lang == 'kk' ? 'Заңгерлерге жіберу' : lang == 'en' ? 'Send to lawyers' : 'Отправить юристам';
-
-    Map<String, String> categoryMap = {
-      'Составить или проверить договор': lang == 'kk' ? 'Шартты жасау немесе тексеру' : (lang == 'en' ? 'Contract drafting/review' : 'Составить или проверить договор'),
-      'Споры, суды и долги': lang == 'kk' ? 'Даулар, соттар және борыштар' : (lang == 'en' ? 'Disputes & Debts' : 'Споры, суды и долги'),
-      'Трудовые споры': lang == 'kk' ? 'Еңбек даулары' : (lang == 'en' ? 'Labor disputes' : 'Трудовые споры'),
-      'Семья, брак и развод': lang == 'kk' ? 'Отбасы, неке және ажырасу' : (lang == 'en' ? 'Family & Divorce' : 'Семья, брак и развод'),
-      'Штрафы, налоги и госорганы': lang == 'kk' ? 'Айыппұлдар, салықтар және мемлекеттік органдар' : (lang == 'en' ? 'Fines & Taxes' : 'Штрафы, налоги и госорганы'),
-      'Бизнес, ИП и ТОО': lang == 'kk' ? 'Бизнес, ЖК және ЖШС' : (lang == 'en' ? 'Business & SME' : 'Бизнес, ИП и ТОО'),
-      'Земельные вопросы': lang == 'kk' ? 'Жер мәселелері' : (lang == 'en' ? 'Land issues' : 'Земельные вопросы'),
-      'Долги и коллекторы': lang == 'kk' ? 'Борыштар және коллекторлар' : (lang == 'en' ? 'Debts & collectors' : 'Долги и коллекторы'),
-      'Уголовные дела': lang == 'kk' ? 'Қылмыстық істер' : (lang == 'en' ? 'Criminal cases' : 'Уголовные дела'),
-      'Исполнение решения суда / ЧСИ': lang == 'kk' ? 'Сот шешімін орындау / ЖСО' : (lang == 'en' ? 'Court enforcement / Bailiff' : 'Исполнение решения суда / ЧСИ'),
-      'Другой вопрос': lang == 'kk' ? 'Басқа сұрақ' : (lang == 'en' ? 'Other issue' : 'Другой вопрос'),
+    final Map<String, String> categoryMap = {
+      'Составить или проверить договор': 'category.contract'.tr(),
+      'Споры, суды и долги': 'category.disputes'.tr(),
+      'Трудовые споры': 'category.labor'.tr(),
+      'Семья, брак и развод': 'category.family'.tr(),
+      'Штрафы, налоги и госорганы': 'category.taxes'.tr(),
+      'Бизнес, ИП и ТОО': 'category.business'.tr(),
+      'Земельные вопросы': 'category.land'.tr(),
+      'Долги и коллекторы': 'category.debts'.tr(),
+      'Уголовные дела': 'category.criminal'.tr(),
+      'Исполнение решения суда / ЧСИ': 'category.enforcement'.tr(),
+      'Другой вопрос': 'category.other'.tr(),
     };
 
-    Map<String, String> serviceMap = {
-      'Консультация': lang == 'kk' ? 'Консультация' : lang == 'en' ? 'Consultation' : 'Консультация',
-      'Подготовка документов': lang == 'kk' ? 'Құжаттарды дайындау' : lang == 'en' ? 'Document preparation' : 'Подготовка документов',
-      'Полное сопровождение': lang == 'kk' ? 'Толық сүйемелдеу' : lang == 'en' ? 'Full legal support' : 'Полное сопровождение',
+    final Map<String, String> serviceMap = {
+      'Консультация': 'service.consultation'.tr(),
+      'Подготовка документов': 'service.documents_full'.tr(),
+      'Полное сопровождение': 'service.full_support_full'.tr(),
     };
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(screenTitle),
+        title: Text('case.describe_title'.tr()),
         actions: [
           buildLanguageButton(context, 'kk', 'KZ', isDarkAppBar: true),
           buildLanguageButton(context, 'ru', 'RU', isDarkAppBar: true),
@@ -485,7 +423,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                     DropdownButtonFormField<String>(
                       value: _selectedCategory,
                       decoration: InputDecoration(
-                        labelText: categoryLabel,
+                        labelText: 'case.category_label'.tr(),
                         prefixIcon: const Icon(Icons.topic_rounded, color: Colors.red),
                         border: const OutlineInputBorder(),
                       ),
@@ -504,11 +442,11 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                         TextFormField(
                           controller: _titleController,
                           decoration: InputDecoration(
-                            labelText: titleLabel,
+                            labelText: 'case.title_label'.tr(),
                             border: const OutlineInputBorder(),
                             contentPadding: const EdgeInsets.only(top: 16, left: 12, right: 50, bottom: 16),
                           ),
-                          validator: (value) => value!.isEmpty ? fieldRequiredMsg : null,
+                          validator: (value) => value!.isEmpty ? 'common.required'.tr() : null,
                         ),
                         Padding(
                           padding: const EdgeInsets.only(right: 8.0),
@@ -529,12 +467,12 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                           controller: _descriptionController,
                           maxLines: 5,
                           decoration: InputDecoration(
-                            labelText: descLabel,
+                            labelText: 'case.description_label'.tr(),
                             border: const OutlineInputBorder(),
                             alignLabelWithHint: true,
                             contentPadding: const EdgeInsets.only(top: 16, left: 12, right: 50, bottom: 16),
                           ),
-                          validator: (value) => value!.isEmpty ? fieldRequiredMsg : null,
+                          validator: (value) => value!.isEmpty ? 'common.required'.tr() : null,
                         ),
                         Padding(
                           padding: const EdgeInsets.only(top: 8.0, right: 8.0),
@@ -562,7 +500,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                               const Icon(Icons.payments_rounded, color: Colors.red, size: 18),
                               const SizedBox(width: 8),
                               Expanded(
-                                child: Text(budgetSectionLabel,
+                                child: Text('case.payment_section'.tr(),
                                     style: TextStyle(fontSize: 13, color: Colors.grey[700])),
                               ),
                             ],
@@ -573,7 +511,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                             keyboardType: TextInputType.number,
                             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             decoration: InputDecoration(
-                              labelText: lang == 'kk' ? 'Алдын ала төлем' : lang == 'en' ? 'Prepayment' : 'Предоплата',
+                              labelText: 'payment.prepayment'.tr(),
                               hintText: '0',
                               border: const OutlineInputBorder(),
                               suffixText: '₸',
@@ -586,7 +524,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                             keyboardType: TextInputType.number,
                             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             decoration: InputDecoration(
-                              labelText: lang == 'kk' ? 'Қызмет көрсетілгеннен кейін' : lang == 'en' ? 'After service' : 'После оказания услуг',
+                              labelText: 'payment.after_service'.tr(),
                               hintText: '0',
                               border: const OutlineInputBorder(),
                               suffixText: '₸',
@@ -599,7 +537,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                             keyboardType: TextInputType.number,
                             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             decoration: InputDecoration(
-                              labelText: lang == 'kk' ? 'Нәтиже бойынша' : lang == 'en' ? 'On result' : 'По результатам',
+                              labelText: 'payment.on_result'.tr(),
                               hintText: '0',
                               border: const OutlineInputBorder(),
                               suffixText: '₸',
@@ -613,7 +551,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                     DropdownButtonFormField<String>(
                       value: _selectedRegion,
                       decoration: InputDecoration(
-                        labelText: lang == 'kk' ? 'Жұмыс орны (қала/өңір)' : lang == 'en' ? 'City / Region' : 'Место работы (город/регион)',
+                        labelText: 'case.city_label'.tr(),
                         prefixIcon: const Icon(Icons.location_on_rounded, color: Colors.red),
                         border: const OutlineInputBorder(),
                       ),
@@ -626,7 +564,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                     DropdownButtonFormField<String>(
                       value: _selectedServiceType,
                       decoration: InputDecoration(
-                        labelText: serviceTypeLabel,
+                        labelText: 'case.service_type_label'.tr(),
                         prefixIcon: const Icon(Icons.assignment_turned_in_rounded, color: Colors.red),
                         border: const OutlineInputBorder(),
                       ),
@@ -646,7 +584,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                         minimumSize: const Size(double.infinity, 50),
                       ),
                       onPressed: _submitCase,
-                      child: Text(btnText, style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      child: Text('case.send_btn'.tr(), style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                     ),
                   ],
                 ),

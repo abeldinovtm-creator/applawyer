@@ -4,22 +4,22 @@ import 'package:easy_localization/easy_localization.dart';
 import 'chat_screen.dart';
 import 'region_translations.dart';
 
-String _translateCat(String cat, String lang) {
-  if (lang == 'ru') return cat;
-  const Map<String, Map<String, String>> _t = {
-    'Составить или проверить договор': {'kk': 'Шартты жасау немесе тексеру', 'en': 'Contract drafting/review'},
-    'Споры, суды и долги': {'kk': 'Даулар, соттар және борыштар', 'en': 'Disputes & Debts'},
-    'Трудовые споры': {'kk': 'Еңбек даулары', 'en': 'Labor disputes'},
-    'Семья, брак и развод': {'kk': 'Отбасы, неке және ажырасу', 'en': 'Family & Divorce'},
-    'Штрафы, налоги и госорганы': {'kk': 'Айыппұлдар, салықтар', 'en': 'Fines & Taxes'},
-    'Бизнес, ИП и ТОО': {'kk': 'Бизнес, ЖК және ЖШС', 'en': 'Business & SME'},
-    'Земельные вопросы': {'kk': 'Жер мәселелері', 'en': 'Land issues'},
-    'Долги и коллекторы': {'kk': 'Борыштар және коллекторлар', 'en': 'Debts & collectors'},
-    'Уголовные дела': {'kk': 'Қылмыстық істер', 'en': 'Criminal cases'},
-    'Исполнение решения суда / ЧСИ': {'kk': 'Сот шешімін орындау / ЖСО', 'en': 'Court enforcement'},
-    'Другой вопрос': {'kk': 'Басқа сұрақ', 'en': 'Other issue'},
+String _trCat(String cat) {
+  const map = {
+    'Составить или проверить договор': 'category.contract',
+    'Споры, суды и долги': 'category.disputes',
+    'Трудовые споры': 'category.labor',
+    'Семья, брак и развод': 'category.family',
+    'Штрафы, налоги и госорганы': 'category.taxes',
+    'Бизнес, ИП и ТОО': 'category.business',
+    'Земельные вопросы': 'category.land',
+    'Долги и коллекторы': 'category.debts',
+    'Уголовные дела': 'category.criminal',
+    'Исполнение решения суда / ЧСИ': 'category.enforcement',
+    'Другой вопрос': 'category.other',
   };
-  return _t[cat]?[lang] ?? cat;
+  final key = map[cat];
+  return key != null ? key.tr() : cat;
 }
 
 class ClientOrdersScreen extends StatefulWidget {
@@ -59,28 +59,19 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
   }
 
   Future<void> _closeOrder(String caseId) async {
-    final l = context.locale.languageCode;
-
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l == 'kk' ? 'Істі жабу?' : l == 'en' ? 'Close case?' : 'Закрыть заявку?'),
-        content: Text(l == 'kk'
-            ? 'Заявка аяқталды деп белгіленеді. Растайсыз ба?'
-            : l == 'en'
-                ? 'The order will be marked as completed. Confirm?'
-                : 'Заявка будет отмечена как завершённая. Подтвердить?'),
+        title: Text('client.close_confirm_title'.tr()),
+        content: Text('client.close_confirm_body'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l == 'kk' ? 'Жоқ' : l == 'en' ? 'Cancel' : 'Отмена'),
+            child: Text('common.no'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(
-              l == 'kk' ? 'Иә, жабу' : l == 'en' ? 'Yes, close' : 'Да, закрыть',
-              style: const TextStyle(color: Colors.green),
-            ),
+            child: Text('common.yes_close'.tr(), style: const TextStyle(color: Colors.green)),
           ),
         ],
       ),
@@ -94,7 +85,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l == 'kk' ? 'Заявка жабылды' : l == 'en' ? 'Case closed' : 'Заявка закрыта'),
+            content: Text('client.order_closed'.tr()),
             backgroundColor: Colors.green,
           ),
         );
@@ -113,28 +104,19 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
 
   // Отмена заявки через DELETE — обходим constraint "cases_status_check"
   Future<void> _cancelOrder(String caseId) async {
-    final l = context.locale.languageCode;
-
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l == 'kk' ? 'Өтінімді жою?' : l == 'en' ? 'Delete order?' : 'Удалить заявку?'),
-        content: Text(l == 'kk'
-            ? 'Өтінім толығымен жойылады. Растайсыз ба?'
-            : l == 'en'
-                ? 'The order will be permanently deleted. Confirm?'
-                : 'Заявка будет полностью удалена. Подтвердить?'),
+        title: Text('client.delete_confirm_title'.tr()),
+        content: Text('client.delete_confirm_body'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l == 'kk' ? 'Жоқ' : l == 'en' ? 'Cancel' : 'Отмена'),
+            child: Text('common.no'.tr()),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text(
-              l == 'kk' ? 'Иә, жою' : l == 'en' ? 'Yes, delete' : 'Да, удалить',
-              style: const TextStyle(color: Colors.red),
-            ),
+            child: Text('common.yes_delete'.tr(), style: const TextStyle(color: Colors.red)),
           ),
         ],
       ),
@@ -149,11 +131,11 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l == 'kk' ? 'Өтінім жойылды' : l == 'en' ? 'Order deleted' : 'Заявка удалена'),
+            content: Text('client.order_deleted'.tr()),
             backgroundColor: Colors.green,
           ),
         );
-        setState(() => _refreshKey++); // обновляем список
+        setState(() => _refreshKey++);
       }
     } catch (e) {
       if (mounted) {
@@ -166,7 +148,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
     }
   }
 
-  Widget _buildStatusChip(String status, String lang) {
+  Widget _buildStatusChip(String status) {
     Color color;
     String text;
 
@@ -174,19 +156,19 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
       case 'active':
       case 'open':
         color = Colors.blue;
-        text = lang == 'kk' ? 'Белсенді' : lang == 'en' ? 'Active' : 'Активна';
+        text = 'status.active'.tr();
         break;
       case 'in_progress':
         color = Colors.orange;
-        text = lang == 'kk' ? 'Жұмыста' : lang == 'en' ? 'In progress' : 'В работе';
+        text = 'status.in_progress'.tr();
         break;
       case 'completed':
         color = Colors.green;
-        text = lang == 'kk' ? 'Аяқталды' : lang == 'en' ? 'Completed' : 'Завершена';
+        text = 'status.completed'.tr();
         break;
       case 'cancelled':
         color = Colors.grey;
-        text = lang == 'kk' ? 'Бас тартылды' : lang == 'en' ? 'Cancelled' : 'Отменена';
+        text = 'status.cancelled'.tr();
         break;
       default:
         color = Colors.black45;
@@ -206,7 +188,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(lang == 'kk' ? 'Менің өтінімдерім' : lang == 'en' ? 'My Orders' : 'Мои заявки'),
+        title: Text('client.orders_title'.tr()),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -223,13 +205,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                 }
                 final orders = snapshot.data ?? [];
                 if (orders.isEmpty) {
-                  return Center(
-                    child: Text(lang == 'kk'
-                        ? 'Өтінімдер әлі жоқ'
-                        : lang == 'en'
-                            ? 'You have no orders yet'
-                            : 'У вас пока нет созданных заявок'),
-                  );
+                  return Center(child: Text('client.no_orders'.tr()));
                 }
 
                 return ListView.builder(
@@ -238,8 +214,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                   itemBuilder: (context, index) {
                     final order = orders[index];
                     final String status = order['status'] ?? 'active';
-                    final String title = order['title'] ??
-                        (lang == 'kk' ? 'Заңгерлік көмек' : lang == 'en' ? 'Legal help' : 'Юридическая помощь');
+                    final String title = order['title'] ?? 'case.legal_help'.tr();
                     final String desc = order['description'] ?? '';
                     final String region = order['region'] ?? '';
                     final String category = order['category'] ?? '';
@@ -271,7 +246,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                     overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
-                                _buildStatusChip(status, lang),
+                                _buildStatusChip(status),
                               ],
                             ),
                             const SizedBox(height: 4),
@@ -281,7 +256,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                 children: [
                                   if (category.isNotEmpty)
                                     Chip(
-                                      label: Text(_translateCat(category, lang), style: const TextStyle(fontSize: 11)),
+                                      label: Text(_trCat(category), style: const TextStyle(fontSize: 11)),
                                       backgroundColor: Colors.red[50],
                                       labelStyle: TextStyle(color: Colors.red[700]),
                                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -303,16 +278,16 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                 runSpacing: 4,
                                 children: [
                                   if (budgetPrepay != null)
-                                    _budgetChip(lang == 'kk' ? 'Алдын ала: $budgetPrepay ₸' : lang == 'en' ? 'Prepay: $budgetPrepay ₸' : 'Предоплата: $budgetPrepay ₸'),
+                                    _budgetChip('${'payment.prepay_short'.tr()}: $budgetPrepay ₸'),
                                   if (budgetCompletion != null)
-                                    _budgetChip(lang == 'kk' ? 'Кейін: $budgetCompletion ₸' : lang == 'en' ? 'After: $budgetCompletion ₸' : 'После услуг: $budgetCompletion ₸'),
+                                    _budgetChip('${'payment.after_short'.tr()}: $budgetCompletion ₸'),
                                   if (budgetResult != null)
-                                    _budgetChip(lang == 'kk' ? 'Нәтиже: $budgetResult ₸' : lang == 'en' ? 'Result: $budgetResult ₸' : 'По рез-ту: $budgetResult ₸'),
+                                    _budgetChip('${'payment.result_short'.tr()}: $budgetResult ₸'),
                                 ],
                               ),
                               const SizedBox(height: 6),
                             ] else if (totalBudget > 0) ...[
-                              Text('${lang == 'kk' ? 'Бюджет' : lang == 'en' ? 'Budget' : 'Бюджет'}: $totalBudget ₸',
+                              Text('${'filter.budget'.tr()}: $totalBudget ₸',
                                   style: TextStyle(fontSize: 13, color: Colors.green[700], fontWeight: FontWeight.bold)),
                               const SizedBox(height: 6),
                             ],
@@ -338,10 +313,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                     ),
                                   ),
                                   icon: const Icon(Icons.people_outline, color: Colors.red, size: 18),
-                                  label: Text(
-                                    lang == 'kk' ? 'Өтінімдер' : lang == 'en' ? 'Responses' : 'Отклики',
-                                    style: const TextStyle(color: Colors.red),
-                                  ),
+                                  label: Text('client.responses'.tr(), style: const TextStyle(color: Colors.red)),
                                 ),
                                 if (status == 'active' ||
                                     status == 'open' ||
@@ -352,15 +324,12 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                       TextButton.icon(
                                         onPressed: () => _closeOrder(order['id'].toString()),
                                         icon: const Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
-                                        label: Text(
-                                          lang == 'kk' ? 'Жабу' : lang == 'en' ? 'Close' : 'Закрыть',
-                                          style: const TextStyle(color: Colors.green),
-                                        ),
+                                        label: Text('client.close'.tr(), style: const TextStyle(color: Colors.green)),
                                       ),
                                       IconButton(
                                         onPressed: () => _cancelOrder(order['id'].toString()),
                                         icon: const Icon(Icons.delete_outline, color: Colors.grey, size: 20),
-                                        tooltip: lang == 'kk' ? 'Жою' : lang == 'en' ? 'Delete' : 'Удалить',
+                                        tooltip: 'client.delete'.tr(),
                                         visualDensity: VisualDensity.compact,
                                       ),
                                     ],
