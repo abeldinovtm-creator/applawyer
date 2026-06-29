@@ -69,6 +69,7 @@
     "password_min": "Кемінде 6 таңба",
     "password_mismatch": "Құпия сөздер сәйкес емес",
     "password_changed": "Құпия сөз өзгертілді",
+    "preferred_language": "Интерфейс тілі",
     "documents": "Құжаттар",
     "privacy_policy": "Құпиялылық саясаты",
     "terms_of_service": "Пайдаланушы келісімі",

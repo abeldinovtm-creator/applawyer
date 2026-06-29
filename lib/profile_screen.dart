@@ -28,6 +28,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _role = 'client';
   String _lawyerSubtype = 'lawyer';
   String _selectedRegion = '';
+  String _preferredLang = 'ru';
   bool _loading = true;
   bool _saving = false;
   bool _changingPass = false;
@@ -61,7 +62,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final data = await _supabase
           .from('profiles')
-          .select('full_name, phone, city, experience_years, about, role, lawyer_subtype, iin')
+          .select('full_name, phone, city, experience_years, about, role, lawyer_subtype, iin, preferred_language')
           .eq('id', user.id)
           .maybeSingle();
       if (data != null && mounted) {
@@ -74,6 +75,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _expCtrl.text = (data['experience_years'] ?? 0).toString();
           _aboutCtrl.text = data['about'] ?? '';
           _iinCtrl.text = data['iin'] ?? '';
+          _preferredLang = data['preferred_language'] ?? 'ru';
         });
       }
     } catch (_) {}
@@ -101,11 +103,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'id': user.id,
         'full_name': _nameCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
+        'preferred_language': _preferredLang,
         if (_isLawyer) 'city': _selectedRegion,
         if (_isLawyer) 'experience_years': int.tryParse(_expCtrl.text) ?? 0,
         if (_isLawyer) 'about': _aboutCtrl.text.trim(),
         if (_isLawyer) 'iin': _iinCtrl.text.trim(),
       });
+
+      if (mounted) {
+        context.setLocale(Locale(_preferredLang));
+      }
 
       if (mounted) {
         _showSnack('profile.saved'.tr(), Colors.green);
@@ -286,6 +293,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         border: const OutlineInputBorder(),
                       ),
                     ),
+
+                    const SizedBox(height: 20),
+                    _sectionHeader('profile.preferred_language'.tr()),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        for (final entry in [('kk', 'Қазақша'), ('ru', 'Русский'), ('en', 'English')])
+                          Expanded(
+                            child: Padding(
+                              padding: const EdgeInsets.only(right: 6),
+                              child: GestureDetector(
+                                onTap: () => setState(() => _preferredLang = entry.$1),
+                                child: AnimatedContainer(
+                                  duration: const Duration(milliseconds: 150),
+                                  padding: const EdgeInsets.symmetric(vertical: 12),
+                                  decoration: BoxDecoration(
+                                    color: _preferredLang == entry.$1 ? Colors.red : Colors.grey[100],
+                                    borderRadius: BorderRadius.circular(10),
+                                    border: Border.all(
+                                      color: _preferredLang == entry.$1 ? Colors.red : Colors.grey.shade300,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    entry.$2,
+                                    textAlign: TextAlign.center,
+                                    style: TextStyle(
+                                      fontSize: 13,
+                                      fontWeight: FontWeight.bold,
+                                      color: _preferredLang == entry.$1 ? Colors.white : Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
 
                     // Поля только для юристов/адвокатов/ЧСИ
                     if (_isLawyer) ...[

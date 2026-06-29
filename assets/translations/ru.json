@@ -69,6 +69,7 @@
     "password_min": "Минимум 6 символов",
     "password_mismatch": "Пароли не совпадают",
     "password_changed": "Пароль изменён",
+    "preferred_language": "Язык интерфейса",
     "documents": "Документы",
     "privacy_policy": "Политика конфиденциальности",
     "terms_of_service": "Пользовательское соглашение",

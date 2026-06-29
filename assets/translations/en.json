@@ -69,6 +69,7 @@
     "password_min": "Minimum 6 characters",
     "password_mismatch": "Passwords do not match",
     "password_changed": "Password changed",
+    "preferred_language": "Interface language",
     "documents": "Documents",
     "privacy_policy": "Privacy Policy",
     "terms_of_service": "Terms of Service",

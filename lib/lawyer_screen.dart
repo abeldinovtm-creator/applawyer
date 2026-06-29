@@ -58,6 +58,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
   String _selectedRegion = 'Все регионы';
   int? _budgetFrom;
   int? _budgetTo;
+  bool _filtersExpanded = false;
 
   // Категории, доступные по подтипу специалиста
   static List<String> _allowedCategories(String subtype) {
@@ -745,18 +746,45 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
             children: [
               Text('lawyer.active_cases'.tr(),
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              IconButton(
-                icon: const Icon(Icons.refresh_rounded, color: Colors.red),
-                onPressed: _refreshCases,
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.refresh_rounded, color: Colors.red),
+                    onPressed: _refreshCases,
+                  ),
+                  IconButton(
+                    icon: AnimatedRotation(
+                      turns: _filtersExpanded ? 0.5 : 0,
+                      duration: const Duration(milliseconds: 200),
+                      child: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.red),
+                    ),
+                    tooltip: _filtersExpanded ? 'Скрыть фильтры' : 'Показать фильтры',
+                    onPressed: () => setState(() => _filtersExpanded = !_filtersExpanded),
+                  ),
+                ],
               ),
             ],
           ),
-          _buildCategoryRow(lang),
-          const SizedBox(height: 6),
-          _buildServiceTypeRow(lang),
-          const SizedBox(height: 6),
-          _buildFilterChipRow(),
-          const SizedBox(height: 10),
+          AnimatedCrossFade(
+            duration: const Duration(milliseconds: 200),
+            crossFadeState: _filtersExpanded
+                ? CrossFadeState.showFirst
+                : CrossFadeState.showSecond,
+            firstChild: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildCategoryRow(lang),
+                const SizedBox(height: 6),
+                _buildServiceTypeRow(lang),
+                const SizedBox(height: 6),
+                _buildFilterChipRow(),
+                const SizedBox(height: 6),
+              ],
+            ),
+            secondChild: const SizedBox(width: double.infinity),
+          ),
+          const SizedBox(height: 4),
           Expanded(
             child: RefreshIndicator(
               onRefresh: () async { _refreshCases(); await _casesFuture; },

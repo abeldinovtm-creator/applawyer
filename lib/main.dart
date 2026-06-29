@@ -74,7 +74,7 @@ class AuthRouter extends StatelessWidget {
     return FutureBuilder<Map<String, dynamic>?>(
       future: Supabase.instance.client
           .from('profiles')
-          .select('role, lawyer_subtype')
+          .select('role, lawyer_subtype, preferred_language')
           .eq('id', user.id)
           .maybeSingle(),
       builder: (context, snapshot) {
@@ -95,6 +95,16 @@ class AuthRouter extends StatelessWidget {
             ? data['role'].toString()
             : 'client';
         final lawyerSubtype = data?['lawyer_subtype']?.toString() ?? 'lawyer';
+        final preferredLang = data?['preferred_language']?.toString();
+
+        if (preferredLang != null && preferredLang.isNotEmpty) {
+          final targetLocale = Locale(preferredLang);
+          if (context.locale != targetLocale) {
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              context.setLocale(targetLocale);
+            });
+          }
+        }
 
         if (role == 'lawyer') {
           return LawyerDashboardScreen(lawyerSubtype: lawyerSubtype);
