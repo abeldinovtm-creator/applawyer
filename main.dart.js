@@ -7915,7 +7915,7 @@ $.a4.toString
 s=2
 return A.q(A.acg(),$async$a7S)
 case 2:s=3
-return A.q(A.ate("",""),$async$a7S)
+return A.q(A.ate("sb_publishable_fnR2skXYZE1ZDn3q0Wbzwg_2l57Qhz9","https://xkxontehimricgmmkjbw.supabase.co"),$async$a7S)
 case 3:q=A.b([new A.eF("kk",null,null),new A.eF("ru",null,null),new A.eF("en",null,null)],t.ss)
 $.hN().$3$level$stackTrace("Start",B.db,null)
 if($.a4==null)A.avh()
