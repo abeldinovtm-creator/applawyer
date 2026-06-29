@@ -3,6 +3,7 @@
 *.env
 .env.local
 .env.*.local
+dart-defines.json
 
 # Miscellaneous
 *.class

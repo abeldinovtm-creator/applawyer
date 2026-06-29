@@ -11,8 +11,8 @@ import 'client_orders_screen.dart';
 import 'profile_screen.dart';
 import 'region_translations.dart';
 
-const supabaseUrl = 'https://xkxontehimricgmmkjbw.supabase.co';
-const supabaseAnonKey = 'sb_publishable_fnR2skXYZE1ZDn3q0Wbzwg_2l57Qhz9';
+const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
+const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
