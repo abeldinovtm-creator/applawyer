@@ -110,7 +110,13 @@
     "send_response_btn": "Отправить отклик",
     "status_pending": "Ожидает",
     "status_accepted": "Принят",
-    "status_rejected": "Отклонён"
+    "status_rejected": "Отклонён",
+    "cases_tab": "Заявки",
+    "in_progress_tab": "В работе",
+    "in_progress_empty": "Нет заявок в работе",
+    "accept_client_price": "Принять цену клиента",
+    "no_client_price": "Клиент не указал цену",
+    "agreed_price": "Согласованная оплата"
   },
   "client": {
     "orders_title": "Мои заявки",
