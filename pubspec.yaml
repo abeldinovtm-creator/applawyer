@@ -39,6 +39,8 @@ dependencies:
   flutter_localizations:
     sdk: flutter
   speech_to_text: ^7.4.0
+  firebase_core: ^3.8.1
+  firebase_messaging: ^15.1.5
 
 dev_dependencies:
   flutter_test:

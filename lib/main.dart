@@ -11,6 +11,7 @@ import 'client_orders_screen.dart';
 import 'profile_screen.dart';
 import 'region_translations.dart';
 import 'region_picker_screen.dart';
+import 'services/push_service.dart';
 
 const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
 const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
@@ -23,6 +24,20 @@ Future<void> main() async {
     url: supabaseUrl,
     anonKey: supabaseAnonKey,
   );
+
+  // Слушаем вход/выход — регистрируем или удаляем FCM токен
+  Supabase.instance.client.auth.onAuthStateChange.listen((data) {
+    if (data.event == AuthChangeEvent.signedIn) {
+      PushService.init();
+    } else if (data.event == AuthChangeEvent.signedOut) {
+      PushService.clearToken();
+    }
+  });
+
+  // Если сессия уже активна при запуске
+  if (Supabase.instance.client.auth.currentSession != null) {
+    PushService.init();
+  }
 
   runApp(
     EasyLocalization(
