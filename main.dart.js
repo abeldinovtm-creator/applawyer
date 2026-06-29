@@ -7881,7 +7881,7 @@ $.a2.toString
 s=2
 return A.q(A.abx(),$async$a77)
 case 2:s=3
-return A.q(A.asr("sb_publishable_fnR2skXYZE1ZDn3q0Wbzwg_2l57Qhz9","https://xkxontehimricgmmkjbw.supabase.co"),$async$a77)
+return A.q(A.asr("",""),$async$a77)
 case 3:q=A.b([new A.eA("kk",null,null),new A.eA("ru",null,null),new A.eA("en",null,null)],t.ss)
 $.k6().$3$level$stackTrace("Start",B.d7,null)
 if($.a2==null)A.aur()
