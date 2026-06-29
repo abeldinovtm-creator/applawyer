@@ -110,7 +110,13 @@
     "send_response_btn": "Жіберу",
     "status_pending": "Күтілуде",
     "status_accepted": "Қабылданды",
-    "status_rejected": "Бас тартылды"
+    "status_rejected": "Бас тартылды",
+    "cases_tab": "Өтінімдер",
+    "in_progress_tab": "Жұмыста",
+    "in_progress_empty": "Жұмыстағы өтінімдер жоқ",
+    "accept_client_price": "Клиент бағасын қабылдау",
+    "no_client_price": "Клиент баға көрсетпеді",
+    "agreed_price": "Келісілген төлем"
   },
   "client": {
     "orders_title": "Менің өтінімдерім",

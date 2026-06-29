@@ -47,9 +47,12 @@ class LawyerDashboardScreen extends StatefulWidget {
   _LawyerDashboardScreenState createState() => _LawyerDashboardScreenState();
 }
 
-class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
+class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
+    with SingleTickerProviderStateMixin {
   final _supabase = Supabase.instance.client;
+  late TabController _tabController;
   late Future<List<Map<String, dynamic>>> _casesFuture;
+  late Future<List<Map<String, dynamic>>> _inProgressFuture;
   String _selectedCategory = 'Все';
   String _selectedServiceType = 'Все';
   String _selectedRegion = 'Все регионы';
@@ -89,7 +92,15 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     _refreshCases();
+    _refreshInProgress();
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
   }
 
   Widget _budgetLine(String label, int amount) {
@@ -143,7 +154,42 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
     });
   }
 
-  Future<void> _sendResponse(String caseId) async {
+  void _refreshInProgress() {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      setState(() => _inProgressFuture = Future.value([]));
+      return;
+    }
+    setState(() {
+      _inProgressFuture = _supabase
+          .from('conversations')
+          .select('id, case_id, created_at, price_prepayment, price_on_completion, price_on_result')
+          .eq('lawyer_id', user.id)
+          .eq('status', 'accepted')
+          .then((convRaw) async {
+            final convs = List<Map<String, dynamic>>.from(convRaw as List);
+            if (convs.isEmpty) return <Map<String, dynamic>>[];
+
+            final caseIds = convs.map((c) => c['case_id'].toString()).toList();
+            final casesRaw = await _supabase
+                .from('cases')
+                .select()
+                .inFilter('id', caseIds);
+
+            final casesMap = <String, Map<String, dynamic>>{};
+            for (final c in List<Map<String, dynamic>>.from(casesRaw as List)) {
+              casesMap[c['id'].toString()] = c;
+            }
+
+            return convs.map((conv) {
+              final caseData = casesMap[conv['case_id'].toString()] ?? <String, dynamic>{};
+              return <String, dynamic>{...conv, 'case': caseData};
+            }).toList();
+          });
+    });
+  }
+
+  Future<void> _sendResponse(String caseId, Map<String, dynamic> caseItem) async {
     final user = _supabase.auth.currentUser;
     if (user == null) return;
 
@@ -176,11 +222,19 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
       return;
     }
 
-    // Диалог с разбивкой цены
+    // Бюджет клиента из заявки
+    final clientPrepay = caseItem['budget_prepayment'] as int?;
+    final clientCompletion = caseItem['budget_on_completion'] as int?;
+    final clientResult = caseItem['budget_on_result'] as int?;
+    final clientBudget = ((caseItem['budget'] ?? 0) as num).toInt();
+    final hasClientPrice = clientPrepay != null || clientCompletion != null ||
+        clientResult != null || clientBudget > 0;
+
     if (!mounted) return;
     final prepayCtrl = TextEditingController();
     final completionCtrl = TextEditingController();
     final resultCtrl = TextEditingController();
+    bool useClientPrice = false;
     String? validationError;
 
     final confirmed = await showModalBottomSheet<bool>(
@@ -190,7 +244,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setModalState) => Padding(
+        builder: (ctx, setModalState) => SingleChildScrollView(
           padding: EdgeInsets.only(
             left: 24, right: 24, top: 24,
             bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
@@ -201,25 +255,89 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
             children: [
               Text('lawyer.price_offer_title'.tr(),
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 4),
-              Text('payment.fill_hint'.tr(),
-                  style: TextStyle(fontSize: 13, color: Colors.grey[600])),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
+
+              // Чекбокс "Принять цену клиента"
+              if (hasClientPrice) ...[
+                InkWell(
+                  onTap: () {
+                    setModalState(() {
+                      useClientPrice = !useClientPrice;
+                      if (useClientPrice) {
+                        prepayCtrl.text = clientPrepay?.toString() ?? (clientBudget > 0 ? clientBudget.toString() : '');
+                        completionCtrl.text = clientCompletion?.toString() ?? '';
+                        resultCtrl.text = clientResult?.toString() ?? '';
+                        validationError = null;
+                      } else {
+                        prepayCtrl.clear();
+                        completionCtrl.clear();
+                        resultCtrl.clear();
+                      }
+                    });
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: useClientPrice ? Colors.green[50] : Colors.grey[100],
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: useClientPrice ? Colors.green : Colors.grey.shade300,
+                      ),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          useClientPrice ? Icons.check_box : Icons.check_box_outline_blank,
+                          color: useClientPrice ? Colors.green : Colors.grey,
+                          size: 20,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'lawyer.accept_client_price'.tr(),
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: useClientPrice ? Colors.green[800] : Colors.black87,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                const Divider(),
+                const SizedBox(height: 8),
+              ] else ...[
+                Text('lawyer.no_client_price'.tr(),
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+                const SizedBox(height: 8),
+              ],
+
+              if (!useClientPrice) ...[
+                Text('payment.fill_hint'.tr(),
+                    style: TextStyle(fontSize: 13, color: Colors.grey[600])),
+                const SizedBox(height: 16),
+              ],
+
               TextField(
                 controller: prepayCtrl,
+                enabled: !useClientPrice,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                autofocus: true,
                 decoration: InputDecoration(
                   labelText: 'payment.prepayment'.tr(),
                   hintText: '0',
                   border: const OutlineInputBorder(),
                   suffixText: '₸',
+                  filled: useClientPrice,
+                  fillColor: Colors.green[50],
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: completionCtrl,
+                enabled: !useClientPrice,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
@@ -227,11 +345,14 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
                   hintText: '0',
                   border: const OutlineInputBorder(),
                   suffixText: '₸',
+                  filled: useClientPrice,
+                  fillColor: Colors.green[50],
                 ),
               ),
               const SizedBox(height: 12),
               TextField(
                 controller: resultCtrl,
+                enabled: !useClientPrice,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
@@ -239,6 +360,8 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
                   hintText: '0',
                   border: const OutlineInputBorder(),
                   suffixText: '₸',
+                  filled: useClientPrice,
+                  fillColor: Colors.green[50],
                 ),
               ),
               if (validationError != null) ...[
@@ -254,12 +377,14 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
                 onPressed: () {
-                  final anyFilled = prepayCtrl.text.isNotEmpty ||
-                      completionCtrl.text.isNotEmpty ||
-                      resultCtrl.text.isNotEmpty;
-                  if (!anyFilled) {
-                    setModalState(() => validationError = 'payment.fill_error'.tr());
-                    return;
+                  if (!useClientPrice) {
+                    final anyFilled = prepayCtrl.text.isNotEmpty ||
+                        completionCtrl.text.isNotEmpty ||
+                        resultCtrl.text.isNotEmpty;
+                    if (!anyFilled) {
+                      setModalState(() => validationError = 'payment.fill_error'.tr());
+                      return;
+                    }
                   }
                   Navigator.pop(ctx, true);
                 },
@@ -605,20 +730,357 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
     );
   }
 
+  Widget _buildCasesTab(String lang) {
+    final budgetPrefix = 'lawyer.budget'.tr();
+    final respondBtn = 'lawyer.respond_btn'.tr();
+    final emptyCasesText = 'lawyer.no_cases'.tr();
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('lawyer.active_cases'.tr(),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              IconButton(
+                icon: const Icon(Icons.refresh_rounded, color: Colors.red),
+                onPressed: _refreshCases,
+              ),
+            ],
+          ),
+          _buildCategoryRow(lang),
+          const SizedBox(height: 6),
+          _buildServiceTypeRow(lang),
+          const SizedBox(height: 6),
+          _buildFilterChipRow(),
+          const SizedBox(height: 10),
+          Expanded(
+            child: RefreshIndicator(
+              onRefresh: () async { _refreshCases(); await _casesFuture; },
+              child: FutureBuilder<List<Map<String, dynamic>>>(
+                future: _casesFuture,
+                builder: (context, snapshot) {
+                  if (snapshot.hasError) {
+                    return ListView(children: [
+                      SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                      Center(child: Text('Error: ${snapshot.error}', textAlign: TextAlign.center)),
+                    ]);
+                  }
+                  if (snapshot.connectionState == ConnectionState.waiting) {
+                    return const Center(child: CircularProgressIndicator());
+                  }
+                  final cases = snapshot.data ?? [];
+                  if (cases.isEmpty) {
+                    return ListView(
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      children: [
+                        SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                        Center(child: Text(emptyCasesText,
+                            style: const TextStyle(color: Colors.grey, fontSize: 16))),
+                      ],
+                    );
+                  }
+                  return ListView.builder(
+                    physics: const AlwaysScrollableScrollPhysics(),
+                    itemCount: cases.length,
+                    itemBuilder: (context, index) {
+                      final item = cases[index];
+                      final String title = item['title'] ?? '';
+                      final String description = item['description'] ?? '';
+                      final String category = item['category'] ?? '';
+                      final String serviceType = item['service_type'] ?? 'Консультация';
+                      final int budget = ((item['budget'] ?? 0) as num).toInt();
+                      final int? budgetPrepay = item['budget_prepayment'] as int?;
+                      final int? budgetCompletion = item['budget_on_completion'] as int?;
+                      final int? budgetResult = item['budget_on_result'] as int?;
+                      final bool hasBudgetBreakdown = budgetPrepay != null || budgetCompletion != null || budgetResult != null;
+                      final String clientLang = (item['language'] ?? 'ru').toUpperCase();
+                      final String region = item['region'] ?? '';
+
+                      return Card(
+                        margin: const EdgeInsets.only(bottom: 16),
+                        elevation: 3,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(
+                                    child: Text(_trCategory(category),
+                                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.red[700])),
+                                  ),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                    decoration: BoxDecoration(
+                                        color: Colors.grey[200], borderRadius: BorderRadius.circular(6)),
+                                    child: Text(clientLang,
+                                        style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54)),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 6),
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 4,
+                                children: [
+                                  Chip(
+                                    label: Text(_trServiceType(serviceType), style: const TextStyle(fontSize: 12)),
+                                    backgroundColor: Colors.red[50],
+                                    labelStyle: TextStyle(color: Colors.red[900], fontWeight: FontWeight.w600),
+                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                  Chip(
+                                    avatar: const Icon(Icons.location_on_rounded, size: 14, color: Colors.red),
+                                    label: Text(
+                                      region.isNotEmpty ? translateRegion(region, lang) : '—',
+                                      style: const TextStyle(fontSize: 12),
+                                    ),
+                                    backgroundColor: Colors.red[50],
+                                    labelStyle: TextStyle(color: Colors.red[700], fontWeight: FontWeight.w500),
+                                    materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 8),
+                              Text(description,
+                                  style: TextStyle(fontSize: 14, color: Colors.grey[800]),
+                                  maxLines: 4,
+                                  overflow: TextOverflow.ellipsis),
+                              const Divider(height: 24),
+                              Row(
+                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                children: [
+                                  hasBudgetBreakdown
+                                      ? Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(budgetPrefix, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                            if (budgetPrepay != null)
+                                              _budgetLine('payment.prepay_short'.tr(), budgetPrepay),
+                                            if (budgetCompletion != null)
+                                              _budgetLine('payment.after_short'.tr(), budgetCompletion),
+                                            if (budgetResult != null)
+                                              _budgetLine('payment.result_short'.tr(), budgetResult),
+                                          ],
+                                        )
+                                      : Column(
+                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          children: [
+                                            Text(budgetPrefix, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                            Text('$budget ₸',
+                                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
+                                          ],
+                                        ),
+                                  ElevatedButton.icon(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                    ),
+                                    onPressed: () => _sendResponse(item['id'].toString(), item),
+                                    icon: const Icon(Icons.send_outlined, size: 16),
+                                    label: Text(respondBtn),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildInProgressTab(String lang) {
+    return RefreshIndicator(
+      onRefresh: () async { _refreshInProgress(); await _inProgressFuture; },
+      child: FutureBuilder<List<Map<String, dynamic>>>(
+        future: _inProgressFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          }
+          final items = snapshot.data ?? [];
+          if (items.isEmpty) {
+            return ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                SizedBox(height: MediaQuery.of(context).size.height * 0.3),
+                Center(
+                  child: Column(
+                    children: [
+                      Icon(Icons.work_outline, size: 48, color: Colors.grey[400]),
+                      const SizedBox(height: 12),
+                      Text('lawyer.in_progress_empty'.tr(),
+                          style: const TextStyle(color: Colors.grey, fontSize: 16)),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          }
+          return ListView.builder(
+            physics: const AlwaysScrollableScrollPhysics(),
+            padding: const EdgeInsets.all(16),
+            itemCount: items.length,
+            itemBuilder: (context, index) {
+              final conv = items[index];
+              final caseData = Map<String, dynamic>.from(conv['case'] as Map? ?? {});
+              final convId = conv['id'].toString();
+              final String title = caseData['title'] ?? 'case.legal_help'.tr();
+              final String category = caseData['category'] ?? '';
+              final String region = caseData['region'] ?? '';
+              final int? agreedPrepay = conv['price_prepayment'] as int?;
+              final int? agreedCompletion = conv['price_on_completion'] as int?;
+              final int? agreedResult = conv['price_on_result'] as int?;
+              final hasAgreedPrice = agreedPrepay != null || agreedCompletion != null || agreedResult != null;
+
+              return Card(
+                margin: const EdgeInsets.only(bottom: 14),
+                elevation: 3,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Заголовок + статус
+                      Row(
+                        children: [
+                          Container(
+                            width: 10,
+                            height: 10,
+                            decoration: const BoxDecoration(
+                              color: Colors.green,
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              category.isNotEmpty ? _trCategory(category) : title,
+                              style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.green[700]),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 6),
+                      Text(title,
+                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                      if (region.isNotEmpty) ...[
+                        const SizedBox(height: 4),
+                        Row(
+                          children: [
+                            const Icon(Icons.location_on_rounded, size: 14, color: Colors.red),
+                            const SizedBox(width: 4),
+                            Text(translateRegion(region, lang),
+                                style: TextStyle(fontSize: 12, color: Colors.grey[600])),
+                          ],
+                        ),
+                      ],
+                      if (hasAgreedPrice) ...[
+                        const SizedBox(height: 10),
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+                          decoration: BoxDecoration(
+                            color: Colors.green[50],
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(color: Colors.green.shade200),
+                          ),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  Icon(Icons.payments_outlined, size: 15, color: Colors.green[700]),
+                                  const SizedBox(width: 6),
+                                  Text('lawyer.agreed_price'.tr(),
+                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green[800])),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                              if (agreedPrepay != null)
+                                _budgetLine('payment.prepay_short'.tr(), agreedPrepay),
+                              if (agreedCompletion != null)
+                                _budgetLine('payment.after_short'.tr(), agreedCompletion),
+                              if (agreedResult != null)
+                                _budgetLine('payment.result_short'.tr(), agreedResult),
+                            ],
+                          ),
+                        ),
+                      ],
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: ElevatedButton.icon(
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.red,
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                          ),
+                          onPressed: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => ChatScreen(
+                                conversationId: convId,
+                                caseTitle: title,
+                              ),
+                            ),
+                          ),
+                          icon: const Icon(Icons.chat_bubble_outline, size: 16),
+                          label: Text('chat.open_chat'.tr()),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final lang = context.locale.languageCode;
-
     final subtypeLabel = _subtypeLabel(widget.lawyerSubtype);
     final appBarTitle = '$subtypeLabel — ${'lawyer.workspace'.tr()}';
-    final activeCasesLabel = 'lawyer.active_cases'.tr();
-    final emptyCasesText = 'lawyer.no_cases'.tr();
-    final budgetPrefix = 'lawyer.budget'.tr();
-    final respondBtn = 'lawyer.respond_btn'.tr();
 
     return Scaffold(
       appBar: AppBar(
         title: Text(appBarTitle),
+        bottom: TabBar(
+          controller: _tabController,
+          indicatorColor: Colors.white,
+          labelColor: Colors.white,
+          unselectedLabelColor: Colors.white60,
+          tabs: [
+            Tab(text: 'lawyer.cases_tab'.tr()),
+            Tab(text: 'lawyer.in_progress_tab'.tr()),
+          ],
+        ),
         leading: IconButton(
           icon: const Icon(Icons.logout_rounded),
           onPressed: () async {
@@ -652,186 +1114,12 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
           buildLanguageButton(context, 'en', 'EN', isDarkAppBar: true),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Заголовок + кнопка обновления
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(activeCasesLabel,
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                IconButton(
-                  icon: const Icon(Icons.refresh_rounded, color: Colors.red),
-                  onPressed: _refreshCases,
-                ),
-              ],
-            ),
-
-            // Фильтр по категории
-            _buildCategoryRow(lang),
-            const SizedBox(height: 6),
-
-            // Фильтр по типу услуги
-            _buildServiceTypeRow(lang),
-            const SizedBox(height: 6),
-
-            // Фильтры регион + бюджет
-            _buildFilterChipRow(),
-            const SizedBox(height: 10),
-
-            // Список заявок
-            Expanded(
-              child: RefreshIndicator(
-                onRefresh: () async { _refreshCases(); await _casesFuture; },
-                child: FutureBuilder<List<Map<String, dynamic>>>(
-                  future: _casesFuture,
-                  builder: (context, snapshot) {
-                    if (snapshot.hasError) {
-                      return ListView(children: [
-                        SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-                        Center(child: Text('Error: ${snapshot.error}', textAlign: TextAlign.center)),
-                      ]);
-                    }
-                    if (snapshot.connectionState == ConnectionState.waiting) {
-                      return const Center(child: CircularProgressIndicator());
-                    }
-
-                    final cases = snapshot.data ?? [];
-                    if (cases.isEmpty) {
-                      return ListView(
-                        physics: const AlwaysScrollableScrollPhysics(),
-                        children: [
-                          SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-                          Center(child: Text(emptyCasesText,
-                              style: const TextStyle(color: Colors.grey, fontSize: 16))),
-                        ],
-                      );
-                    }
-
-                    return ListView.builder(
-                      physics: const AlwaysScrollableScrollPhysics(),
-                      itemCount: cases.length,
-                      itemBuilder: (context, index) {
-                        final item = cases[index];
-                        final String title = item['title'] ?? '';
-                        final String description = item['description'] ?? '';
-                        final String category = item['category'] ?? '';
-                        final String serviceType = item['service_type'] ?? 'Консультация';
-                        final int budget = ((item['budget'] ?? 0) as num).toInt();
-                        final int? budgetPrepay = item['budget_prepayment'] as int?;
-                        final int? budgetCompletion = item['budget_on_completion'] as int?;
-                        final int? budgetResult = item['budget_on_result'] as int?;
-                        final bool hasBudgetBreakdown = budgetPrepay != null || budgetCompletion != null || budgetResult != null;
-                        final String clientLang = (item['language'] ?? 'ru').toUpperCase();
-                        final String region = item['region'] ?? '';
-
-                        return Card(
-                          margin: const EdgeInsets.only(bottom: 16),
-                          elevation: 3,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                          child: Padding(
-                            padding: const EdgeInsets.all(16),
-                            child: Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: [
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(_trCategory(category),
-                                          style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.red[700])),
-                                    ),
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                                      decoration: BoxDecoration(
-                                          color: Colors.grey[200], borderRadius: BorderRadius.circular(6)),
-                                      child: Text(clientLang,
-                                          style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold, color: Colors.black54)),
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                                const SizedBox(height: 6),
-                                Wrap(
-                                  spacing: 8,
-                                  runSpacing: 4,
-                                  children: [
-                                    Chip(
-                                      label: Text(_trServiceType(serviceType), style: const TextStyle(fontSize: 12)),
-                                      backgroundColor: Colors.red[50],
-                                      labelStyle: TextStyle(color: Colors.red[900], fontWeight: FontWeight.w600),
-                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                    Chip(
-                                      avatar: const Icon(Icons.location_on_rounded, size: 14, color: Colors.red),
-                                      label: Text(
-                                        region.isNotEmpty ? translateRegion(region, lang) : '—',
-                                        style: const TextStyle(fontSize: 12),
-                                      ),
-                                      backgroundColor: Colors.red[50],
-                                      labelStyle: TextStyle(color: Colors.red[700], fontWeight: FontWeight.w500),
-                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                                    ),
-                                  ],
-                                ),
-                                const SizedBox(height: 8),
-                                Text(description,
-                                    style: TextStyle(fontSize: 14, color: Colors.grey[800]),
-                                    maxLines: 4,
-                                    overflow: TextOverflow.ellipsis),
-                                const Divider(height: 24),
-                                Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    hasBudgetBreakdown
-                                        ? Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(budgetPrefix, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                                              if (budgetPrepay != null)
-                                                _budgetLine('payment.prepay_short'.tr(), budgetPrepay),
-                                              if (budgetCompletion != null)
-                                                _budgetLine('payment.after_short'.tr(), budgetCompletion),
-                                              if (budgetResult != null)
-                                                _budgetLine('payment.result_short'.tr(), budgetResult),
-                                            ],
-                                          )
-                                        : Column(
-                                            crossAxisAlignment: CrossAxisAlignment.start,
-                                            children: [
-                                              Text(budgetPrefix, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                                              Text('$budget ₸',
-                                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
-                                            ],
-                                          ),
-                                    ElevatedButton.icon(
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: Colors.red,
-                                        foregroundColor: Colors.white,
-                                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                      ),
-                                      onPressed: () => _sendResponse(item['id'].toString()),
-                                      icon: const Icon(Icons.send_outlined, size: 16),
-                                      label: Text(respondBtn),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ),
-                        );
-                      },
-                    );
-                  },
-                ),
-              ),
-            ),
-          ],
-        ),
+      body: TabBarView(
+        controller: _tabController,
+        children: [
+          _buildCasesTab(lang),
+          _buildInProgressTab(lang),
+        ],
       ),
     );
   }

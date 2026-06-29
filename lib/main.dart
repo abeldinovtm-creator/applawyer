@@ -10,6 +10,7 @@ import 'auth_screen.dart';
 import 'client_orders_screen.dart';
 import 'profile_screen.dart';
 import 'region_translations.dart';
+import 'region_picker_screen.dart';
 
 const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
 const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
