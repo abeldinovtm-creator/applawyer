@@ -173,79 +173,132 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
       return;
     }
 
-    // Диалог с ценой
+    // Диалог с разбивкой цены
     if (!mounted) return;
-    final priceCtrl = TextEditingController();
+    final prepayCtrl = TextEditingController();
+    final completionCtrl = TextEditingController();
+    final resultCtrl = TextEditingController();
+    String? validationError;
+
     final confirmed = await showModalBottomSheet<bool>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
-      builder: (ctx) => Padding(
-        padding: EdgeInsets.only(
-          left: 24, right: 24, top: 24,
-          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              lang == 'kk' ? 'Бағаны көрсетіңіз' : lang == 'en' ? 'Your price offer' : 'Укажите вашу цену',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 6),
-            Text(
-              lang == 'kk'
-                  ? 'Клиент сіздің бағаңызды және профиліңізді көреді'
-                  : lang == 'en'
-                      ? 'The client will see your price and profile'
-                      : 'Клиент увидит вашу цену и профиль',
-              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: priceCtrl,
-              keyboardType: TextInputType.number,
-              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-              autofocus: true,
-              decoration: InputDecoration(
-                labelText: lang == 'kk' ? 'Сіздің бағаңыз (₸)' : lang == 'en' ? 'Your price (₸)' : 'Ваша цена (₸)',
-                hintText: lang == 'kk' ? 'Мысалы: 15000' : lang == 'en' ? 'e.g. 15000' : 'Например: 15000',
-                border: const OutlineInputBorder(),
-                suffixText: '₸',
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setModalState) => Padding(
+          padding: EdgeInsets.only(
+            left: 24, right: 24, top: 24,
+            bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                lang == 'kk' ? 'Төлем шарттары' : lang == 'en' ? 'Payment terms' : 'Условия оплаты',
+                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 20),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                minimumSize: const Size(double.infinity, 52),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              const SizedBox(height: 4),
+              Text(
+                lang == 'kk'
+                    ? 'Қолданылатын өрістерді толтырыңыз'
+                    : lang == 'en'
+                        ? 'Fill in the applicable fields'
+                        : 'Заполните применимые поля',
+                style: TextStyle(fontSize: 13, color: Colors.grey[600]),
               ),
-              onPressed: () => Navigator.pop(ctx, true),
-              child: Text(
-                lang == 'kk' ? 'Жіберу' : lang == 'en' ? 'Send response' : 'Отправить отклик',
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              const SizedBox(height: 16),
+              TextField(
+                controller: prepayCtrl,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: lang == 'kk' ? 'Алдын ала төлем' : lang == 'en' ? 'Prepayment' : 'Предоплата',
+                  hintText: '0',
+                  border: const OutlineInputBorder(),
+                  suffixText: '₸',
+                ),
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              TextField(
+                controller: completionCtrl,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: InputDecoration(
+                  labelText: lang == 'kk' ? 'Қызмет көрсетілгеннен кейін' : lang == 'en' ? 'After service' : 'После оказания услуг',
+                  hintText: '0',
+                  border: const OutlineInputBorder(),
+                  suffixText: '₸',
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: resultCtrl,
+                keyboardType: TextInputType.number,
+                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                decoration: InputDecoration(
+                  labelText: lang == 'kk' ? 'Нәтиже бойынша' : lang == 'en' ? 'On result' : 'По результатам',
+                  hintText: '0',
+                  border: const OutlineInputBorder(),
+                  suffixText: '₸',
+                ),
+              ),
+              if (validationError != null) ...[
+                const SizedBox(height: 8),
+                Text(validationError!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+              ],
+              const SizedBox(height: 20),
+              ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  foregroundColor: Colors.white,
+                  minimumSize: const Size(double.infinity, 52),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                onPressed: () {
+                  final anyFilled = prepayCtrl.text.isNotEmpty ||
+                      completionCtrl.text.isNotEmpty ||
+                      resultCtrl.text.isNotEmpty;
+                  if (!anyFilled) {
+                    setModalState(() {
+                      validationError = lang == 'kk'
+                          ? 'Кем дегенде бір өрісті толтырыңыз'
+                          : lang == 'en'
+                              ? 'Fill in at least one field'
+                              : 'Заполните хотя бы одно поле';
+                    });
+                    return;
+                  }
+                  Navigator.pop(ctx, true);
+                },
+                child: Text(
+                  lang == 'kk' ? 'Жіберу' : lang == 'en' ? 'Send response' : 'Отправить отклик',
+                  style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
 
     if (confirmed != true) return;
 
-    final priceOffer = priceCtrl.text.isNotEmpty ? int.tryParse(priceCtrl.text) : null;
+    final prepay = prepayCtrl.text.isNotEmpty ? int.tryParse(prepayCtrl.text) : null;
+    final completion = completionCtrl.text.isNotEmpty ? int.tryParse(completionCtrl.text) : null;
+    final result = resultCtrl.text.isNotEmpty ? int.tryParse(resultCtrl.text) : null;
 
     try {
       await _supabase.from('conversations').insert({
         'case_id': caseId,
         'lawyer_id': user.id,
         'status': 'pending',
-        if (priceOffer != null) 'price_offer': priceOffer,
+        if (prepay != null) 'price_prepayment': prepay,
+        if (completion != null) 'price_on_completion': completion,
+        if (result != null) 'price_on_result': result,
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(

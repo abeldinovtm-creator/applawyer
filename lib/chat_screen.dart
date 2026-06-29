@@ -25,7 +25,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   Future<List<Map<String, dynamic>>> _load() async {
     final convRaw = await _supabase
         .from('conversations')
-        .select('id, lawyer_id, created_at, status, price_offer')
+        .select('id, lawyer_id, created_at, status, price_prepayment, price_on_completion, price_on_result')
         .eq('case_id', widget.caseId)
         .order('created_at', ascending: false);
 
@@ -49,6 +49,19 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       final key = c['lawyer_id'].toString();
       return <String, dynamic>{...c, 'profile': profileMap[key] ?? <String, dynamic>{}};
     }).toList();
+  }
+
+  Widget _priceRow(String label, int amount) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 3),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: TextStyle(fontSize: 12, color: Colors.green[700])),
+          Text('$amount ₸', style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.green[900])),
+        ],
+      ),
+    );
   }
 
   Future<void> _updateStatus(String convId, String status) async {
@@ -120,7 +133,10 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                 final exp = profile['experience_years'];
                 final about = profile['about']?.toString() ?? '';
                 final subtype = profile['lawyer_subtype']?.toString() ?? 'lawyer';
-                final priceOffer = conv['price_offer'] as int?;
+                final pricePrepay = conv['price_prepayment'] as int?;
+                final priceCompletion = conv['price_on_completion'] as int?;
+                final priceResult = conv['price_on_result'] as int?;
+                final hasPrice = pricePrepay != null || priceCompletion != null || priceResult != null;
 
                 final subtypeLabel = subtype == 'advocate'
                     ? 'Адвокат'
@@ -214,32 +230,45 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                             style: TextStyle(fontSize: 13, color: Colors.grey[700]),
                           ),
                         ],
-                        if (priceOffer != null) ...[
+                        if (hasPrice) ...[
                           const SizedBox(height: 10),
                           Container(
-                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            width: double.infinity,
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
                             decoration: BoxDecoration(
                               color: Colors.green[50],
                               borderRadius: BorderRadius.circular(10),
                               border: Border.all(color: Colors.green.shade200),
                             ),
-                            child: Row(
-                              mainAxisSize: MainAxisSize.min,
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Icon(Icons.payments_outlined, size: 16, color: Colors.green[700]),
-                                const SizedBox(width: 6),
-                                Text(
-                                  lang == 'kk'
-                                      ? 'Бағасы: $priceOffer ₸'
-                                      : lang == 'en'
-                                          ? 'Price offer: $priceOffer ₸'
-                                          : 'Цена: $priceOffer ₸',
-                                  style: TextStyle(
-                                    fontSize: 14,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.green[800],
-                                  ),
+                                Row(
+                                  children: [
+                                    Icon(Icons.payments_outlined, size: 15, color: Colors.green[700]),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      lang == 'kk' ? 'Төлем шарттары' : lang == 'en' ? 'Payment terms' : 'Условия оплаты',
+                                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.bold, color: Colors.green[800]),
+                                    ),
+                                  ],
                                 ),
+                                const SizedBox(height: 6),
+                                if (pricePrepay != null)
+                                  _priceRow(
+                                    lang == 'kk' ? 'Алдын ала төлем' : lang == 'en' ? 'Prepayment' : 'Предоплата',
+                                    pricePrepay,
+                                  ),
+                                if (priceCompletion != null)
+                                  _priceRow(
+                                    lang == 'kk' ? 'Қызмет көрсетілгеннен кейін' : lang == 'en' ? 'After service' : 'После оказания услуг',
+                                    priceCompletion,
+                                  ),
+                                if (priceResult != null)
+                                  _priceRow(
+                                    lang == 'kk' ? 'Нәтиже бойынша' : lang == 'en' ? 'On result' : 'По результатам',
+                                    priceResult,
+                                  ),
                               ],
                             ),
                           ),
