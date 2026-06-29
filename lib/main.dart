@@ -285,7 +285,9 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _budgetController = TextEditingController(); 
+  final _budgetPrepayCtrl = TextEditingController();
+  final _budgetCompletionCtrl = TextEditingController();
+  final _budgetResultCtrl = TextEditingController();
   
   late String _selectedCategory;
   String _selectedServiceType = 'Консультация';
@@ -374,23 +376,43 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) throw Exception("Пользователь не авторизован");
 
-      final int budgetValue = int.tryParse(_budgetController.text) ?? 0;
+      final prepay = _budgetPrepayCtrl.text.isNotEmpty ? int.tryParse(_budgetPrepayCtrl.text) : null;
+      final completion = _budgetCompletionCtrl.text.isNotEmpty ? int.tryParse(_budgetCompletionCtrl.text) : null;
+      final result = _budgetResultCtrl.text.isNotEmpty ? int.tryParse(_budgetResultCtrl.text) : null;
+
+      if (prepay == null && completion == null && result == null) {
+        final l = context.locale.languageCode;
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+          content: Text(l == 'kk' ? 'Кем дегенде бір төлем өрісін толтырыңыз' : l == 'en' ? 'Fill in at least one payment field' : 'Заполните хотя бы одно поле оплаты'),
+          backgroundColor: Colors.red,
+        ));
+        setState(() => _isLoading = false);
+        return;
+      }
+
+      // budget = сумма всех полей для фильтрации по бюджету у юриста
+      final totalBudget = (prepay ?? 0) + (completion ?? 0) + (result ?? 0);
 
       await Supabase.instance.client.from('cases').insert({
-        'client_id': user.id, 
+        'client_id': user.id,
         'title': _titleController.text,
         'description': _descriptionController.text,
         'category': _selectedCategory,
-        'language': context.locale.languageCode, 
+        'language': context.locale.languageCode,
         'status': 'open',
-        'budget': budgetValue,
+        'budget': totalBudget,
+        if (prepay != null) 'budget_prepayment': prepay,
+        if (completion != null) 'budget_on_completion': completion,
+        if (result != null) 'budget_on_result': result,
         'service_type': _selectedServiceType,
         'region': _selectedRegion,
       });
 
       _titleController.clear();
       _descriptionController.clear();
-      _budgetController.clear();
+      _budgetPrepayCtrl.clear();
+      _budgetCompletionCtrl.clear();
+      _budgetResultCtrl.clear();
       
       final _lang = context.locale.languageCode;
       String successText = _lang == 'kk' ? 'Сәтті жіберілді!' : _lang == 'en' ? 'Successfully submitted!' : 'Успешно отправлено!';
@@ -417,7 +439,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
     String fieldRequiredMsg = lang == 'kk' ? 'Өрісті толтырыңыз' : lang == 'en' ? 'Required field' : 'Заполните поле';
     String titleLabel = lang == 'kk' ? 'Мәселенің атауы' : lang == 'en' ? 'Issue title' : 'Название вашей проблемы';
     String descLabel = lang == 'kk' ? 'Жағдайды толық сипаттаңыз' : lang == 'en' ? 'Describe your situation in detail' : 'Опишите ситуацию подробно';
-    String budgetLabel = lang == 'kk' ? 'Төлеуге дайынмын (теңге)' : lang == 'en' ? 'Budget (tenge)' : 'Готов оплатить (тенге)';
+    final budgetSectionLabel = lang == 'kk' ? 'Төлем шарттары (кем дегенде біреуін толтырыңыз)' : lang == 'en' ? 'Payment terms (fill at least one)' : 'Условия оплаты (заполните хотя бы одно)';
     String serviceTypeLabel = lang == 'kk' ? 'Не істеу керек?' : lang == 'en' ? 'What do you need?' : 'Что нужно сделать?';
     String categoryLabel = lang == 'kk' ? 'Таңдалған тақырып' : lang == 'en' ? 'Selected category' : 'Выбранная тема';
     String btnText = lang == 'kk' ? 'Заңгерлерге жіберу' : lang == 'en' ? 'Send to lawyers' : 'Отправить юристам';
@@ -526,16 +548,66 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                       ],
                     ),
                     const SizedBox(height: 16),
-                    TextFormField(
-                      controller: _budgetController,
-                      keyboardType: TextInputType.number, 
-                      inputFormatters: [FilteringTextInputFormatter.digitsOnly], 
-                      decoration: InputDecoration(
-                        labelText: budgetLabel,
-                        prefixIcon: const Icon(Icons.payments_rounded, color: Colors.red),
-                        border: const OutlineInputBorder(),
+                    Container(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        border: Border.all(color: Colors.grey.shade400),
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      validator: (value) => value!.isEmpty ? fieldRequiredMsg : null,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              const Icon(Icons.payments_rounded, color: Colors.red, size: 18),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(budgetSectionLabel,
+                                    style: TextStyle(fontSize: 13, color: Colors.grey[700])),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          TextField(
+                            controller: _budgetPrepayCtrl,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            decoration: InputDecoration(
+                              labelText: lang == 'kk' ? 'Алдын ала төлем' : lang == 'en' ? 'Prepayment' : 'Предоплата',
+                              hintText: '0',
+                              border: const OutlineInputBorder(),
+                              suffixText: '₸',
+                              isDense: true,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: _budgetCompletionCtrl,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            decoration: InputDecoration(
+                              labelText: lang == 'kk' ? 'Қызмет көрсетілгеннен кейін' : lang == 'en' ? 'After service' : 'После оказания услуг',
+                              hintText: '0',
+                              border: const OutlineInputBorder(),
+                              suffixText: '₸',
+                              isDense: true,
+                            ),
+                          ),
+                          const SizedBox(height: 10),
+                          TextField(
+                            controller: _budgetResultCtrl,
+                            keyboardType: TextInputType.number,
+                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                            decoration: InputDecoration(
+                              labelText: lang == 'kk' ? 'Нәтиже бойынша' : lang == 'en' ? 'On result' : 'По результатам',
+                              hintText: '0',
+                              border: const OutlineInputBorder(),
+                              suffixText: '₸',
+                              isDense: true,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(

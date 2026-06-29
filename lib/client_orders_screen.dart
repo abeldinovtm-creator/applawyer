@@ -46,6 +46,18 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
         .order('created_at', ascending: false);
   }
 
+  Widget _budgetChip(String label) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+      decoration: BoxDecoration(
+        color: Colors.green[50],
+        borderRadius: BorderRadius.circular(6),
+        border: Border.all(color: Colors.green.shade200),
+      ),
+      child: Text(label, style: TextStyle(fontSize: 11, color: Colors.green[800], fontWeight: FontWeight.w600)),
+    );
+  }
+
   Future<void> _closeOrder(String caseId) async {
     final l = context.locale.languageCode;
 
@@ -231,6 +243,11 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                     final String desc = order['description'] ?? '';
                     final String region = order['region'] ?? '';
                     final String category = order['category'] ?? '';
+                    final int? budgetPrepay = order['budget_prepayment'] as int?;
+                    final int? budgetCompletion = order['budget_on_completion'] as int?;
+                    final int? budgetResult = order['budget_on_result'] as int?;
+                    final bool hasBudgetBreakdown = budgetPrepay != null || budgetCompletion != null || budgetResult != null;
+                    final int totalBudget = ((order['budget'] ?? 0) as num).toInt();
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -280,6 +297,25 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                 ],
                               ),
                             const SizedBox(height: 6),
+                            if (hasBudgetBreakdown) ...[
+                              Wrap(
+                                spacing: 8,
+                                runSpacing: 4,
+                                children: [
+                                  if (budgetPrepay != null)
+                                    _budgetChip(lang == 'kk' ? 'Алдын ала: $budgetPrepay ₸' : lang == 'en' ? 'Prepay: $budgetPrepay ₸' : 'Предоплата: $budgetPrepay ₸'),
+                                  if (budgetCompletion != null)
+                                    _budgetChip(lang == 'kk' ? 'Кейін: $budgetCompletion ₸' : lang == 'en' ? 'After: $budgetCompletion ₸' : 'После услуг: $budgetCompletion ₸'),
+                                  if (budgetResult != null)
+                                    _budgetChip(lang == 'kk' ? 'Нәтиже: $budgetResult ₸' : lang == 'en' ? 'Result: $budgetResult ₸' : 'По рез-ту: $budgetResult ₸'),
+                                ],
+                              ),
+                              const SizedBox(height: 6),
+                            ] else if (totalBudget > 0) ...[
+                              Text('${lang == 'kk' ? 'Бюджет' : lang == 'en' ? 'Budget' : 'Бюджет'}: $totalBudget ₸',
+                                  style: TextStyle(fontSize: 13, color: Colors.green[700], fontWeight: FontWeight.bold)),
+                              const SizedBox(height: 6),
+                            ],
                             Text(
                               desc,
                               style: TextStyle(

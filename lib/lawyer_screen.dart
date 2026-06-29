@@ -98,6 +98,16 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
     _refreshCases();
   }
 
+  Widget _budgetLine(String label, int amount) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Text('$label: ', style: const TextStyle(fontSize: 11, color: Colors.grey)),
+        Text('$amount ₸', style: const TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.green)),
+      ],
+    );
+  }
+
   void _refreshCases() {
     final allowed = _allowedCategories(widget.lawyerSubtype);
     setState(() {
@@ -745,6 +755,10 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
                         final String category = item['category'] ?? '';
                         final String serviceType = item['service_type'] ?? 'Консультация';
                         final int budget = ((item['budget'] ?? 0) as num).toInt();
+                        final int? budgetPrepay = item['budget_prepayment'] as int?;
+                        final int? budgetCompletion = item['budget_on_completion'] as int?;
+                        final int? budgetResult = item['budget_on_result'] as int?;
+                        final bool hasBudgetBreakdown = budgetPrepay != null || budgetCompletion != null || budgetResult != null;
                         final String clientLang = (item['language'] ?? 'ru').toUpperCase();
                         final String region = item['region'] ?? '';
 
@@ -807,14 +821,27 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
                                 Row(
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
-                                    Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
-                                      children: [
-                                        Text(budgetPrefix, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                                        Text('$budget ₸',
-                                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
-                                      ],
-                                    ),
+                                    hasBudgetBreakdown
+                                        ? Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(budgetPrefix, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                              if (budgetPrepay != null)
+                                                _budgetLine(lang == 'kk' ? 'Алдын ала' : lang == 'en' ? 'Prepay' : 'Предоплата', budgetPrepay),
+                                              if (budgetCompletion != null)
+                                                _budgetLine(lang == 'kk' ? 'Кейін' : lang == 'en' ? 'After' : 'После услуг', budgetCompletion),
+                                              if (budgetResult != null)
+                                                _budgetLine(lang == 'kk' ? 'Нәтиже' : lang == 'en' ? 'Result' : 'По рез-ту', budgetResult),
+                                            ],
+                                          )
+                                        : Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              Text(budgetPrefix, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                              Text('$budget ₸',
+                                                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
+                                            ],
+                                          ),
                                     ElevatedButton.icon(
                                       style: ElevatedButton.styleFrom(
                                         backgroundColor: Colors.red,
