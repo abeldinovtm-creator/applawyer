@@ -28,7 +28,8 @@ Future<void> main() async {
     EasyLocalization(
       supportedLocales: [Locale('kk'), Locale('ru'), Locale('en')],
       path: 'assets/translations',
-      fallbackLocale: Locale('kk'), 
+      fallbackLocale: const Locale('kk'),
+      startLocale: const Locale('kk'),
       child: MyApp(),
     ),
   );
