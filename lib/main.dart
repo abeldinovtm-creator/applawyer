@@ -4,11 +4,12 @@ import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'widgets.dart'; 
-import 'lawyer_screen.dart'; 
-import 'auth_screen.dart'; 
+import 'widgets.dart';
+import 'lawyer_screen.dart';
+import 'auth_screen.dart';
 import 'client_orders_screen.dart';
 import 'profile_screen.dart';
+import 'region_translations.dart';
 
 const supabaseUrl = 'https://xkxontehimricgmmkjbw.supabase.co';
 const supabaseAnonKey = 'sb_publishable_fnR2skXYZE1ZDn3q0Wbzwg_2l57Qhz9';
@@ -185,7 +186,7 @@ class CategorySelectionScreen extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.assignment_turned_in_rounded),
-            tooltip: lang == 'kk' ? 'Менің өтінімдерім' : 'Мои заявки',
+            tooltip: lang == 'kk' ? 'Менің өтінімдерім' : lang == 'en' ? 'My orders' : 'Мои заявки',
             onPressed: () => Navigator.push(
               context,
               MaterialPageRoute(builder: (_) => const ClientOrdersScreen()),
@@ -391,7 +392,8 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
       _descriptionController.clear();
       _budgetController.clear();
       
-      String successText = context.locale.languageCode == 'kk' ? 'Сәтті жіберілді!' : 'Успешно отправлено!';
+      final _lang = context.locale.languageCode;
+      String successText = _lang == 'kk' ? 'Сәтті жіберілді!' : _lang == 'en' ? 'Successfully submitted!' : 'Успешно отправлено!';
 
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text(successText), backgroundColor: Colors.red),
@@ -411,14 +413,14 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
   Widget build(BuildContext context) {
     final lang = context.locale.languageCode;
 
-    String screenTitle = lang == 'kk' ? 'Өтінішті сипаттау' : 'Описание обращения';
-    String fieldRequiredMsg = lang == 'kk' ? 'Өрісті толтырыңыз' : 'Заполните поле';
-    String titleLabel = lang == 'kk' ? 'Мәселенің атауы' : 'Название вашей проблемы';
-    String descLabel = lang == 'kk' ? 'Жағдайды толық сипаттаңыз' : 'Опишите ситуацию подробно';
-    String budgetLabel = lang == 'kk' ? 'Төлеуге дайынмын (теңге)' : 'Готов оплатить (тенге)';
-    String serviceTypeLabel = lang == 'kk' ? 'Не істеу керек?' : 'Что нужно сделать?';
-    String categoryLabel = lang == 'kk' ? 'Таңдалған тақырып' : 'Выбранная тема';
-    String btnText = lang == 'kk' ? 'Заңгерлерге жіберу' : 'Отправить юристам';
+    String screenTitle = lang == 'kk' ? 'Өтінішті сипаттау' : lang == 'en' ? 'Describe your case' : 'Описание обращения';
+    String fieldRequiredMsg = lang == 'kk' ? 'Өрісті толтырыңыз' : lang == 'en' ? 'Required field' : 'Заполните поле';
+    String titleLabel = lang == 'kk' ? 'Мәселенің атауы' : lang == 'en' ? 'Issue title' : 'Название вашей проблемы';
+    String descLabel = lang == 'kk' ? 'Жағдайды толық сипаттаңыз' : lang == 'en' ? 'Describe your situation in detail' : 'Опишите ситуацию подробно';
+    String budgetLabel = lang == 'kk' ? 'Төлеуге дайынмын (теңге)' : lang == 'en' ? 'Budget (tenge)' : 'Готов оплатить (тенге)';
+    String serviceTypeLabel = lang == 'kk' ? 'Не істеу керек?' : lang == 'en' ? 'What do you need?' : 'Что нужно сделать?';
+    String categoryLabel = lang == 'kk' ? 'Таңдалған тақырып' : lang == 'en' ? 'Selected category' : 'Выбранная тема';
+    String btnText = lang == 'kk' ? 'Заңгерлерге жіберу' : lang == 'en' ? 'Send to lawyers' : 'Отправить юристам';
 
     Map<String, String> categoryMap = {
       'Составить или проверить договор': lang == 'kk' ? 'Шартты жасау немесе тексеру' : (lang == 'en' ? 'Contract drafting/review' : 'Составить или проверить договор'),
@@ -435,9 +437,9 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
     };
 
     Map<String, String> serviceMap = {
-      'Консультация': lang == 'kk' ? 'Консультация' : 'Консультация',
-      'Подготовка документов': lang == 'kk' ? 'Құжаттарды дайындау' : 'Подготовка документов',
-      'Полное сопровождение': lang == 'kk' ? 'Толық сүйемелдеу' : 'Полное сопровождение',
+      'Консультация': lang == 'kk' ? 'Консультация' : lang == 'en' ? 'Consultation' : 'Консультация',
+      'Подготовка документов': lang == 'kk' ? 'Құжаттарды дайындау' : lang == 'en' ? 'Document preparation' : 'Подготовка документов',
+      'Полное сопровождение': lang == 'kk' ? 'Толық сүйемелдеу' : lang == 'en' ? 'Full legal support' : 'Полное сопровождение',
     };
 
     return Scaffold(
@@ -539,12 +541,12 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                     DropdownButtonFormField<String>(
                       value: _selectedRegion,
                       decoration: InputDecoration(
-                        labelText: lang == 'kk' ? 'Жұмыс орны (қала/өңір)' : 'Место работы (город/регион)',
+                        labelText: lang == 'kk' ? 'Жұмыс орны (қала/өңір)' : lang == 'en' ? 'City / Region' : 'Место работы (город/регион)',
                         prefixIcon: const Icon(Icons.location_on_rounded, color: Colors.red),
                         border: const OutlineInputBorder(),
                       ),
                       items: _CreateCaseScreenState.kRegions.map((r) {
-                        return DropdownMenuItem(value: r, child: Text(r));
+                        return DropdownMenuItem(value: r, child: Text(translateRegion(r, lang)));
                       }).toList(),
                       onChanged: (v) => setState(() => _selectedRegion = v!),
                     ),

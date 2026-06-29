@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'region_data.dart';
+import 'region_translations.dart';
 
 class RegionPickerScreen extends StatefulWidget {
   final String? selectedRegion;
@@ -16,23 +17,28 @@ class _RegionPickerScreenState extends State<RegionPickerScreen> {
   String _searchQuery = '';
   final _searchController = TextEditingController();
 
-  List<String> get _filteredOblasts {
+  List<String> _filteredOblasts(String lang) {
     if (_searchQuery.isEmpty) return kKazakhstanRegions.keys.toList();
     final q = _searchQuery.toLowerCase();
     return kKazakhstanRegions.keys
         .where((oblast) {
           if (oblast.toLowerCase().contains(q)) return true;
+          if (translateRegion(oblast, lang).toLowerCase().contains(q)) return true;
           final cities = kKazakhstanRegions[oblast] ?? [];
-          return cities.any((c) => c.toLowerCase().contains(q));
+          return cities.any((c) =>
+              c.toLowerCase().contains(q) ||
+              translateRegion(c, lang).toLowerCase().contains(q));
         })
         .toList();
   }
 
-  List<String> get _filteredCities {
+  List<String> _filteredCities(String lang) {
     if (_selectedOblast == null) return [];
     final cities = kKazakhstanRegions[_selectedOblast] ?? [];
     if (_searchQuery.isEmpty) return cities;
-    return cities.where((c) => c.toLowerCase().contains(_searchQuery.toLowerCase())).toList();
+    return cities.where((c) =>
+        c.toLowerCase().contains(_searchQuery.toLowerCase()) ||
+        translateRegion(c, lang).toLowerCase().contains(_searchQuery.toLowerCase())).toList();
   }
 
   void _selectRegion(String region) {
@@ -42,14 +48,16 @@ class _RegionPickerScreenState extends State<RegionPickerScreen> {
   @override
   Widget build(BuildContext context) {
     final lang = context.locale.languageCode;
+    final oblasts = _filteredOblasts(lang);
+    final cities = _filteredCities(lang);
     final isShowingCities = _selectedOblast != null && kKazakhstanRegions[_selectedOblast]!.isNotEmpty;
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           _selectedOblast != null
-              ? _selectedOblast!
-              : (lang == 'kk' ? 'Аймақ' : 'Регион'),
+              ? translateRegion(_selectedOblast!, lang)
+              : (lang == 'kk' ? 'Аймақ' : lang == 'en' ? 'Region' : 'Регион'),
         ),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
@@ -65,7 +73,7 @@ class _RegionPickerScreenState extends State<RegionPickerScreen> {
           TextButton(
             onPressed: () => Navigator.pop(context, 'Все регионы'),
             child: Text(
-              lang == 'kk' ? 'Барлығы' : 'Сбросить',
+              lang == 'kk' ? 'Барлығы' : lang == 'en' ? 'Reset' : 'Сбросить',
               style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
             ),
           ),
@@ -80,7 +88,7 @@ class _RegionPickerScreenState extends State<RegionPickerScreen> {
               controller: _searchController,
               onChanged: (v) => setState(() => _searchQuery = v),
               decoration: InputDecoration(
-                hintText: lang == 'kk' ? 'Қала, аудан, ел' : 'Город, область, страна',
+                hintText: lang == 'kk' ? 'Қала, аудан, ел' : lang == 'en' ? 'City, region, country' : 'Город, область, страна',
                 prefixIcon: const Icon(Icons.search, color: Colors.grey),
                 suffixIcon: _searchQuery.isNotEmpty
                     ? IconButton(
@@ -113,7 +121,7 @@ class _RegionPickerScreenState extends State<RegionPickerScreen> {
                     const Icon(Icons.public, color: Colors.red, size: 20),
                     const SizedBox(width: 12),
                     Text(
-                      lang == 'kk' ? 'Онлайн (кез келген аймақ)' : 'Онлайн (любой регион)',
+                      lang == 'kk' ? 'Онлайн (кез келген аймақ)' : lang == 'en' ? 'Online (any region)' : 'Онлайн (любой регион)',
                       style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
                     ),
                   ],
@@ -128,7 +136,7 @@ class _RegionPickerScreenState extends State<RegionPickerScreen> {
               child: Align(
                 alignment: Alignment.centerLeft,
                 child: Text(
-                  lang == 'kk' ? 'Қазақстанның барлық аймақтары' : 'Все регионы Казахстана',
+                  lang == 'kk' ? 'Қазақстанның барлық аймақтары' : lang == 'en' ? 'All regions of Kazakhstan' : 'Все регионы Казахстана',
                   style: TextStyle(fontSize: 13, color: Colors.grey[600]),
                 ),
               ),
@@ -138,28 +146,28 @@ class _RegionPickerScreenState extends State<RegionPickerScreen> {
           Expanded(
             child: ListView.separated(
               itemCount: isShowingCities && _searchQuery.isEmpty
-                  ? _filteredCities.length
-                  : _filteredOblasts.where((o) => o != 'Онлайн (любой регион)' && o != 'Все регионы').length,
+                  ? cities.length
+                  : oblasts.where((o) => o != 'Онлайн (любой регион)' && o != 'Все регионы').length,
               separatorBuilder: (_, __) => const Divider(height: 1, indent: 16),
               itemBuilder: (context, index) {
                 if (isShowingCities && _searchQuery.isEmpty) {
-                  final city = _filteredCities[index];
+                  final city = cities[index];
                   return ListTile(
-                    title: Text(city, style: const TextStyle(fontSize: 16)),
+                    title: Text(translateRegion(city, lang), style: const TextStyle(fontSize: 16)),
                     trailing: widget.selectedRegion == city
                         ? const Icon(Icons.check, color: Colors.red)
                         : null,
                     onTap: () => _selectRegion(city),
                   );
                 } else {
-                  final oblasts = _filteredOblasts
+                  final filteredOblasts = oblasts
                       .where((o) => o != 'Онлайн (любой регион)' && o != 'Все регионы')
                       .toList();
-                  final oblast = oblasts[index];
+                  final oblast = filteredOblasts[index];
                   final hasCities = (kKazakhstanRegions[oblast] ?? []).isNotEmpty;
 
                   return ListTile(
-                    title: Text(oblast, style: const TextStyle(fontSize: 16)),
+                    title: Text(translateRegion(oblast, lang), style: const TextStyle(fontSize: 16)),
                     trailing: hasCities && _searchQuery.isEmpty
                         ? const Icon(Icons.chevron_right, color: Colors.grey)
                         : widget.selectedRegion == oblast

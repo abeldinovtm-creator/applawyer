@@ -25,7 +25,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   Future<List<Map<String, dynamic>>> _load() async {
     final convRaw = await _supabase
         .from('conversations')
-        .select('id, lawyer_id, created_at, status')
+        .select('id, lawyer_id, created_at, status, price_offer')
         .eq('case_id', widget.caseId)
         .order('created_at', ascending: false);
 
@@ -120,6 +120,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                 final exp = profile['experience_years'];
                 final about = profile['about']?.toString() ?? '';
                 final subtype = profile['lawyer_subtype']?.toString() ?? 'lawyer';
+                final priceOffer = conv['price_offer'] as int?;
 
                 final subtypeLabel = subtype == 'advocate'
                     ? 'Адвокат'
@@ -211,6 +212,36 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                             maxLines: 3,
                             overflow: TextOverflow.ellipsis,
                             style: TextStyle(fontSize: 13, color: Colors.grey[700]),
+                          ),
+                        ],
+                        if (priceOffer != null) ...[
+                          const SizedBox(height: 10),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                            decoration: BoxDecoration(
+                              color: Colors.green[50],
+                              borderRadius: BorderRadius.circular(10),
+                              border: Border.all(color: Colors.green.shade200),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.payments_outlined, size: 16, color: Colors.green[700]),
+                                const SizedBox(width: 6),
+                                Text(
+                                  lang == 'kk'
+                                      ? 'Бағасы: $priceOffer ₸'
+                                      : lang == 'en'
+                                          ? 'Price offer: $priceOffer ₸'
+                                          : 'Цена: $priceOffer ₸',
+                                  style: TextStyle(
+                                    fontSize: 14,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.green[800],
+                                  ),
+                                ),
+                              ],
+                            ),
                           ),
                         ],
                         const SizedBox(height: 8),
@@ -305,6 +336,169 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                             ),
                           ),
                         ],
+                      ],
+                    ),
+                  ),
+                );
+              },
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+// Список откликов юриста
+class LawyerConversationListScreen extends StatefulWidget {
+  const LawyerConversationListScreen({Key? key}) : super(key: key);
+
+  @override
+  _LawyerConversationListScreenState createState() => _LawyerConversationListScreenState();
+}
+
+class _LawyerConversationListScreenState extends State<LawyerConversationListScreen> {
+  final _supabase = Supabase.instance.client;
+  int _refreshKey = 0;
+
+  Future<List<Map<String, dynamic>>> _load() async {
+    final uid = _supabase.auth.currentUser?.id;
+    if (uid == null) return [];
+
+    final convRaw = await _supabase
+        .from('conversations')
+        .select('id, case_id, created_at, status')
+        .eq('lawyer_id', uid)
+        .order('created_at', ascending: false);
+
+    final convs = List<Map<String, dynamic>>.from(convRaw as List);
+    if (convs.isEmpty) return [];
+
+    final caseIds = convs.map((c) => c['case_id'].toString()).toList();
+
+    Map<String, Map<String, dynamic>> caseMap = {};
+    try {
+      final casesRaw = await _supabase
+          .from('cases')
+          .select('id, title, category')
+          .inFilter('id', caseIds);
+      for (final c in List<Map<String, dynamic>>.from(casesRaw as List)) {
+        caseMap[c['id'].toString()] = c;
+      }
+    } catch (_) {}
+
+    return convs.map((c) {
+      return <String, dynamic>{...c, 'case': caseMap[c['case_id'].toString()] ?? <String, dynamic>{}};
+    }).toList();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = context.locale.languageCode;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: Text(lang == 'kk' ? 'Менің жауаптарым' : lang == 'en' ? 'My Responses' : 'Мои отклики'),
+      ),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        key: ValueKey(_refreshKey),
+        future: _load(),
+        builder: (context, snap) {
+          if (snap.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final convs = snap.data ?? [];
+          if (convs.isEmpty) {
+            return Center(
+              child: Text(
+                lang == 'kk' ? 'Отклик жоқ' : lang == 'en' ? 'No responses yet' : 'Откликов пока нет',
+                style: const TextStyle(color: Colors.grey, fontSize: 16),
+              ),
+            );
+          }
+          return RefreshIndicator(
+            onRefresh: () async => setState(() => _refreshKey++),
+            child: ListView.builder(
+              physics: const AlwaysScrollableScrollPhysics(),
+              padding: const EdgeInsets.all(16),
+              itemCount: convs.length,
+              itemBuilder: (context, i) {
+                final conv = convs[i];
+                final caseData = Map<String, dynamic>.from(conv['case'] as Map? ?? {});
+                final convId = conv['id'].toString();
+                final status = conv['status']?.toString() ?? 'pending';
+                final caseTitle = caseData['title']?.toString() ?? '';
+                final category = caseData['category']?.toString() ?? '';
+
+                Color statusColor;
+                String statusLabel;
+                switch (status) {
+                  case 'accepted':
+                    statusColor = Colors.green;
+                    statusLabel = lang == 'kk' ? 'Қабылданды' : lang == 'en' ? 'Accepted' : 'Принят';
+                    break;
+                  case 'rejected':
+                    statusColor = Colors.red;
+                    statusLabel = lang == 'kk' ? 'Бас тартылды' : lang == 'en' ? 'Rejected' : 'Отклонён';
+                    break;
+                  default:
+                    statusColor = Colors.orange;
+                    statusLabel = lang == 'kk' ? 'Күтілуде' : lang == 'en' ? 'Pending' : 'Ожидает';
+                }
+
+                return Card(
+                  margin: const EdgeInsets.only(bottom: 12),
+                  elevation: 2,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  child: Padding(
+                    padding: const EdgeInsets.all(14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (category.isNotEmpty)
+                          Text(category,
+                              style: TextStyle(fontSize: 12, color: Colors.red[700], fontWeight: FontWeight.bold)),
+                        const SizedBox(height: 4),
+                        Text(
+                          caseTitle.isNotEmpty ? caseTitle : '—',
+                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        ),
+                        const SizedBox(height: 10),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: statusColor.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: statusColor.withOpacity(0.4)),
+                              ),
+                              child: Text(statusLabel,
+                                  style: TextStyle(
+                                      color: statusColor, fontWeight: FontWeight.bold, fontSize: 13)),
+                            ),
+                            if (status == 'accepted')
+                              ElevatedButton.icon(
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.red,
+                                  foregroundColor: Colors.white,
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                ),
+                                onPressed: () => Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (_) => ChatScreen(
+                                      conversationId: convId,
+                                      caseTitle: caseTitle,
+                                    ),
+                                  ),
+                                ),
+                                icon: const Icon(Icons.chat_bubble_outline, size: 16),
+                                label: Text(lang == 'kk' ? 'Чат' : lang == 'en' ? 'Chat' : 'Чат'),
+                              ),
+                          ],
+                        ),
                       ],
                     ),
                   ),

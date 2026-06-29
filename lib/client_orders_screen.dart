@@ -2,6 +2,25 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'chat_screen.dart';
+import 'region_translations.dart';
+
+String _translateCat(String cat, String lang) {
+  if (lang == 'ru') return cat;
+  const Map<String, Map<String, String>> _t = {
+    'Составить или проверить договор': {'kk': 'Шартты жасау немесе тексеру', 'en': 'Contract drafting/review'},
+    'Споры, суды и долги': {'kk': 'Даулар, соттар және борыштар', 'en': 'Disputes & Debts'},
+    'Трудовые споры': {'kk': 'Еңбек даулары', 'en': 'Labor disputes'},
+    'Семья, брак и развод': {'kk': 'Отбасы, неке және ажырасу', 'en': 'Family & Divorce'},
+    'Штрафы, налоги и госорганы': {'kk': 'Айыппұлдар, салықтар', 'en': 'Fines & Taxes'},
+    'Бизнес, ИП и ТОО': {'kk': 'Бизнес, ЖК және ЖШС', 'en': 'Business & SME'},
+    'Земельные вопросы': {'kk': 'Жер мәселелері', 'en': 'Land issues'},
+    'Долги и коллекторы': {'kk': 'Борыштар және коллекторлар', 'en': 'Debts & collectors'},
+    'Уголовные дела': {'kk': 'Қылмыстық істер', 'en': 'Criminal cases'},
+    'Исполнение решения суда / ЧСИ': {'kk': 'Сот шешімін орындау / ЖСО', 'en': 'Court enforcement'},
+    'Другой вопрос': {'kk': 'Басқа сұрақ', 'en': 'Other issue'},
+  };
+  return _t[cat]?[lang] ?? cat;
+}
 
 class ClientOrdersScreen extends StatefulWidget {
   const ClientOrdersScreen({Key? key}) : super(key: key);
@@ -27,6 +46,59 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
         .order('created_at', ascending: false);
   }
 
+  Future<void> _closeOrder(String caseId) async {
+    final l = context.locale.languageCode;
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(l == 'kk' ? 'Істі жабу?' : l == 'en' ? 'Close case?' : 'Закрыть заявку?'),
+        content: Text(l == 'kk'
+            ? 'Заявка аяқталды деп белгіленеді. Растайсыз ба?'
+            : l == 'en'
+                ? 'The order will be marked as completed. Confirm?'
+                : 'Заявка будет отмечена как завершённая. Подтвердить?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text(l == 'kk' ? 'Жоқ' : l == 'en' ? 'Cancel' : 'Отмена'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text(
+              l == 'kk' ? 'Иә, жабу' : l == 'en' ? 'Yes, close' : 'Да, закрыть',
+              style: const TextStyle(color: Colors.green),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await _supabase.from('cases').update({'status': 'completed'}).eq('id', caseId);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(l == 'kk' ? 'Заявка жабылды' : l == 'en' ? 'Case closed' : 'Заявка закрыта'),
+            backgroundColor: Colors.green,
+          ),
+        );
+        setState(() => _refreshKey++);
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
   // Отмена заявки через DELETE — обходим constraint "cases_status_check"
   Future<void> _cancelOrder(String caseId) async {
     final l = context.locale.languageCode;
@@ -34,19 +106,21 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(l == 'kk' ? 'Өтінімді жою?' : 'Удалить заявку?'),
+        title: Text(l == 'kk' ? 'Өтінімді жою?' : l == 'en' ? 'Delete order?' : 'Удалить заявку?'),
         content: Text(l == 'kk'
             ? 'Өтінім толығымен жойылады. Растайсыз ба?'
-            : 'Заявка будет полностью удалена. Подтвердить?'),
+            : l == 'en'
+                ? 'The order will be permanently deleted. Confirm?'
+                : 'Заявка будет полностью удалена. Подтвердить?'),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
-            child: Text(l == 'kk' ? 'Жоқ' : 'Отмена'),
+            child: Text(l == 'kk' ? 'Жоқ' : l == 'en' ? 'Cancel' : 'Отмена'),
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
             child: Text(
-              l == 'kk' ? 'Иә, жою' : 'Да, удалить',
+              l == 'kk' ? 'Иә, жою' : l == 'en' ? 'Yes, delete' : 'Да, удалить',
               style: const TextStyle(color: Colors.red),
             ),
           ),
@@ -63,7 +137,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text(l == 'kk' ? 'Өтінім жойылды' : 'Заявка удалена'),
+            content: Text(l == 'kk' ? 'Өтінім жойылды' : l == 'en' ? 'Order deleted' : 'Заявка удалена'),
             backgroundColor: Colors.green,
           ),
         );
@@ -88,19 +162,19 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
       case 'active':
       case 'open':
         color = Colors.blue;
-        text = lang == 'kk' ? 'Белсенді' : 'Активна';
+        text = lang == 'kk' ? 'Белсенді' : lang == 'en' ? 'Active' : 'Активна';
         break;
       case 'in_progress':
         color = Colors.orange;
-        text = lang == 'kk' ? 'Жұмыста' : 'В работе';
+        text = lang == 'kk' ? 'Жұмыста' : lang == 'en' ? 'In progress' : 'В работе';
         break;
       case 'completed':
         color = Colors.green;
-        text = lang == 'kk' ? 'Аяқталды' : 'Завершена';
+        text = lang == 'kk' ? 'Аяқталды' : lang == 'en' ? 'Completed' : 'Завершена';
         break;
       case 'cancelled':
         color = Colors.grey;
-        text = lang == 'kk' ? 'Бас тартылды' : 'Отменена';
+        text = lang == 'kk' ? 'Бас тартылды' : lang == 'en' ? 'Cancelled' : 'Отменена';
         break;
       default:
         color = Colors.black45;
@@ -120,7 +194,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(lang == 'kk' ? 'Менің өтінімдерім' : 'Мои заявки'),
+        title: Text(lang == 'kk' ? 'Менің өтінімдерім' : lang == 'en' ? 'My Orders' : 'Мои заявки'),
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -140,7 +214,9 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                   return Center(
                     child: Text(lang == 'kk'
                         ? 'Өтінімдер әлі жоқ'
-                        : 'У вас пока нет созданных заявок'),
+                        : lang == 'en'
+                            ? 'You have no orders yet'
+                            : 'У вас пока нет созданных заявок'),
                   );
                 }
 
@@ -151,8 +227,10 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                     final order = orders[index];
                     final String status = order['status'] ?? 'active';
                     final String title = order['title'] ??
-                        (lang == 'kk' ? 'Заңгерлік көмек' : 'Юридическая помощь');
+                        (lang == 'kk' ? 'Заңгерлік көмек' : lang == 'en' ? 'Legal help' : 'Юридическая помощь');
                     final String desc = order['description'] ?? '';
+                    final String region = order['region'] ?? '';
+                    final String category = order['category'] ?? '';
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -179,7 +257,29 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                 _buildStatusChip(status, lang),
                               ],
                             ),
-                            const SizedBox(height: 8),
+                            const SizedBox(height: 4),
+                            if (region.isNotEmpty || category.isNotEmpty)
+                              Wrap(
+                                spacing: 6,
+                                children: [
+                                  if (category.isNotEmpty)
+                                    Chip(
+                                      label: Text(_translateCat(category, lang), style: const TextStyle(fontSize: 11)),
+                                      backgroundColor: Colors.red[50],
+                                      labelStyle: TextStyle(color: Colors.red[700]),
+                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                  if (region.isNotEmpty)
+                                    Chip(
+                                      avatar: const Icon(Icons.location_on_rounded, size: 14, color: Colors.red),
+                                      label: Text(translateRegion(region, lang), style: const TextStyle(fontSize: 11)),
+                                      backgroundColor: Colors.red[50],
+                                      labelStyle: TextStyle(color: Colors.red[700]),
+                                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                                    ),
+                                ],
+                              ),
+                            const SizedBox(height: 6),
                             Text(
                               desc,
                               style: TextStyle(
@@ -203,20 +303,31 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                   ),
                                   icon: const Icon(Icons.people_outline, color: Colors.red, size: 18),
                                   label: Text(
-                                    lang == 'kk' ? 'Өтінімдер' : 'Отклики',
+                                    lang == 'kk' ? 'Өтінімдер' : lang == 'en' ? 'Responses' : 'Отклики',
                                     style: const TextStyle(color: Colors.red),
                                   ),
                                 ),
                                 if (status == 'active' ||
                                     status == 'open' ||
                                     status == 'in_progress')
-                                  TextButton.icon(
-                                    onPressed: () => _cancelOrder(order['id'].toString()),
-                                    icon: const Icon(Icons.delete_outline, color: Colors.grey, size: 18),
-                                    label: Text(
-                                      lang == 'kk' ? 'Жою' : 'Удалить',
-                                      style: const TextStyle(color: Colors.grey),
-                                    ),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      TextButton.icon(
+                                        onPressed: () => _closeOrder(order['id'].toString()),
+                                        icon: const Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
+                                        label: Text(
+                                          lang == 'kk' ? 'Жабу' : lang == 'en' ? 'Close' : 'Закрыть',
+                                          style: const TextStyle(color: Colors.green),
+                                        ),
+                                      ),
+                                      IconButton(
+                                        onPressed: () => _cancelOrder(order['id'].toString()),
+                                        icon: const Icon(Icons.delete_outline, color: Colors.grey, size: 20),
+                                        tooltip: lang == 'kk' ? 'Жою' : lang == 'en' ? 'Delete' : 'Удалить',
+                                        visualDensity: VisualDensity.compact,
+                                      ),
+                                    ],
                                   ),
                               ],
                             ),

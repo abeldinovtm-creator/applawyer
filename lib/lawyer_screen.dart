@@ -6,8 +6,40 @@ import 'widgets.dart';
 import 'auth_screen.dart';
 import 'main.dart';
 import 'region_picker_screen.dart';
+import 'region_translations.dart';
 import 'chat_screen.dart';
 import 'profile_screen.dart';
+
+// Перевод типов услуг
+String _translateServiceType(String type, String lang) {
+  if (lang == 'ru') return type;
+  const Map<String, Map<String, String>> _svcT = {
+    'Консультация': {'kk': 'Консультация', 'en': 'Consultation'},
+    'Подготовка документов': {'kk': 'Құжаттар', 'en': 'Documents'},
+    'Полное сопровождение': {'kk': 'Толық сүйемелдеу', 'en': 'Full support'},
+  };
+  return _svcT[type]?[lang] ?? type;
+}
+
+// Перевод категорий
+String _translateCategory(String cat, String lang) {
+  if (lang == 'ru') return cat;
+  const Map<String, Map<String, String>> _catT = {
+    'Все': {'kk': 'Барлығы', 'en': 'All'},
+    'Составить или проверить договор': {'kk': 'Шартты жасау немесе тексеру', 'en': 'Contract drafting/review'},
+    'Споры, суды и долги': {'kk': 'Даулар, соттар және борыштар', 'en': 'Disputes & Debts'},
+    'Трудовые споры': {'kk': 'Еңбек даулары', 'en': 'Labor disputes'},
+    'Семья, брак и развод': {'kk': 'Отбасы, неке және ажырасу', 'en': 'Family & Divorce'},
+    'Штрафы, налоги и госорганы': {'kk': 'Айыппұлдар, салықтар', 'en': 'Fines & Taxes'},
+    'Бизнес, ИП и ТОО': {'kk': 'Бизнес, ЖК және ЖШС', 'en': 'Business & SME'},
+    'Земельные вопросы': {'kk': 'Жер мәселелері', 'en': 'Land issues'},
+    'Долги и коллекторы': {'kk': 'Борыштар және коллекторлар', 'en': 'Debts & collectors'},
+    'Уголовные дела': {'kk': 'Қылмыстық істер', 'en': 'Criminal cases'},
+    'Исполнение решения суда / ЧСИ': {'kk': 'Сот шешімін орындау / ЖСО', 'en': 'Court enforcement'},
+    'Другой вопрос': {'kk': 'Басқа сұрақ', 'en': 'Other issue'},
+  };
+  return _catT[cat]?[lang] ?? cat;
+}
 
 class LawyerDashboardScreen extends StatefulWidget {
   final String lawyerSubtype;
@@ -141,15 +173,83 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
       return;
     }
 
+    // Диалог с ценой
+    if (!mounted) return;
+    final priceCtrl = TextEditingController();
+    final confirmed = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.only(
+          left: 24, right: 24, top: 24,
+          bottom: MediaQuery.of(ctx).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              lang == 'kk' ? 'Бағаны көрсетіңіз' : lang == 'en' ? 'Your price offer' : 'Укажите вашу цену',
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              lang == 'kk'
+                  ? 'Клиент сіздің бағаңызды және профиліңізді көреді'
+                  : lang == 'en'
+                      ? 'The client will see your price and profile'
+                      : 'Клиент увидит вашу цену и профиль',
+              style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+            ),
+            const SizedBox(height: 16),
+            TextField(
+              controller: priceCtrl,
+              keyboardType: TextInputType.number,
+              inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+              autofocus: true,
+              decoration: InputDecoration(
+                labelText: lang == 'kk' ? 'Сіздің бағаңыз (₸)' : lang == 'en' ? 'Your price (₸)' : 'Ваша цена (₸)',
+                hintText: lang == 'kk' ? 'Мысалы: 15000' : lang == 'en' ? 'e.g. 15000' : 'Например: 15000',
+                border: const OutlineInputBorder(),
+                suffixText: '₸',
+              ),
+            ),
+            const SizedBox(height: 20),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+                minimumSize: const Size(double.infinity, 52),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              ),
+              onPressed: () => Navigator.pop(ctx, true),
+              child: Text(
+                lang == 'kk' ? 'Жіберу' : lang == 'en' ? 'Send response' : 'Отправить отклик',
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    final priceOffer = priceCtrl.text.isNotEmpty ? int.tryParse(priceCtrl.text) : null;
+
     try {
       await _supabase.from('conversations').insert({
         'case_id': caseId,
         'lawyer_id': user.id,
         'status': 'pending',
+        if (priceOffer != null) 'price_offer': priceOffer,
       });
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text(lang == 'kk' ? 'Отклик жіберілді!' : 'Отклик отправлен!'),
+        content: Text(lang == 'kk' ? 'Отклик жіберілді!' : lang == 'en' ? 'Response sent!' : 'Отклик отправлен!'),
         backgroundColor: Colors.green,
       ));
     } catch (e) {
@@ -197,7 +297,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  lang == 'kk' ? 'Бюджет (₸)' : 'Бюджет клиента (₸)',
+                  lang == 'kk' ? 'Бюджет (₸)' : lang == 'en' ? 'Client budget (₸)' : 'Бюджет клиента (₸)',
                   style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
                 ),
                 TextButton(
@@ -205,7 +305,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
                     fromCtrl.clear();
                     toCtrl.clear();
                   },
-                  child: Text(lang == 'kk' ? 'Тазарту' : 'Сбросить',
+                  child: Text(lang == 'kk' ? 'Тазарту' : lang == 'en' ? 'Reset' : 'Сбросить',
                       style: const TextStyle(color: Colors.red)),
                 ),
               ],
@@ -219,7 +319,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
-                      labelText: lang == 'kk' ? 'Бастап' : 'От',
+                      labelText: lang == 'kk' ? 'Бастап' : lang == 'en' ? 'From' : 'От',
                       hintText: '0',
                       border: const OutlineInputBorder(),
                       suffixText: '₸',
@@ -236,7 +336,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
                     keyboardType: TextInputType.number,
                     inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                     decoration: InputDecoration(
-                      labelText: lang == 'kk' ? 'Дейін' : 'До',
+                      labelText: lang == 'kk' ? 'Дейін' : lang == 'en' ? 'To' : 'До',
                       hintText: '∞',
                       border: const OutlineInputBorder(),
                       suffixText: '₸',
@@ -262,7 +362,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
                 _refreshCases();
               },
               child: Text(
-                lang == 'kk' ? 'Қолдану' : 'Применить',
+                lang == 'kk' ? 'Қолдану' : lang == 'en' ? 'Apply' : 'Применить',
                 style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
             ),
@@ -276,18 +376,20 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
     final lang = context.locale.languageCode;
 
     String regionLabel = _selectedRegion == 'Все регионы'
-        ? (lang == 'kk' ? 'Аймақ' : 'Регион')
-        : _selectedRegion;
+        ? (lang == 'kk' ? 'Аймақ' : lang == 'en' ? 'Region' : 'Регион')
+        : translateRegion(_selectedRegion, lang);
 
+    final fromWord = lang == 'kk' ? 'бастап' : lang == 'en' ? 'from' : 'от';
+    final toWord = lang == 'kk' ? 'дейін' : lang == 'en' ? 'to' : 'до';
     String budgetLabel;
     if (_budgetFrom != null && _budgetTo != null) {
-      budgetLabel = '${_budgetFrom!.toString()} – ${_budgetTo!.toString()} ₸';
+      budgetLabel = '${_budgetFrom!} – ${_budgetTo!} ₸';
     } else if (_budgetFrom != null) {
-      budgetLabel = 'от ${_budgetFrom!} ₸';
+      budgetLabel = '$fromWord ${_budgetFrom!} ₸';
     } else if (_budgetTo != null) {
-      budgetLabel = 'до ${_budgetTo!} ₸';
+      budgetLabel = '$toWord ${_budgetTo!} ₸';
     } else {
-      budgetLabel = lang == 'kk' ? 'Бюджет' : 'Бюджет';
+      budgetLabel = lang == 'kk' ? 'Бюджет' : lang == 'en' ? 'Budget' : 'Бюджет';
     }
 
     final bool regionActive = _selectedRegion != 'Все регионы';
@@ -402,10 +504,10 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
   Widget _buildServiceTypeRow(String lang) {
     final types = ['Все', 'Консультация', 'Подготовка документов', 'Полное сопровождение'];
     final labels = {
-      'Все': lang == 'kk' ? 'Барлығы' : 'Все',
-      'Консультация': lang == 'kk' ? 'Консультация' : 'Консультация',
-      'Подготовка документов': lang == 'kk' ? 'Құжаттар' : 'Документы',
-      'Полное сопровождение': lang == 'kk' ? 'Толық сүйемелдеу' : 'Сопровождение',
+      'Все': lang == 'kk' ? 'Барлығы' : lang == 'en' ? 'All' : 'Все',
+      'Консультация': lang == 'kk' ? 'Консультация' : lang == 'en' ? 'Consultation' : 'Консультация',
+      'Подготовка документов': lang == 'kk' ? 'Құжаттар' : lang == 'en' ? 'Documents' : 'Документы',
+      'Полное сопровождение': lang == 'kk' ? 'Толық сүйемелдеу' : lang == 'en' ? 'Full support' : 'Сопровождение',
     };
 
     return SizedBox(
@@ -448,7 +550,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
         scrollDirection: Axis.horizontal,
         children: categories.map((cat) {
           final isSelected = _selectedCategory == cat;
-          final label = cat == 'Все' ? (lang == 'kk' ? 'Барлығы' : 'Все') : cat;
+          final label = _translateCategory(cat, lang);
           return Padding(
             padding: const EdgeInsets.only(right: 8),
             child: FilterChip(
@@ -500,6 +602,14 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
           },
         ),
         actions: [
+          IconButton(
+            icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
+            tooltip: lang == 'kk' ? 'Менің жауаптарым' : lang == 'en' ? 'My Responses' : 'Мои отклики',
+            onPressed: () => Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => const LawyerConversationListScreen()),
+            ),
+          ),
           IconButton(
             icon: const Icon(Icons.person_outline, color: Colors.white),
             tooltip: lang == 'kk' ? 'Профиль' : 'Профиль',
@@ -598,7 +708,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
                                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                   children: [
                                     Expanded(
-                                      child: Text(category,
+                                      child: Text(_translateCategory(category, lang),
                                           style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.red[700])),
                                     ),
                                     Container(
@@ -618,7 +728,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
                                   runSpacing: 4,
                                   children: [
                                     Chip(
-                                      label: Text(serviceType, style: const TextStyle(fontSize: 12)),
+                                      label: Text(_translateServiceType(serviceType, lang), style: const TextStyle(fontSize: 12)),
                                       backgroundColor: Colors.red[50],
                                       labelStyle: TextStyle(color: Colors.red[900], fontWeight: FontWeight.w600),
                                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -626,7 +736,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen> {
                                     Chip(
                                       avatar: const Icon(Icons.location_on_rounded, size: 14, color: Colors.red),
                                       label: Text(
-                                        region.isNotEmpty ? region : '—',
+                                        region.isNotEmpty ? translateRegion(region, lang) : '—',
                                         style: const TextStyle(fontSize: 12),
                                       ),
                                       backgroundColor: Colors.red[50],
