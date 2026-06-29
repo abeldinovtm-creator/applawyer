@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'chat_screen.dart';
 import 'region_translations.dart';
+import 'widgets.dart';
 
 String _trCat(String cat) {
   const map = {
@@ -189,6 +190,11 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('client.orders_title'.tr()),
+        actions: [
+          buildLanguageButton(context, 'kk', 'KZ', isDarkAppBar: true),
+          buildLanguageButton(context, 'ru', 'RU', isDarkAppBar: true),
+          buildLanguageButton(context, 'en', 'EN', isDarkAppBar: true),
+        ],
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())

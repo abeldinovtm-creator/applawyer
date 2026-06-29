@@ -242,15 +242,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
   
   late String _selectedCategory;
   String _selectedServiceType = 'Консультация';
-  String _selectedRegion = 'Алматы'; // регион клиента
-
-  static const List<String> kRegions = [
-    'Алматы', 'Астана', 'Шымкент', 'Актобе', 'Атырау',
-    'Караганда', 'Тараз', 'Павлодар', 'Усть-Каменогорск',
-    'Семей', 'Костанай', 'Петропавловск', 'Кызылорда',
-    'Актау', 'Туркестан', 'Кокшетау', 'Талдыкорган',
-    'Онлайн (любой регион)',
-  ];
+  String _selectedRegion = '';
 
   bool _isLoading = false;
   late stt.SpeechToText _speech;
@@ -261,7 +253,17 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
   void initState() {
     super.initState();
     _speech = stt.SpeechToText();
-    _selectedCategory = widget.initialCategory; 
+    _selectedCategory = widget.initialCategory;
+  }
+
+  Future<void> _pickRegion() async {
+    final result = await Navigator.push<String>(
+      context,
+      MaterialPageRoute(
+        builder: (_) => RegionPickerScreen(selectedRegion: _selectedRegion),
+      ),
+    );
+    if (result != null) setState(() => _selectedRegion = result);
   }
 
   void _toggleListen({required bool isTitle}) async {
@@ -548,17 +550,26 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                       ),
                     ),
                     const SizedBox(height: 16),
-                    DropdownButtonFormField<String>(
-                      value: _selectedRegion,
-                      decoration: InputDecoration(
-                        labelText: 'case.city_label'.tr(),
-                        prefixIcon: const Icon(Icons.location_on_rounded, color: Colors.red),
-                        border: const OutlineInputBorder(),
+                    InkWell(
+                      onTap: _pickRegion,
+                      borderRadius: BorderRadius.circular(4),
+                      child: InputDecorator(
+                        decoration: InputDecoration(
+                          labelText: 'case.city_label'.tr(),
+                          prefixIcon: const Icon(Icons.location_on_rounded, color: Colors.red),
+                          suffixIcon: const Icon(Icons.arrow_drop_down),
+                          border: const OutlineInputBorder(),
+                        ),
+                        child: Text(
+                          _selectedRegion.isNotEmpty
+                              ? translateRegion(_selectedRegion, lang)
+                              : 'profile.city_select'.tr(),
+                          style: TextStyle(
+                            fontSize: 16,
+                            color: _selectedRegion.isNotEmpty ? Colors.black87 : Colors.grey,
+                          ),
+                        ),
                       ),
-                      items: _CreateCaseScreenState.kRegions.map((r) {
-                        return DropdownMenuItem(value: r, child: Text(translateRegion(r, lang)));
-                      }).toList(),
-                      onChanged: (v) => setState(() => _selectedRegion = v!),
                     ),
                     const SizedBox(height: 16),
                     DropdownButtonFormField<String>(
