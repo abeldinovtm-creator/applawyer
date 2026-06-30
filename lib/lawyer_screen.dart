@@ -2,12 +2,12 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'widgets.dart';
 import 'auth_screen.dart';
 import 'region_picker_screen.dart';
 import 'region_translations.dart';
 import 'chat_screen.dart';
 import 'profile_screen.dart';
+import 'app_drawer.dart';
 
 String _trServiceType(String type) {
   const map = {
@@ -1097,6 +1097,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
     final appBarTitle = '$subtypeLabel — ${'lawyer.workspace'.tr()}';
 
     return Scaffold(
+      drawer: const AppDrawer(role: 'lawyer'),
       appBar: AppBar(
         title: Text(appBarTitle),
         bottom: TabBar(
@@ -1109,26 +1110,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
             Tab(text: 'lawyer.in_progress_tab'.tr()),
           ],
         ),
-        leading: IconButton(
-          icon: const Icon(Icons.logout_rounded),
-          onPressed: () async {
-            await Supabase.instance.client.auth.signOut();
-            if (!mounted) return;
-            Navigator.pushReplacement(
-              context,
-              MaterialPageRoute(builder: (context) => const AuthScreen()),
-            );
-          },
-        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.chat_bubble_outline, color: Colors.white),
-            tooltip: 'lawyer.my_responses'.tr(),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const LawyerConversationListScreen()),
-            ),
-          ),
           IconButton(
             icon: const Icon(Icons.person_outline, color: Colors.white),
             tooltip: 'profile.title'.tr(),
@@ -1137,9 +1119,6 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
               MaterialPageRoute(builder: (_) => const ProfileScreen()),
             ),
           ),
-          buildLanguageButton(context, 'kk', 'KZ', isDarkAppBar: true),
-          buildLanguageButton(context, 'ru', 'RU', isDarkAppBar: true),
-          buildLanguageButton(context, 'en', 'EN', isDarkAppBar: true),
         ],
       ),
       body: TabBarView(

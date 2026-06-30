@@ -1,10 +1,10 @@
 import 'package:easy_localization/easy_localization.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart'; 
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:speech_to_text/speech_to_text.dart' as stt;
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'widgets.dart';
 import 'lawyer_screen.dart';
 import 'auth_screen.dart';
 import 'client_orders_screen.dart';
@@ -12,12 +12,56 @@ import 'profile_screen.dart';
 import 'region_translations.dart';
 import 'region_picker_screen.dart';
 import 'services/push_service.dart';
+import 'app_drawer.dart';
 
 const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
 const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Перехватываем ошибки Flutter-фреймворка — показываем вместо красного экрана
+  FlutterError.onError = (FlutterErrorDetails details) {
+    FlutterError.presentError(details);
+  };
+
+  // Перехватываем необработанные ошибки вне Flutter (async, Platform)
+  PlatformDispatcher.instance.onError = (Object error, StackTrace stack) {
+    debugPrint('Unhandled platform error: $error\n$stack');
+    return true;
+  };
+
+  // Кастомный виджет ошибки вместо красного экрана смерти в виджет-дереве
+  ErrorWidget.builder = (FlutterErrorDetails details) {
+    return Scaffold(
+      backgroundColor: Colors.grey[50],
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(24),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 52),
+              const SizedBox(height: 16),
+              const Text(
+                'Произошла ошибка',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              if (kDebugMode) ...[
+                const SizedBox(height: 8),
+                Text(
+                  details.summary.toString(),
+                  style: const TextStyle(fontSize: 11, color: Colors.grey),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ],
+          ),
+        ),
+      ),
+    );
+  };
+
   await EasyLocalization.ensureInitialized();
 
   await Supabase.initialize(
@@ -79,8 +123,33 @@ class MyApp extends StatelessWidget {
 }
 
 // === ЧИСТЫЙ АВТОМАТИЧЕСКИЙ РОУТЕР ПО БАЗЕ ДАННЫХ ===
-class AuthRouter extends StatelessWidget {
+class AuthRouter extends StatefulWidget {
   const AuthRouter({Key? key}) : super(key: key);
+
+  @override
+  State<AuthRouter> createState() => _AuthRouterState();
+}
+
+class _AuthRouterState extends State<AuthRouter> {
+  // Future кешируется в State, чтобы перестройки виджета (например, при смене языка)
+  // не перезапускали запрос к БД и не перезаписывали ручной выбор пользователя.
+  late final Future<Map<String, dynamic>?> _profileFuture;
+
+  // Флаг: язык из БД уже был применён при первом входе — повторно не применять.
+  bool _localeAppliedFromDb = false;
+
+  @override
+  void initState() {
+    super.initState();
+    final user = Supabase.instance.client.auth.currentUser;
+    _profileFuture = user != null
+        ? Supabase.instance.client
+            .from('profiles')
+            .select('role, lawyer_subtype, preferred_language')
+            .eq('id', user.id)
+            .maybeSingle()
+        : Future.value(null);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -88,11 +157,7 @@ class AuthRouter extends StatelessWidget {
     if (user == null) return const AuthScreen();
 
     return FutureBuilder<Map<String, dynamic>?>(
-      future: Supabase.instance.client
-          .from('profiles')
-          .select('role, lawyer_subtype, preferred_language')
-          .eq('id', user.id)
-          .maybeSingle(),
+      future: _profileFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Scaffold(
@@ -113,11 +178,14 @@ class AuthRouter extends StatelessWidget {
         final lawyerSubtype = data?['lawyer_subtype']?.toString() ?? 'lawyer';
         final preferredLang = data?['preferred_language']?.toString();
 
-        if (preferredLang != null && preferredLang.isNotEmpty) {
+        // Применяем язык из БД только один раз при первом входе.
+        // После этого ручное переключение языка пользователем имеет приоритет.
+        if (!_localeAppliedFromDb && preferredLang != null && preferredLang.isNotEmpty) {
+          _localeAppliedFromDb = true;
           final targetLocale = Locale(preferredLang);
           if (context.locale != targetLocale) {
             WidgetsBinding.instance.addPostFrameCallback((_) {
-              context.setLocale(targetLocale);
+              if (mounted) context.setLocale(targetLocale);
             });
           }
         }
@@ -152,24 +220,10 @@ class CategorySelectionScreen extends StatelessWidget {
     ];
 
     return Scaffold(
+      drawer: const AppDrawer(role: 'client'),
       appBar: AppBar(
         title: Text('category.screen_title'.tr()),
-        leading: IconButton(
-          icon: const Icon(Icons.logout_rounded),
-          onPressed: () async {
-            await Supabase.instance.client.auth.signOut();
-            Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => const AuthScreen()));
-          },
-        ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.assignment_turned_in_rounded),
-            tooltip: 'client.orders_title'.tr(),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ClientOrdersScreen()),
-            ),
-          ),
           IconButton(
             icon: const Icon(Icons.person_outline),
             tooltip: 'profile.title'.tr(),
@@ -178,9 +232,6 @@ class CategorySelectionScreen extends StatelessWidget {
               MaterialPageRoute(builder: (_) => const ProfileScreen()),
             ),
           ),
-          buildLanguageButton(context, 'kk', 'KZ', isDarkAppBar: true),
-          buildLanguageButton(context, 'ru', 'RU', isDarkAppBar: true),
-          buildLanguageButton(context, 'en', 'EN', isDarkAppBar: true),
         ],
       ),
       body: Padding(
@@ -434,11 +485,6 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('case.describe_title'.tr()),
-        actions: [
-          buildLanguageButton(context, 'kk', 'KZ', isDarkAppBar: true),
-          buildLanguageButton(context, 'ru', 'RU', isDarkAppBar: true),
-          buildLanguageButton(context, 'en', 'EN', isDarkAppBar: true),
-        ],
       ),
       body: _isLoading 
           ? const Center(child: CircularProgressIndicator())

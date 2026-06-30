@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'lawyer_profile_view_screen.dart';
-import 'widgets.dart';
 
 // Список бесед по заявке (для клиента)
 class ConversationListScreen extends StatefulWidget {
@@ -409,11 +408,6 @@ class _LawyerConversationListScreenState extends State<LawyerConversationListScr
     return Scaffold(
       appBar: AppBar(
         title: Text('lawyer.my_responses'.tr()),
-        actions: [
-          buildLanguageButton(context, 'kk', 'KZ', isDarkAppBar: true),
-          buildLanguageButton(context, 'ru', 'RU', isDarkAppBar: true),
-          buildLanguageButton(context, 'en', 'EN', isDarkAppBar: true),
-        ],
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         key: ValueKey(_refreshKey),

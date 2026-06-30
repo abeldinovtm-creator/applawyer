@@ -4,7 +4,8 @@
     "no": "No",
     "yes_delete": "Yes, delete",
     "yes_close": "Yes, close",
-    "required": "Required field"
+    "required": "Required field",
+    "logout": "Log out"
   },
   "payment": {
     "terms": "Payment terms",
