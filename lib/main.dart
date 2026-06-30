@@ -13,6 +13,7 @@ import 'region_translations.dart';
 import 'region_picker_screen.dart';
 import 'services/push_service.dart';
 import 'app_drawer.dart';
+import 'widgets.dart';
 
 const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
 const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
@@ -115,6 +116,10 @@ class MyApp extends StatelessWidget {
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.red,
           foregroundColor: Colors.white,
+        ),
+        dialogTheme: DialogThemeData(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          elevation: 8,
         ),
       ),
       home: session != null ? const AuthRouter() : const AuthScreen(),
@@ -412,10 +417,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
       final result = _budgetResultCtrl.text.isNotEmpty ? int.tryParse(_budgetResultCtrl.text) : null;
 
       if (prepay == null && completion == null && result == null) {
-        ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-          content: Text('payment.fill_error'.tr()),
-          backgroundColor: Colors.red,
-        ));
+        showAppSnackBar(context, 'payment.fill_error'.tr(), kind: SnackKind.error);
         setState(() => _isLoading = false);
         return;
       }
@@ -444,15 +446,10 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
       _budgetCompletionCtrl.clear();
       _budgetResultCtrl.clear();
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('case.success'.tr()), backgroundColor: Colors.red),
-      );
-      
+      showAppSnackBar(context, 'case.success'.tr());
       Navigator.pop(context);
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error / Ошибка: $e'), backgroundColor: Colors.red),
-      );
+      showAppSnackBar(context, 'Error / Ошибка: $e', kind: SnackKind.error);
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }

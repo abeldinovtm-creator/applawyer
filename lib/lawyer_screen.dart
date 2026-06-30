@@ -8,6 +8,7 @@ import 'region_translations.dart';
 import 'chat_screen.dart';
 import 'profile_screen.dart';
 import 'app_drawer.dart';
+import 'widgets.dart';
 
 String _trServiceType(String type) {
   const map = {
@@ -217,9 +218,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
         color = Colors.orange;
       }
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(msg), backgroundColor: color),
-      );
+      showAppSnackBar(context, msg, kind: color == Colors.orange ? SnackKind.warning : SnackKind.error);
       return;
     }
 
@@ -414,15 +413,10 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
         if (result != null) 'price_on_result': result,
       });
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('lawyer.response_sent'.tr()),
-        backgroundColor: Colors.green,
-      ));
+      showAppSnackBar(context, 'lawyer.response_sent'.tr());
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
-      );
+      showAppSnackBar(context, 'Ошибка: $e', kind: SnackKind.error);
     }
   }
 

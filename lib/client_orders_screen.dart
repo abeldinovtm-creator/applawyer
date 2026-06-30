@@ -3,6 +3,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'chat_screen.dart';
 import 'region_translations.dart';
+import 'widgets.dart';
 
 String _trCat(String cat) {
   const map = {
@@ -83,19 +84,12 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
     try {
       await _supabase.from('cases').update({'status': 'completed'}).eq('id', caseId);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('client.order_closed'.tr()),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showAppSnackBar(context, 'client.order_closed'.tr());
         setState(() => _refreshKey++);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
-        );
+        showAppSnackBar(context, 'Ошибка: $e', kind: SnackKind.error);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -129,19 +123,12 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
       await _supabase.from('cases').delete().eq('id', caseId);
 
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('client.order_deleted'.tr()),
-            backgroundColor: Colors.green,
-          ),
-        );
+        showAppSnackBar(context, 'client.order_deleted'.tr());
         setState(() => _refreshKey++);
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
-        );
+        showAppSnackBar(context, 'Ошибка: $e', kind: SnackKind.error);
       }
     } finally {
       if (mounted) setState(() => _isLoading = false);

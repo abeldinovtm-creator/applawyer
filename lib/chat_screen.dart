@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'lawyer_profile_view_screen.dart';
+import 'widgets.dart';
 
 // Список бесед по заявке (для клиента)
 class ConversationListScreen extends StatefulWidget {
@@ -586,9 +587,7 @@ class _ChatScreenState extends State<ChatScreen> {
       });
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
-        );
+        showAppSnackBar(context, 'Ошибка: $e', kind: SnackKind.error);
       }
     } finally {
       if (mounted) setState(() => _sending = false);

@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'region_picker_screen.dart';
 import 'auth_screen.dart';
 import 'privacy_policy_screen.dart';
+import 'widgets.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -197,9 +198,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   void _showSnack(String msg, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg), backgroundColor: color),
-    );
+    final kind = color == Colors.green
+        ? SnackKind.success
+        : color == Colors.orange
+            ? SnackKind.warning
+            : SnackKind.error;
+    showAppSnackBar(context, msg, kind: kind);
   }
 
   String _subtypeName() {
