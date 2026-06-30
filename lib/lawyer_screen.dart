@@ -1106,7 +1106,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
     final appBarTitle = '$subtypeLabel — ${'lawyer.workspace'.tr()}';
 
     return Scaffold(
-      drawer: const AppDrawer(role: 'lawyer'),
+      endDrawer: const AppDrawer(role: 'lawyer'),
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: _isSearching
@@ -1159,7 +1159,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
           Builder(
             builder: (ctx) => IconButton(
               icon: const Icon(Icons.menu, color: Colors.white),
-              onPressed: () => Scaffold.of(ctx).openDrawer(),
+              onPressed: () => Scaffold.of(ctx).openEndDrawer(),
             ),
           ),
         ],

@@ -269,7 +269,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
           }).toList();
 
     return Scaffold(
-      drawer: const AppDrawer(role: 'client'),
+      endDrawer: const AppDrawer(role: 'client'),
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: _isSearching
@@ -308,7 +308,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
           Builder(
             builder: (ctx) => IconButton(
               icon: const Icon(Icons.menu),
-              onPressed: () => Scaffold.of(ctx).openDrawer(),
+              onPressed: () => Scaffold.of(ctx).openEndDrawer(),
             ),
           ),
         ],
