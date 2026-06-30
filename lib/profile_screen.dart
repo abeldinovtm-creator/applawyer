@@ -508,6 +508,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         foregroundColor: Colors.grey[700],
                       ),
+                      onPressed: () async {
+                        await _supabase.auth.signOut();
+                        if (!mounted) return;
+                        Navigator.pushAndRemoveUntil(
+                          context,
+                          MaterialPageRoute(builder: (_) => const AuthScreen()),
+                          (_) => false,
+                        );
+                      },
+                      icon: const Icon(Icons.logout_rounded),
+                      label: Text(
+                        'common.logout'.tr(),
+                        style: const TextStyle(fontSize: 15),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    OutlinedButton.icon(
+                      style: OutlinedButton.styleFrom(
+                        minimumSize: const Size(double.infinity, 50),
+                        side: const BorderSide(color: Colors.grey),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        foregroundColor: Colors.grey[700],
+                      ),
                       onPressed: _deletingAccount ? null : _deleteAccount,
                       icon: _deletingAccount
                           ? const SizedBox(

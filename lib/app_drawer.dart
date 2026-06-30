@@ -1,8 +1,6 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'auth_screen.dart';
 import 'client_orders_screen.dart';
 import 'chat_screen.dart';
 
@@ -10,16 +8,6 @@ class AppDrawer extends StatelessWidget {
   final String role;
 
   const AppDrawer({super.key, required this.role});
-
-  Future<void> _logout(BuildContext context) async {
-    Navigator.pop(context);
-    await Supabase.instance.client.auth.signOut();
-    if (!context.mounted) return;
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (_) => const AuthScreen()),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -85,17 +73,6 @@ class AppDrawer extends StatelessWidget {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const LawyerConversationListScreen()));
                 },
               ),
-            const Spacer(),
-            const Divider(),
-            ListTile(
-              leading: const Icon(Icons.logout_rounded, color: Colors.grey),
-              title: Text(
-                'common.logout'.tr(),
-                style: const TextStyle(color: Colors.grey),
-              ),
-              onTap: () => _logout(context),
-            ),
-            const SizedBox(height: 8),
           ],
         ),
       ),
