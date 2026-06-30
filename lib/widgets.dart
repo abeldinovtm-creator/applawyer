@@ -43,40 +43,46 @@ void showAppSnackBar(BuildContext context, String message, {SnackKind kind = Sna
     );
 }
 
-// Универсальный контрастный компонент для кнопок языка
-Widget buildLanguageButton(BuildContext context, String langCode, String label, {required bool isDarkAppBar}) {
-  bool isSelected = context.locale.languageCode == langCode;
-  
-  Color selectedBgDark = Colors.white;
-  Color selectedTextDark = const Color(0xFFA6192E);
-  Color unselectedTextDark = Colors.white70;
+// Кнопка переключения языка — StatelessWidget со своим контекстом
+class LanguageButton extends StatelessWidget {
+  final String langCode;
+  final String label;
+  final bool isDarkAppBar;
 
-  Color selectedBgLight = const Color(0xFFA6192E);
-  Color selectedTextLight = Colors.white;
-  Color unselectedTextLight = Colors.black54;
+  const LanguageButton({
+    super.key,
+    required this.langCode,
+    required this.label,
+    required this.isDarkAppBar,
+  });
 
-  return Padding(
-    padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 10.0),
-    child: TextButton(
-      style: TextButton.styleFrom(
-        backgroundColor: isSelected 
-            ? (isDarkAppBar ? selectedBgDark : selectedBgLight) 
-            : Colors.transparent,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        padding: const EdgeInsets.symmetric(horizontal: 12),
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontWeight: FontWeight.bold,
-          color: isSelected
-              ? (isDarkAppBar ? selectedTextDark : selectedTextLight)
-              : (isDarkAppBar ? unselectedTextDark : unselectedTextLight),
+  @override
+  Widget build(BuildContext context) {
+    final isSelected = context.locale.languageCode == langCode;
+
+    final selectedBg   = isDarkAppBar ? Colors.white : const Color(0xFFA6192E);
+    final selectedText = isDarkAppBar ? const Color(0xFFA6192E) : Colors.white;
+    final unselectedText = isDarkAppBar ? Colors.white70 : Colors.black54;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 4.0, vertical: 10.0),
+      child: TextButton(
+        style: TextButton.styleFrom(
+          backgroundColor: isSelected ? selectedBg : Colors.transparent,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+          padding: const EdgeInsets.symmetric(horizontal: 12),
+        ),
+        onPressed: () => context.setLocale(Locale(langCode)),
+        child: Text(
+          label,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: isSelected ? selectedText : unselectedText,
+          ),
         ),
       ),
-      onPressed: () => context.setLocale(Locale(langCode)),
-    ),
-  );
+    );
+  }
 }
 
 

@@ -177,9 +177,9 @@ class _AuthScreenState extends State<AuthScreen> {
             onPressed: () => setState(() => _isForgotPassword = false),
           ),
           actions: [
-            buildLanguageButton(context, 'kk', 'KZ', isDarkAppBar: true),
-            buildLanguageButton(context, 'ru', 'RU', isDarkAppBar: true),
-            buildLanguageButton(context, 'en', 'EN', isDarkAppBar: true),
+            LanguageButton(langCode: 'kk', label: 'KZ', isDarkAppBar: true),
+            LanguageButton(langCode: 'ru', label: 'RU', isDarkAppBar: true),
+            LanguageButton(langCode: 'en', label: 'EN', isDarkAppBar: true),
           ],
         ),
         body: _isLoading
@@ -233,9 +233,9 @@ class _AuthScreenState extends State<AuthScreen> {
       appBar: AppBar(
         title: Text(title),
         actions: [
-          buildLanguageButton(context, 'kk', 'KZ', isDarkAppBar: true),
-          buildLanguageButton(context, 'ru', 'RU', isDarkAppBar: true),
-          buildLanguageButton(context, 'en', 'EN', isDarkAppBar: true),
+          LanguageButton(langCode: 'kk', label: 'KZ', isDarkAppBar: true),
+          LanguageButton(langCode: 'ru', label: 'RU', isDarkAppBar: true),
+          LanguageButton(langCode: 'en', label: 'EN', isDarkAppBar: true),
         ],
       ),
       body: _isLoading

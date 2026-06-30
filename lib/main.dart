@@ -103,6 +103,7 @@ Future<void> main() async {
       path: 'assets/translations',
       fallbackLocale: const Locale('kk'),
       startLocale: const Locale('kk'),
+      useOnlyLangCode: true,
       child: MyApp(),
     ),
   );
