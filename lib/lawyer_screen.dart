@@ -60,6 +60,9 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
   int? _budgetFrom;
   int? _budgetTo;
   bool _filtersExpanded = false;
+  bool _isSearching = false;
+  final _searchCtrl = TextEditingController();
+  String _searchQuery = '';
 
   // Категории, доступные по подтипу специалиста
   static List<String> _allowedCategories(String subtype) {
@@ -102,6 +105,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
   @override
   void dispose() {
     _tabController.dispose();
+    _searchCtrl.dispose();
     super.dispose();
   }
 
@@ -794,14 +798,25 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                   if (snapshot.connectionState == ConnectionState.waiting) {
                     return const Center(child: CircularProgressIndicator());
                   }
-                  final cases = snapshot.data ?? [];
+                  var cases = snapshot.data ?? [];
+                  if (_searchQuery.isNotEmpty) {
+                    final q = _searchQuery.toLowerCase();
+                    cases = cases.where((c) {
+                      return (c['title'] ?? '').toString().toLowerCase().contains(q) ||
+                             (c['description'] ?? '').toString().toLowerCase().contains(q) ||
+                             (c['category'] ?? '').toString().toLowerCase().contains(q) ||
+                             (c['service_type'] ?? '').toString().toLowerCase().contains(q);
+                    }).toList();
+                  }
                   if (cases.isEmpty) {
                     return ListView(
                       physics: const AlwaysScrollableScrollPhysics(),
                       children: [
                         SizedBox(height: MediaQuery.of(context).size.height * 0.3),
-                        Center(child: Text(emptyCasesText,
-                            style: const TextStyle(color: Colors.grey, fontSize: 16))),
+                        Center(child: Text(
+                          _searchQuery.isNotEmpty ? 'search.no_results'.tr() : emptyCasesText,
+                          style: const TextStyle(color: Colors.grey, fontSize: 16),
+                        )),
                       ],
                     );
                   }
@@ -1093,7 +1108,21 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
     return Scaffold(
       drawer: const AppDrawer(role: 'lawyer'),
       appBar: AppBar(
-        title: Text(appBarTitle),
+        automaticallyImplyLeading: false,
+        title: _isSearching
+            ? TextField(
+                controller: _searchCtrl,
+                autofocus: true,
+                style: const TextStyle(color: Colors.white),
+                cursorColor: Colors.white,
+                decoration: InputDecoration(
+                  hintText: 'search.hint_cases'.tr(),
+                  hintStyle: const TextStyle(color: Colors.white60),
+                  border: InputBorder.none,
+                ),
+                onChanged: (v) => setState(() => _searchQuery = v),
+              )
+            : Text(appBarTitle),
         bottom: TabBar(
           controller: _tabController,
           indicatorColor: Colors.white,
@@ -1105,12 +1134,32 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
           ],
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person_outline, color: Colors.white),
-            tooltip: 'profile.title'.tr(),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+          if (!_isSearching) ...[
+            IconButton(
+              icon: const Icon(Icons.person_outline, color: Colors.white),
+              tooltip: 'profile.title'.tr(),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.search, color: Colors.white),
+              onPressed: () => setState(() => _isSearching = true),
+            ),
+          ] else
+            IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () => setState(() {
+                _isSearching = false;
+                _searchQuery = '';
+                _searchCtrl.clear();
+              }),
+            ),
+          Builder(
+            builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu, color: Colors.white),
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
             ),
           ),
         ],

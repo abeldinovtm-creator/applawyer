@@ -218,12 +218,35 @@ class _AuthRouterState extends State<AuthRouter> {
   }
 }
 
-class CategorySelectionScreen extends StatelessWidget {
+class CategorySelectionScreen extends StatefulWidget {
   const CategorySelectionScreen({Key? key}) : super(key: key);
 
   @override
+  State<CategorySelectionScreen> createState() => _CategorySelectionScreenState();
+}
+
+class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
+  bool _isSearching = false;
+  final _searchCtrl = TextEditingController();
+  String _searchQuery = '';
+
+  @override
+  void dispose() {
+    _searchCtrl.dispose();
+    super.dispose();
+  }
+
+  void _stopSearch() {
+    setState(() {
+      _isSearching = false;
+      _searchQuery = '';
+      _searchCtrl.clear();
+    });
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final List<Map<String, dynamic>> categories = [
+    final List<Map<String, dynamic>> allCategories = [
       {'id': 'Составить или проверить договор', 'title': 'category.contract'.tr(), 'icon': Icons.description_rounded},
       {'id': 'Споры, суды и долги', 'title': 'category.disputes'.tr(), 'icon': Icons.gavel_rounded},
       {'id': 'Трудовые споры', 'title': 'category.labor'.tr(), 'icon': Icons.work_rounded},
@@ -237,17 +260,55 @@ class CategorySelectionScreen extends StatelessWidget {
       {'id': 'Другой вопрос', 'title': 'category.other'.tr(), 'icon': Icons.help_outline_rounded},
     ];
 
+    final categories = _searchQuery.isEmpty
+        ? allCategories
+        : allCategories.where((cat) {
+            final q = _searchQuery.toLowerCase();
+            return cat['title'].toString().toLowerCase().contains(q) ||
+                   cat['id'].toString().toLowerCase().contains(q);
+          }).toList();
+
     return Scaffold(
       drawer: const AppDrawer(role: 'client'),
       appBar: AppBar(
-        title: Text('category.screen_title'.tr()),
+        automaticallyImplyLeading: false,
+        title: _isSearching
+            ? TextField(
+                controller: _searchCtrl,
+                autofocus: true,
+                style: const TextStyle(color: Colors.white),
+                cursorColor: Colors.white,
+                decoration: InputDecoration(
+                  hintText: 'search.hint'.tr(),
+                  hintStyle: const TextStyle(color: Colors.white60),
+                  border: InputBorder.none,
+                ),
+                onChanged: (v) => setState(() => _searchQuery = v),
+              )
+            : Text('category.screen_title'.tr()),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person_outline),
-            tooltip: 'profile.title'.tr(),
-            onPressed: () => Navigator.push(
-              context,
-              MaterialPageRoute(builder: (_) => const ProfileScreen()),
+          if (!_isSearching) ...[
+            IconButton(
+              icon: const Icon(Icons.person_outline),
+              tooltip: 'profile.title'.tr(),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const ProfileScreen()),
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.search),
+              onPressed: () => setState(() => _isSearching = true),
+            ),
+          ] else
+            IconButton(
+              icon: const Icon(Icons.close),
+              onPressed: _stopSearch,
+            ),
+          Builder(
+            builder: (ctx) => IconButton(
+              icon: const Icon(Icons.menu),
+              onPressed: () => Scaffold.of(ctx).openDrawer(),
             ),
           ),
         ],
@@ -255,58 +316,70 @@ class CategorySelectionScreen extends StatelessWidget {
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // ОШИБКА ИСПРАВЛЕНА: crossAxisAlignment вместо cross
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 10),
-            Text(
-              'category.welcome'.tr(),
-              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
-            ),
-            const SizedBox(height: 20),
-            Expanded(
-              child: GridView.builder(
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 14,
-                  mainAxisSpacing: 14,
-                  childAspectRatio: 1.1,
+            if (!_isSearching) ...[
+              const SizedBox(height: 10),
+              Text(
+                'category.welcome'.tr(),
+                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
+              ),
+              const SizedBox(height: 20),
+            ],
+            if (categories.isEmpty)
+              Expanded(
+                child: Center(
+                  child: Text(
+                    'search.no_results'.tr(),
+                    style: const TextStyle(color: Colors.grey, fontSize: 16),
+                  ),
                 ),
-                itemCount: categories.length,
-                itemBuilder: (context, index) {
-                  final cat = categories[index];
-                  return Card(
-                    elevation: 2,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                    child: InkWell(
-                      onTap: () {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => CreateCaseScreen(initialCategory: cat['id']),
-                          ),
-                        );
-                      },
-                      borderRadius: BorderRadius.circular(16),
-                      child: Padding(
-                        padding: const EdgeInsets.all(16.0),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(cat['icon'], size: 40, color: const Color(0xFFA6192E)),
-                            const SizedBox(height: 12),
-                            Text(
-                              cat['title'],
-                              textAlign: TextAlign.center,
-                              style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
+              )
+            else
+              Expanded(
+                child: GridView.builder(
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 14,
+                    mainAxisSpacing: 14,
+                    childAspectRatio: 1.1,
+                  ),
+                  itemCount: categories.length,
+                  itemBuilder: (context, index) {
+                    final cat = categories[index];
+                    return Card(
+                      elevation: 2,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      child: InkWell(
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CreateCaseScreen(initialCategory: cat['id']),
                             ),
-                          ],
+                          );
+                        },
+                        borderRadius: BorderRadius.circular(16),
+                        child: Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Icon(cat['icon'], size: 40, color: const Color(0xFFA6192E)),
+                              const SizedBox(height: 12),
+                              Text(
+                                cat['title'],
+                                textAlign: TextAlign.center,
+                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
-                    ),
-                  );
-                },
+                    );
+                  },
+                ),
               ),
-            ),
           ],
         ),
       ),

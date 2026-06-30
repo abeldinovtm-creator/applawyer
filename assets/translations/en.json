@@ -199,6 +199,11 @@
     "enforcement": "Court enforcement / Bailiff",
     "other": "Other issue"
   },
+  "search": {
+    "hint": "Search by service...",
+    "hint_cases": "Search by cases...",
+    "no_results": "Nothing found"
+  },
   "region_picker": {
     "title": "Region",
     "reset": "Reset",
