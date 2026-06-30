@@ -118,7 +118,7 @@ class _RegionPickerScreenState extends State<RegionPickerScreen> {
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 child: Row(
                   children: [
-                    const Icon(Icons.public, color: Colors.red, size: 20),
+                    const Icon(Icons.public, color: const Color(0xFFA6192E), size: 20),
                     const SizedBox(width: 12),
                     Text(
                       'region_picker.online'.tr(),
@@ -155,7 +155,7 @@ class _RegionPickerScreenState extends State<RegionPickerScreen> {
                   return ListTile(
                     title: Text(translateRegion(city, lang), style: const TextStyle(fontSize: 16)),
                     trailing: widget.selectedRegion == city
-                        ? const Icon(Icons.check, color: Colors.red)
+                        ? const Icon(Icons.check, color: const Color(0xFFA6192E))
                         : null,
                     onTap: () => _selectRegion(city),
                   );
@@ -171,7 +171,7 @@ class _RegionPickerScreenState extends State<RegionPickerScreen> {
                     trailing: hasCities && _searchQuery.isEmpty
                         ? const Icon(Icons.chevron_right, color: Colors.grey)
                         : widget.selectedRegion == oblast
-                            ? const Icon(Icons.check, color: Colors.red)
+                            ? const Icon(Icons.check, color: const Color(0xFFA6192E))
                             : null,
                     onTap: () {
                       if (hasCities && _searchQuery.isEmpty) {

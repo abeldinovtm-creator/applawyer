@@ -56,7 +56,7 @@ class _AuthScreenState extends State<AuthScreen> {
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
+          SnackBar(content: Text('Ошибка: $e'), backgroundColor: const Color(0xFFA6192E)),
         );
       }
     } finally {
@@ -112,12 +112,12 @@ class _AuthScreenState extends State<AuthScreen> {
         setState(() => _isSignUp = false);
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(e.message), backgroundColor: Colors.red),
+          SnackBar(content: Text(e.message), backgroundColor: const Color(0xFFA6192E)),
         );
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Ошибка: $e'), backgroundColor: Colors.red),
+        SnackBar(content: Text('Ошибка: $e'), backgroundColor: const Color(0xFFA6192E)),
       );
     } finally {
       if (mounted) setState(() => _isLoading = false);
@@ -207,7 +207,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     const SizedBox(height: 24),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                        backgroundColor: const Color(0xFFA6192E),
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 55),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -250,7 +250,7 @@ class _AuthScreenState extends State<AuthScreen> {
                     Text(
                       'Applawyer',
                       textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: Colors.red[900]),
+                      style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: const Color(0xFF831320)),
                     ),
                     const SizedBox(height: 40),
 
@@ -302,7 +302,7 @@ class _AuthScreenState extends State<AuthScreen> {
                           onPressed: () => setState(() => _isForgotPassword = true),
                           child: Text(
                             'auth.forgot_password'.tr(),
-                            style: TextStyle(color: Colors.red[700]),
+                            style: TextStyle(color: const Color(0xFFA6192E)),
                           ),
                         ),
                       ),
@@ -416,7 +416,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                        backgroundColor: const Color(0xFFA6192E),
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 55),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -428,7 +428,7 @@ class _AuthScreenState extends State<AuthScreen> {
 
                     TextButton(
                       onPressed: () => setState(() => _isSignUp = !_isSignUp),
-                      child: Text(toggleText, style: TextStyle(color: Colors.red[700])),
+                      child: Text(toggleText, style: TextStyle(color: const Color(0xFFA6192E))),
                     ),
                   ],
                 ),

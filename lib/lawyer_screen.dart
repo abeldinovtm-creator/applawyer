@@ -209,7 +209,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
       Color color;
       if (status == 'rejected') {
         msg = 'lawyer.response_rejected'.tr();
-        color = Colors.red;
+        color = const Color(0xFFA6192E);
       } else if (status == 'accepted') {
         msg = 'lawyer.response_accepted'.tr();
         color = Colors.green;
@@ -366,12 +366,12 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
               ),
               if (validationError != null) ...[
                 const SizedBox(height: 8),
-                Text(validationError!, style: const TextStyle(color: Colors.red, fontSize: 13)),
+                Text(validationError!, style: const TextStyle(color: const Color(0xFFA6192E), fontSize: 13)),
               ],
               const SizedBox(height: 20),
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.red,
+                  backgroundColor: const Color(0xFFA6192E),
                   foregroundColor: Colors.white,
                   minimumSize: const Size(double.infinity, 52),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -459,7 +459,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                     style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 TextButton(
                   onPressed: () { fromCtrl.clear(); toCtrl.clear(); },
-                  child: Text('filter.reset'.tr(), style: const TextStyle(color: Colors.red)),
+                  child: Text('filter.reset'.tr(), style: const TextStyle(color: const Color(0xFFA6192E))),
                 ),
               ],
             ),
@@ -501,7 +501,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
             const SizedBox(height: 20),
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
+                backgroundColor: const Color(0xFFA6192E),
                 foregroundColor: Colors.white,
                 minimumSize: const Size(double.infinity, 52),
                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -557,7 +557,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: regionActive ? Colors.red : Colors.grey[200],
+                  color: regionActive ? const Color(0xFFA6192E) : Colors.grey[200],
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -594,7 +594,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                 decoration: BoxDecoration(
-                  color: budgetActive ? Colors.red : Colors.grey[200],
+                  color: budgetActive ? const Color(0xFFA6192E) : Colors.grey[200],
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: Row(
@@ -639,10 +639,10 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.red),
+                  border: Border.all(color: const Color(0xFFA6192E)),
                   borderRadius: BorderRadius.circular(20),
                 ),
-                child: const Icon(Icons.close, size: 14, color: Colors.red),
+                child: const Icon(Icons.close, size: 14, color: const Color(0xFFA6192E)),
               ),
             ),
         ],
@@ -713,7 +713,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                 _refreshCases();
               },
               backgroundColor: Colors.grey[200],
-              selectedColor: Colors.red,
+              selectedColor: const Color(0xFFA6192E),
               checkmarkColor: Colors.white,
               showCheckmark: false,
               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -744,14 +744,14 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   IconButton(
-                    icon: const Icon(Icons.refresh_rounded, color: Colors.red),
+                    icon: const Icon(Icons.refresh_rounded, color: const Color(0xFFA6192E)),
                     onPressed: _refreshCases,
                   ),
                   IconButton(
                     icon: AnimatedRotation(
                       turns: _filtersExpanded ? 0.5 : 0,
                       duration: const Duration(milliseconds: 200),
-                      child: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.red),
+                      child: const Icon(Icons.keyboard_arrow_down_rounded, color: const Color(0xFFA6192E)),
                     ),
                     tooltip: _filtersExpanded ? 'Скрыть фильтры' : 'Показать фильтры',
                     onPressed: () => setState(() => _filtersExpanded = !_filtersExpanded),
@@ -836,7 +836,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                                 children: [
                                   Expanded(
                                     child: Text(_trCategory(category),
-                                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: Colors.red[700])),
+                                        style: TextStyle(fontSize: 13, fontWeight: FontWeight.bold, color: const Color(0xFFA6192E))),
                                   ),
                                   Container(
                                     padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -856,18 +856,18 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                                 children: [
                                   Chip(
                                     label: Text(_trServiceType(serviceType), style: const TextStyle(fontSize: 12)),
-                                    backgroundColor: Colors.red[50],
-                                    labelStyle: TextStyle(color: Colors.red[900], fontWeight: FontWeight.w600),
+                                    backgroundColor: const Color(0xFFFAE8EB),
+                                    labelStyle: TextStyle(color: const Color(0xFF831320), fontWeight: FontWeight.w600),
                                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                   ),
                                   Chip(
-                                    avatar: const Icon(Icons.location_on_rounded, size: 14, color: Colors.red),
+                                    avatar: const Icon(Icons.location_on_rounded, size: 14, color: const Color(0xFFA6192E)),
                                     label: Text(
                                       region.isNotEmpty ? translateRegion(region, lang) : '—',
                                       style: const TextStyle(fontSize: 12),
                                     ),
-                                    backgroundColor: Colors.red[50],
-                                    labelStyle: TextStyle(color: Colors.red[700], fontWeight: FontWeight.w500),
+                                    backgroundColor: const Color(0xFFFAE8EB),
+                                    labelStyle: TextStyle(color: const Color(0xFFA6192E), fontWeight: FontWeight.w500),
                                     materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                   ),
                                 ],
@@ -904,7 +904,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                                         ),
                                   ElevatedButton.icon(
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red,
+                                      backgroundColor: const Color(0xFFA6192E),
                                       foregroundColor: Colors.white,
                                       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                     ),
@@ -1012,7 +1012,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                         const SizedBox(height: 4),
                         Row(
                           children: [
-                            const Icon(Icons.location_on_rounded, size: 14, color: Colors.red),
+                            const Icon(Icons.location_on_rounded, size: 14, color: const Color(0xFFA6192E)),
                             const SizedBox(width: 4),
                             Text(translateRegion(region, lang),
                                 style: TextStyle(fontSize: 12, color: Colors.grey[600])),
@@ -1056,7 +1056,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                         width: double.infinity,
                         child: ElevatedButton.icon(
                           style: ElevatedButton.styleFrom(
-                            backgroundColor: Colors.red,
+                            backgroundColor: const Color(0xFFA6192E),
                             foregroundColor: Colors.white,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                           ),

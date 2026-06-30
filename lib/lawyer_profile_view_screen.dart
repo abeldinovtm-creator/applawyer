@@ -43,7 +43,7 @@ class LawyerProfileViewScreen extends StatelessWidget {
                 children: [
                   CircleAvatar(
                     radius: 48,
-                    backgroundColor: Colors.red,
+                    backgroundColor: const Color(0xFFA6192E),
                     child: Text(
                       displayName[0].toUpperCase(),
                       style: const TextStyle(
@@ -63,14 +63,14 @@ class LawyerProfileViewScreen extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                     decoration: BoxDecoration(
-                      color: Colors.red[50],
+                      color: const Color(0xFFFAE8EB),
                       borderRadius: BorderRadius.circular(20),
-                      border: Border.all(color: Colors.red.shade200),
+                      border: Border.all(color: const Color(0xFFCF8A97)),
                     ),
                     child: Text(
                       _subtypeLabel(subtype),
                       style: TextStyle(
-                        color: Colors.red[800],
+                        color: const Color(0xFF8A1525),
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
                       ),
@@ -123,7 +123,7 @@ class LawyerProfileViewScreen extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: Colors.red[400]),
+          Icon(icon, size: 20, color: const Color(0xFFA6192E)),
           const SizedBox(width: 12),
           Expanded(
             child: Column(

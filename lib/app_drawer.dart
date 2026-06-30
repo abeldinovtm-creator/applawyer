@@ -18,7 +18,7 @@ class AppDrawer extends StatelessWidget {
           children: [
             Container(
               padding: const EdgeInsets.fromLTRB(20, 24, 20, 20),
-              color: Colors.red,
+              color: const Color(0xFFA6192E),
               child: const Row(
                 children: [
                   Icon(Icons.gavel_rounded, color: Colors.white, size: 26),
@@ -57,7 +57,7 @@ class AppDrawer extends StatelessWidget {
             const Divider(),
             if (role == 'client')
               ListTile(
-                leading: const Icon(Icons.assignment_turned_in_rounded, color: Colors.red),
+                leading: const Icon(Icons.assignment_turned_in_rounded, color: const Color(0xFFA6192E)),
                 title: Text('client.orders_title'.tr()),
                 onTap: () {
                   Navigator.pop(context);
@@ -66,7 +66,7 @@ class AppDrawer extends StatelessWidget {
               ),
             if (role == 'lawyer')
               ListTile(
-                leading: const Icon(Icons.chat_bubble_outline_rounded, color: Colors.red),
+                leading: const Icon(Icons.chat_bubble_outline_rounded, color: const Color(0xFFA6192E)),
                 title: Text('lawyer.my_responses'.tr()),
                 onTap: () {
                   Navigator.pop(context);
@@ -96,10 +96,10 @@ class _LangChip extends StatelessWidget {
           duration: const Duration(milliseconds: 150),
           padding: const EdgeInsets.symmetric(vertical: 9),
           decoration: BoxDecoration(
-            color: isSelected ? Colors.red : Colors.grey[100],
+            color: isSelected ? const Color(0xFFA6192E) : Colors.grey[100],
             borderRadius: BorderRadius.circular(8),
             border: Border.all(
-              color: isSelected ? Colors.red : Colors.grey.shade300,
+              color: isSelected ? const Color(0xFFA6192E) : Colors.grey.shade300,
             ),
           ),
           child: Text(

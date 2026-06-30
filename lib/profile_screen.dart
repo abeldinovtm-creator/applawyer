@@ -123,7 +123,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         final msg = e.toString().contains('profiles_iin_unique')
             ? 'profile.iin_duplicate'.tr()
             : 'Ошибка: $e';
-        _showSnack(msg, Colors.red);
+        _showSnack(msg, const Color(0xFFA6192E));
       }
     } finally {
       if (mounted) setState(() => _saving = false);
@@ -152,7 +152,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         _showSnack('profile.password_changed'.tr(), Colors.green);
       }
     } catch (e) {
-      if (mounted) _showSnack('Ошибка: $e', Colors.red);
+      if (mounted) _showSnack('Ошибка: $e', const Color(0xFFA6192E));
     } finally {
       if (mounted) setState(() => _changingPass = false);
     }
@@ -171,7 +171,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('common.yes_delete'.tr(), style: const TextStyle(color: Colors.red)),
+            child: Text('common.yes_delete'.tr(), style: const TextStyle(color: const Color(0xFFA6192E))),
           ),
         ],
       ),
@@ -191,7 +191,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
     } catch (e) {
       if (mounted) {
-        _showSnack('Ошибка: $e', Colors.red);
+        _showSnack('Ошибка: $e', const Color(0xFFA6192E));
         setState(() => _deletingAccount = false);
       }
     }
@@ -235,7 +235,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         children: [
                           CircleAvatar(
                             radius: 42,
-                            backgroundColor: Colors.red,
+                            backgroundColor: const Color(0xFFA6192E),
                             child: Text(
                               _nameCtrl.text.isNotEmpty
                                   ? _nameCtrl.text.trim()[0].toUpperCase()
@@ -252,14 +252,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             Container(
                               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 5),
                               decoration: BoxDecoration(
-                                color: Colors.red[50],
+                                color: const Color(0xFFFAE8EB),
                                 borderRadius: BorderRadius.circular(20),
-                                border: Border.all(color: Colors.red.shade200),
+                                border: Border.all(color: const Color(0xFFCF8A97)),
                               ),
                               child: Text(
                                 _subtypeName(),
                                 style: TextStyle(
-                                  color: Colors.red[800],
+                                  color: const Color(0xFF8A1525),
                                   fontWeight: FontWeight.bold,
                                   fontSize: 13,
                                 ),
@@ -313,10 +313,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   duration: const Duration(milliseconds: 150),
                                   padding: const EdgeInsets.symmetric(vertical: 12),
                                   decoration: BoxDecoration(
-                                    color: _preferredLang == entry.$1 ? Colors.red : Colors.grey[100],
+                                    color: _preferredLang == entry.$1 ? const Color(0xFFA6192E) : Colors.grey[100],
                                     borderRadius: BorderRadius.circular(10),
                                     border: Border.all(
-                                      color: _preferredLang == entry.$1 ? Colors.red : Colors.grey.shade300,
+                                      color: _preferredLang == entry.$1 ? const Color(0xFFA6192E) : Colors.grey.shade300,
                                     ),
                                   ),
                                   child: Text(
@@ -415,7 +415,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 8),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                        backgroundColor: const Color(0xFFA6192E),
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 50),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -466,7 +466,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     OutlinedButton(
                       style: OutlinedButton.styleFrom(
                         minimumSize: const Size(double.infinity, 50),
-                        side: const BorderSide(color: Colors.red),
+                        side: const BorderSide(color: const Color(0xFFA6192E)),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                       ),
                       onPressed: _changingPass ? null : _changePassword,
@@ -474,11 +474,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ? const SizedBox(
                               height: 20,
                               width: 20,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.red),
+                              child: CircularProgressIndicator(strokeWidth: 2, color: const Color(0xFFA6192E)),
                             )
                           : Text('profile.change_password_btn'.tr(),
                               style: const TextStyle(
-                                color: Colors.red,
+                                color: const Color(0xFFA6192E),
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -490,14 +490,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     const SizedBox(height: 8),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.shield_outlined, color: Colors.red),
+                      leading: const Icon(Icons.shield_outlined, color: const Color(0xFFA6192E)),
                       title: Text('profile.privacy_policy'.tr()),
                       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen())),
                     ),
                     ListTile(
                       contentPadding: EdgeInsets.zero,
-                      leading: const Icon(Icons.description_outlined, color: Colors.red),
+                      leading: const Icon(Icons.description_outlined, color: const Color(0xFFA6192E)),
                       title: Text('profile.terms_of_service'.tr()),
                       trailing: const Icon(Icons.chevron_right, color: Colors.grey),
                       onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsOfServiceScreen())),

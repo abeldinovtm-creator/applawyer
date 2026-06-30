@@ -18,6 +18,19 @@ import 'widgets.dart';
 const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
 const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
 
+const _kBrandRed = MaterialColor(0xFFA6192E, {
+  50:  Color(0xFFFAE8EB),
+  100: Color(0xFFF2C4CB),
+  200: Color(0xFFCF8A97),
+  300: Color(0xFFBD607A),
+  400: Color(0xFFB03C5B),
+  500: Color(0xFFA6192E),
+  600: Color(0xFF961727),
+  700: Color(0xFF83131F),
+  800: Color(0xFF8A1525),
+  900: Color(0xFF831320),
+});
+
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
@@ -42,7 +55,7 @@ Future<void> main() async {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.warning_amber_rounded, color: Colors.red, size: 52),
+              const Icon(Icons.warning_amber_rounded, color: Color(0xFFA6192E), size: 52),
               const SizedBox(height: 16),
               const Text(
                 'Произошла ошибка',
@@ -111,10 +124,10 @@ class MyApp extends StatelessWidget {
       locale: context.locale,
       title: 'Applawyer',
       theme: ThemeData(
-        primarySwatch: Colors.red,
+        primarySwatch: _kBrandRed,
         scaffoldBackgroundColor: Colors.grey[50],
         appBarTheme: const AppBarTheme(
-          backgroundColor: Colors.red,
+          backgroundColor: Color(0xFFA6192E),
           foregroundColor: Colors.white,
         ),
         dialogTheme: DialogThemeData(
@@ -279,7 +292,7 @@ class CategorySelectionScreen extends StatelessWidget {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(cat['icon'], size: 40, color: Colors.red),
+                            Icon(cat['icon'], size: 40, color: const Color(0xFFA6192E)),
                             const SizedBox(height: 12),
                             Text(
                               cat['title'],
@@ -496,7 +509,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                       value: _selectedCategory,
                       decoration: InputDecoration(
                         labelText: 'case.category_label'.tr(),
-                        prefixIcon: const Icon(Icons.topic_rounded, color: Colors.red),
+                        prefixIcon: const Icon(Icons.topic_rounded, color: const Color(0xFFA6192E)),
                         border: const OutlineInputBorder(),
                       ),
                       items: categoryMap.keys.map((String key) {
@@ -525,7 +538,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                           child: FloatingActionButton.small(
                             heroTag: "micTitle",
                             onPressed: () => _toggleListen(isTitle: true),
-                            backgroundColor: _isListeningTitle ? Colors.red : Colors.blue,
+                            backgroundColor: _isListeningTitle ? const Color(0xFFA6192E) : Colors.blue,
                             child: Icon(_isListeningTitle ? Icons.mic : Icons.mic_none),
                           ),
                         ),
@@ -551,7 +564,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                           child: FloatingActionButton.small(
                             heroTag: "micDesc",
                             onPressed: () => _toggleListen(isTitle: false),
-                            backgroundColor: _isListeningDesc ? Colors.red : Colors.blue, 
+                            backgroundColor: _isListeningDesc ? const Color(0xFFA6192E) : Colors.blue, 
                             child: Icon(_isListeningDesc ? Icons.mic : Icons.mic_none),
                           ),
                         ),
@@ -569,7 +582,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                         children: [
                           Row(
                             children: [
-                              const Icon(Icons.payments_rounded, color: Colors.red, size: 18),
+                              const Icon(Icons.payments_rounded, color: const Color(0xFFA6192E), size: 18),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text('case.payment_section'.tr(),
@@ -626,7 +639,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                       child: InputDecorator(
                         decoration: InputDecoration(
                           labelText: 'case.city_label'.tr(),
-                          prefixIcon: const Icon(Icons.location_on_rounded, color: Colors.red),
+                          prefixIcon: const Icon(Icons.location_on_rounded, color: const Color(0xFFA6192E)),
                           suffixIcon: const Icon(Icons.arrow_drop_down),
                           border: const OutlineInputBorder(),
                         ),
@@ -646,7 +659,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                       value: _selectedServiceType,
                       decoration: InputDecoration(
                         labelText: 'case.service_type_label'.tr(),
-                        prefixIcon: const Icon(Icons.assignment_turned_in_rounded, color: Colors.red),
+                        prefixIcon: const Icon(Icons.assignment_turned_in_rounded, color: const Color(0xFFA6192E)),
                         border: const OutlineInputBorder(),
                       ),
                       items: serviceMap.keys.map((String key) {
@@ -660,7 +673,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                     const SizedBox(height: 24),
                     ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.red,
+                        backgroundColor: const Color(0xFFA6192E),
                         foregroundColor: Colors.white,
                         minimumSize: const Size(double.infinity, 50),
                       ),

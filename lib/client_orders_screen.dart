@@ -110,7 +110,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('common.yes_delete'.tr(), style: const TextStyle(color: Colors.red)),
+            child: Text('common.yes_delete'.tr(), style: const TextStyle(color: const Color(0xFFA6192E))),
           ),
         ],
       ),
@@ -244,16 +244,16 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                   if (category.isNotEmpty)
                                     Chip(
                                       label: Text(_trCat(category), style: const TextStyle(fontSize: 11)),
-                                      backgroundColor: Colors.red[50],
-                                      labelStyle: TextStyle(color: Colors.red[700]),
+                                      backgroundColor: const Color(0xFFFAE8EB),
+                                      labelStyle: TextStyle(color: const Color(0xFFA6192E)),
                                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                     ),
                                   if (region.isNotEmpty)
                                     Chip(
-                                      avatar: const Icon(Icons.location_on_rounded, size: 14, color: Colors.red),
+                                      avatar: const Icon(Icons.location_on_rounded, size: 14, color: const Color(0xFFA6192E)),
                                       label: Text(translateRegion(region, lang), style: const TextStyle(fontSize: 11)),
-                                      backgroundColor: Colors.red[50],
-                                      labelStyle: TextStyle(color: Colors.red[700]),
+                                      backgroundColor: const Color(0xFFFAE8EB),
+                                      labelStyle: TextStyle(color: const Color(0xFFA6192E)),
                                       materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
                                     ),
                                 ],
@@ -299,8 +299,8 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                       ),
                                     ),
                                   ),
-                                  icon: const Icon(Icons.people_outline, color: Colors.red, size: 18),
-                                  label: Text('client.responses'.tr(), style: const TextStyle(color: Colors.red)),
+                                  icon: const Icon(Icons.people_outline, color: const Color(0xFFA6192E), size: 18),
+                                  label: Text('client.responses'.tr(), style: const TextStyle(color: const Color(0xFFA6192E))),
                                 ),
                                 if (status == 'active' ||
                                     status == 'open' ||

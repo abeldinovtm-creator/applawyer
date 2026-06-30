@@ -48,10 +48,10 @@ Widget buildLanguageButton(BuildContext context, String langCode, String label, 
   bool isSelected = context.locale.languageCode == langCode;
   
   Color selectedBgDark = Colors.white;
-  Color selectedTextDark = Colors.red;
+  Color selectedTextDark = const Color(0xFFA6192E);
   Color unselectedTextDark = Colors.white70;
 
-  Color selectedBgLight = Colors.red;
+  Color selectedBgLight = const Color(0xFFA6192E);
   Color selectedTextLight = Colors.white;
   Color unselectedTextLight = Colors.black54;
 

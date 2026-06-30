@@ -156,7 +156,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                           children: [
                             CircleAvatar(
                               radius: 26,
-                              backgroundColor: Colors.red,
+                              backgroundColor: const Color(0xFFA6192E),
                               child: Text(
                                 displayName[0].toUpperCase(),
                                 style: const TextStyle(
@@ -185,14 +185,14 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                         decoration: BoxDecoration(
-                                          color: Colors.red[50],
+                                          color: const Color(0xFFFAE8EB),
                                           borderRadius: BorderRadius.circular(10),
                                         ),
                                         child: Text(
                                           subtypeLabel,
                                           style: TextStyle(
                                             fontSize: 11,
-                                            color: Colors.red[700],
+                                            color: const Color(0xFFA6192E),
                                             fontWeight: FontWeight.bold,
                                           ),
                                         ),
@@ -270,7 +270,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                             ),
                             icon: const Icon(Icons.person_outline, size: 16),
                             label: Text('chat.full_profile'.tr()),
-                            style: TextButton.styleFrom(foregroundColor: Colors.red),
+                            style: TextButton.styleFrom(foregroundColor: const Color(0xFFA6192E)),
                           ),
                         ),
                         const Divider(height: 1),
@@ -283,8 +283,8 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                               Expanded(
                                 child: OutlinedButton.icon(
                                   style: OutlinedButton.styleFrom(
-                                    side: const BorderSide(color: Colors.red),
-                                    foregroundColor: Colors.red,
+                                    side: const BorderSide(color: const Color(0xFFA6192E)),
+                                    foregroundColor: const Color(0xFFA6192E),
                                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                   ),
                                   onPressed: () => _updateStatus(convId, 'rejected'),
@@ -312,7 +312,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                             width: double.infinity,
                             child: ElevatedButton.icon(
                               style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.red,
+                                backgroundColor: const Color(0xFFA6192E),
                                 foregroundColor: Colors.white,
                                 shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                               ),
@@ -448,7 +448,7 @@ class _LawyerConversationListScreenState extends State<LawyerConversationListScr
                     statusLabel = 'lawyer.status_accepted'.tr();
                     break;
                   case 'rejected':
-                    statusColor = Colors.red;
+                    statusColor = const Color(0xFFA6192E);
                     statusLabel = 'lawyer.status_rejected'.tr();
                     break;
                   default:
@@ -467,7 +467,7 @@ class _LawyerConversationListScreenState extends State<LawyerConversationListScr
                       children: [
                         if (category.isNotEmpty)
                           Text(category,
-                              style: TextStyle(fontSize: 12, color: Colors.red[700], fontWeight: FontWeight.bold)),
+                              style: TextStyle(fontSize: 12, color: const Color(0xFFA6192E), fontWeight: FontWeight.bold)),
                         const SizedBox(height: 4),
                         Text(
                           caseTitle.isNotEmpty ? caseTitle : '—',
@@ -491,7 +491,7 @@ class _LawyerConversationListScreenState extends State<LawyerConversationListScr
                             if (status == 'accepted')
                               ElevatedButton.icon(
                                 style: ElevatedButton.styleFrom(
-                                  backgroundColor: Colors.red,
+                                  backgroundColor: const Color(0xFFA6192E),
                                   foregroundColor: Colors.white,
                                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
                                 ),
@@ -656,7 +656,7 @@ class _ChatScreenState extends State<ChatScreen> {
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
         constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
         decoration: BoxDecoration(
-          color: isMe ? Colors.red : Colors.grey[200],
+          color: isMe ? const Color(0xFFA6192E) : Colors.grey[200],
           borderRadius: BorderRadius.only(
             topLeft: const Radius.circular(16),
             topRight: const Radius.circular(16),
@@ -712,7 +712,7 @@ class _ChatScreenState extends State<ChatScreen> {
                   )
                 : IconButton(
                     onPressed: _send,
-                    icon: const Icon(Icons.send_rounded, color: Colors.red),
+                    icon: const Icon(Icons.send_rounded, color: const Color(0xFFA6192E)),
                     iconSize: 28,
                   ),
           ],
