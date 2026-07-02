@@ -78,7 +78,9 @@
     "delete_account": "Аккаунтты жою",
     "delete_confirm_title": "Аккаунтты жою?",
     "delete_confirm_body": "Барлық деректер жойылады. Бұл әрекетті қайтаруға болмайды.",
-    "required": "Өрісті толтырыңыз"
+    "required": "Өрісті толтырыңыз",
+    "completed_cases": "Аяқталған істер",
+    "active_cases": "Жұмыста"
   },
   "profile_view": {
     "title": "Маман профилі",
@@ -118,7 +120,9 @@
     "in_progress_empty": "Жұмыстағы өтінімдер жоқ",
     "accept_client_price": "Клиент бағасын қабылдау",
     "no_client_price": "Клиент баға көрсетпеді",
-    "agreed_price": "Келісілген төлем"
+    "agreed_price": "Келісілген төлем",
+    "statistics_menu": "Статистика",
+    "statistics_coming_soon": "Статистика бөлімі жақында қосылады"
   },
   "client": {
     "orders_title": "Менің өтінімдерім",
@@ -197,6 +201,7 @@
     "debts": "Борыштар және коллекторлар",
     "criminal": "Қылмыстық істер",
     "enforcement": "Сот шешімін орындау / ЖСО",
+    "notary": "Нотариалдық қызметтер",
     "other": "Басқа сұрақ"
   },
   "search": {

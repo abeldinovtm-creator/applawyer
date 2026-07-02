@@ -78,7 +78,9 @@
     "delete_account": "Удалить аккаунт",
     "delete_confirm_title": "Удалить аккаунт?",
     "delete_confirm_body": "Все данные будут удалены. Это действие необратимо.",
-    "required": "Заполните поле"
+    "required": "Заполните поле",
+    "completed_cases": "Завершено дел",
+    "active_cases": "В работе"
   },
   "profile_view": {
     "title": "Профиль специалиста",
@@ -118,7 +120,9 @@
     "in_progress_empty": "Нет заявок в работе",
     "accept_client_price": "Принять цену клиента",
     "no_client_price": "Клиент не указал цену",
-    "agreed_price": "Согласованная оплата"
+    "agreed_price": "Согласованная оплата",
+    "statistics_menu": "Статистика",
+    "statistics_coming_soon": "Раздел статистики скоро появится"
   },
   "client": {
     "orders_title": "Мои заявки",
@@ -197,6 +201,7 @@
     "debts": "Долги и коллекторы",
     "criminal": "Уголовные дела",
     "enforcement": "Исполнение решения суда / ЧСИ",
+    "notary": "Нотариальные услуги",
     "other": "Другой вопрос"
   },
   "search": {
