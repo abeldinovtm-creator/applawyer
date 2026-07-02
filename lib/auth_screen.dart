@@ -167,6 +167,11 @@ class _AuthScreenState extends State<AuthScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Читаем context.locale, чтобы экран подписался на смену языка —
+    // иначе .tr() ниже не обновится при setLocale() из LanguageButton
+    // (тот же баг, что был в app_drawer.dart).
+    context.locale;
+
     // ===== ЭКРАН ВОССТАНОВЛЕНИЯ ПАРОЛЯ =====
     if (_isForgotPassword) {
       return Scaffold(

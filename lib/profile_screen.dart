@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:easy_localization/easy_localization.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:image_picker/image_picker.dart';
 import 'region_picker_screen.dart';
 import 'auth_screen.dart';
 import 'privacy_policy_screen.dart';
@@ -30,12 +31,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _lawyerSubtype = 'lawyer';
   String _selectedRegion = '';
   String _preferredLang = 'kk';
+  String? _avatarUrl;
   bool _loading = true;
   bool _saving = false;
   bool _changingPass = false;
   bool _deletingAccount = false;
+  bool _uploadingAvatar = false;
   bool _obscureNew = true;
   bool _obscureConfirm = true;
+  int _completedCases = 0;
+  int _activeCases = 0;
 
   bool get _isLawyer => _role == 'lawyer';
 
@@ -63,7 +68,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final data = await _supabase
           .from('profiles')
-          .select('full_name, phone, city, experience_years, about, role, lawyer_subtype, iin, preferred_language')
+          .select('full_name, phone, city, experience_years, about, role, lawyer_subtype, iin, preferred_language, avatar_url')
           .eq('id', user.id)
           .maybeSingle();
       if (data != null && mounted) {
@@ -77,10 +82,75 @@ class _ProfileScreenState extends State<ProfileScreen> {
           _aboutCtrl.text = data['about'] ?? '';
           _iinCtrl.text = data['iin'] ?? '';
           _preferredLang = data['preferred_language'] ?? 'kk';
+          _avatarUrl = data['avatar_url'];
         });
       }
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
+    if (_isLawyer) _loadCaseStats();
+  }
+
+  // Счётчик завершённых/незавершённых дел юриста: считаем по заявкам,
+  // где отклик юриста был принят клиентом (conversations.status == accepted).
+  Future<void> _loadCaseStats() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+    try {
+      final convRaw = await _supabase
+          .from('conversations')
+          .select('case_id')
+          .eq('lawyer_id', user.id)
+          .eq('status', 'accepted');
+      final caseIds = List<Map<String, dynamic>>.from(convRaw as List)
+          .map((c) => c['case_id'].toString())
+          .toList();
+
+      if (caseIds.isEmpty) {
+        if (mounted) setState(() { _completedCases = 0; _activeCases = 0; });
+        return;
+      }
+
+      final casesRaw = await _supabase.from('cases').select('status').inFilter('id', caseIds);
+      final cases = List<Map<String, dynamic>>.from(casesRaw as List);
+      final completed = cases.where((c) => c['status'] == 'completed').length;
+      if (mounted) {
+        setState(() {
+          _completedCases = completed;
+          _activeCases = cases.length - completed;
+        });
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _pickAndUploadAvatar() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+
+    final picked = await ImagePicker().pickImage(
+      source: ImageSource.gallery,
+      maxWidth: 800,
+      imageQuality: 85,
+    );
+    if (picked == null) return;
+
+    setState(() => _uploadingAvatar = true);
+    try {
+      final bytes = await picked.readAsBytes();
+      final path = '${user.id}.jpg';
+      await _supabase.storage.from('avatars').uploadBinary(
+            path,
+            bytes,
+            fileOptions: const FileOptions(upsert: true, contentType: 'image/jpeg'),
+          );
+      final publicUrl = _supabase.storage.from('avatars').getPublicUrl(path);
+      final bustedUrl = '$publicUrl?t=${DateTime.now().millisecondsSinceEpoch}';
+      await _supabase.from('profiles').update({'avatar_url': bustedUrl}).eq('id', user.id);
+      if (mounted) setState(() => _avatarUrl = bustedUrl);
+    } catch (e) {
+      if (mounted) _showSnack('Ошибка: $e', const Color(0xFFA6192E));
+    } finally {
+      if (mounted) setState(() => _uploadingAvatar = false);
+    }
   }
 
   Future<void> _pickRegion() async {
@@ -216,6 +286,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Читаем context.locale, чтобы экран подписался на смену языка —
+    // иначе .tr() ниже не обновится сразу при смене языка в этом же экране.
+    context.locale;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('profile.title'.tr()),
@@ -233,19 +307,50 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     Center(
                       child: Column(
                         children: [
-                          CircleAvatar(
-                            radius: 42,
-                            backgroundColor: const Color(0xFFA6192E),
-                            child: Text(
-                              _nameCtrl.text.isNotEmpty
-                                  ? _nameCtrl.text.trim()[0].toUpperCase()
-                                  : '?',
-                              style: const TextStyle(
-                                fontSize: 34,
-                                color: Colors.white,
-                                fontWeight: FontWeight.bold,
+                          Stack(
+                            children: [
+                              CircleAvatar(
+                                radius: 42,
+                                backgroundColor: const Color(0xFFA6192E),
+                                backgroundImage: (_avatarUrl != null && _avatarUrl!.isNotEmpty)
+                                    ? NetworkImage(_avatarUrl!)
+                                    : null,
+                                child: (_avatarUrl == null || _avatarUrl!.isEmpty)
+                                    ? Text(
+                                        _nameCtrl.text.isNotEmpty
+                                            ? _nameCtrl.text.trim()[0].toUpperCase()
+                                            : '?',
+                                        style: const TextStyle(
+                                          fontSize: 34,
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      )
+                                    : null,
                               ),
-                            ),
+                              Positioned(
+                                right: 0,
+                                bottom: 0,
+                                child: GestureDetector(
+                                  onTap: _uploadingAvatar ? null : _pickAndUploadAvatar,
+                                  child: Container(
+                                    padding: const EdgeInsets.all(6),
+                                    decoration: BoxDecoration(
+                                      color: const Color(0xFFA6192E),
+                                      shape: BoxShape.circle,
+                                      border: Border.all(color: Colors.white, width: 2),
+                                    ),
+                                    child: _uploadingAvatar
+                                        ? const SizedBox(
+                                            width: 14,
+                                            height: 14,
+                                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                          )
+                                        : const Icon(Icons.camera_alt_rounded, size: 14, color: Colors.white),
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
                           if (_isLawyer) ...[
                             const SizedBox(height: 10),
@@ -269,7 +374,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ],
                       ),
                     ),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 20),
+
+                    if (_isLawyer) ...[
+                      Row(
+                        children: [
+                          Expanded(child: _statCard('profile.completed_cases'.tr(), _completedCases, Colors.green)),
+                          const SizedBox(width: 10),
+                          Expanded(child: _statCard('profile.active_cases'.tr(), _activeCases, Colors.orange)),
+                        ],
+                      ),
+                      const SizedBox(height: 20),
+                    ],
 
                     _sectionHeader('profile.personal_data'.tr()),
                     const SizedBox(height: 12),
@@ -512,29 +628,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                         foregroundColor: Colors.grey[700],
                       ),
-                      onPressed: () async {
-                        await _supabase.auth.signOut();
-                        if (!mounted) return;
-                        Navigator.pushAndRemoveUntil(
-                          context,
-                          MaterialPageRoute(builder: (_) => const AuthScreen()),
-                          (_) => false,
-                        );
-                      },
-                      icon: const Icon(Icons.logout_rounded),
-                      label: Text(
-                        'common.logout'.tr(),
-                        style: const TextStyle(fontSize: 15),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    OutlinedButton.icon(
-                      style: OutlinedButton.styleFrom(
-                        minimumSize: const Size(double.infinity, 50),
-                        side: const BorderSide(color: Colors.grey),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                        foregroundColor: Colors.grey[700],
-                      ),
                       onPressed: _deletingAccount ? null : _deleteAccount,
                       icon: _deletingAccount
                           ? const SizedBox(
@@ -553,6 +646,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
+    );
+  }
+
+  Widget _statCard(String label, int count, Color color) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Text('$count', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
+          const SizedBox(height: 4),
+          Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+        ],
+      ),
     );
   }
 

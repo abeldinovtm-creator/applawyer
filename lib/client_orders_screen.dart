@@ -17,6 +17,7 @@ String _trCat(String cat) {
     'Долги и коллекторы': 'category.debts',
     'Уголовные дела': 'category.criminal',
     'Исполнение решения суда / ЧСИ': 'category.enforcement',
+    'Нотариальные услуги': 'category.notary',
     'Другой вопрос': 'category.other',
   };
   final key = map[cat];

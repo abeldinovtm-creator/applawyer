@@ -1,34 +1,46 @@
 -- Push-уведомления: FCM токены + триггеры
 -- Применить в: Supabase Dashboard → SQL Editor
+--
+-- ПЕРЕД ЗАПУСКОМ:
+-- Замени 'ВАШ_SERVICE_ROLE_KEY' на ключ из Supabase → Settings → API → service_role (secret)
 
--- 1. Колонка для FCM токена в профилях
+-- 1. Колонка для FCM токена
 ALTER TABLE profiles ADD COLUMN IF NOT EXISTS fcm_token TEXT;
 
--- 2. TODO: Установить service_role_key для триггеров
--- Выполни это один раз (замени значение на свой ключ из Supabase → Settings → API):
--- ALTER DATABASE postgres SET app.service_role_key = 'eyJ...твой_service_role_key...';
+-- 2. Сохраняем service_role_key в Vault (безопасное хранилище)
+SELECT vault.create_secret(
+  'ВАШ_SERVICE_ROLE_KEY',       -- TODO: замени на реальный ключ
+  'supabase_service_role_key'   -- имя секрета (не менять)
+);
 
 -- 3. Вспомогательная функция — вызывает Edge Function send-push
 CREATE OR REPLACE FUNCTION call_send_push(
   p_recipient_id UUID,
-  p_title TEXT,
-  p_body TEXT
+  p_title        TEXT,
+  p_body         TEXT
 ) RETURNS VOID AS $$
+DECLARE
+  v_key TEXT;
 BEGIN
+  SELECT decrypted_secret INTO v_key
+    FROM vault.decrypted_secrets
+    WHERE name = 'supabase_service_role_key'
+    LIMIT 1;
+
   PERFORM net.http_post(
-    url      := 'https://xkxontehimricgmmkjbw.supabase.co/functions/v1/send-push',
-    headers  := jsonb_build_object(
+    url     := 'https://xkxontehimricgmmkjbw.supabase.co/functions/v1/send-push',
+    headers := jsonb_build_object(
       'Content-Type',  'application/json',
-      'Authorization', 'Bearer ' || current_setting('app.service_role_key', true)
+      'Authorization', 'Bearer ' || v_key
     ),
-    body     := jsonb_build_object(
+    body    := jsonb_build_object(
       'recipient_id', p_recipient_id::text,
       'title',        p_title,
       'body',         p_body
     )::text
   );
 EXCEPTION WHEN OTHERS THEN
-  NULL; -- Не блокируем основную операцию если пуш не отправился
+  NULL;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
 
@@ -41,8 +53,8 @@ BEGIN
   IF v_client_id IS NOT NULL AND v_client_id != NEW.lawyer_id THEN
     PERFORM call_send_push(
       v_client_id,
-      'Новый отклик юриста',
-      'Юрист откликнулся на вашу заявку. Откройте приложение.'
+      'Жаңа заңгер жауабы',
+      'Заңгер сіздің өтінімге жауап берді'
     );
   END IF;
   RETURN NEW;
@@ -62,14 +74,14 @@ BEGIN
     IF NEW.status = 'accepted' THEN
       PERFORM call_send_push(
         NEW.lawyer_id,
-        'Клиент принял ваш отклик!',
-        'Откройте чат и начните работу'
+        'Клиент сіздің жауабыңызды қабылдады!',
+        'Чатты ашыңыз және жұмысты бастаңыз'
       );
     ELSIF NEW.status = 'rejected' THEN
       PERFORM call_send_push(
         NEW.lawyer_id,
-        'Клиент отклонил ваш отклик',
-        'Попробуйте откликнуться на другие заявки'
+        'Клиент жауабыңызды қабылдамады',
+        'Басқа өтінімдерге жауап беріп көріңіз'
       );
     END IF;
   END IF;
@@ -86,9 +98,9 @@ CREATE TRIGGER on_conversation_status_changed
 CREATE OR REPLACE FUNCTION trigger_notify_on_message()
 RETURNS TRIGGER AS $$
 DECLARE
-  v_lawyer_id  UUID;
-  v_client_id  UUID;
-  v_recipient  UUID;
+  v_lawyer_id UUID;
+  v_client_id UUID;
+  v_recipient UUID;
 BEGIN
   SELECT lawyer_id INTO v_lawyer_id
     FROM conversations WHERE id = NEW.conversation_id;
@@ -97,7 +109,6 @@ BEGIN
     FROM cases
     WHERE id = (SELECT case_id FROM conversations WHERE id = NEW.conversation_id);
 
-  -- Получатель — тот, кто НЕ отправил сообщение
   IF NEW.sender_id = v_lawyer_id THEN
     v_recipient := v_client_id;
   ELSE
@@ -107,8 +118,8 @@ BEGIN
   IF v_recipient IS NOT NULL THEN
     PERFORM call_send_push(
       v_recipient,
-      'Новое сообщение',
-      'У вас новое сообщение в чате'
+      'Жаңа хабарлама',
+      'Чатта жаңа хабарлама бар'
     );
   END IF;
   RETURN NEW;

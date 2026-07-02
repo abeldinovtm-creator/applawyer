@@ -6,7 +6,6 @@ import 'auth_screen.dart';
 import 'region_picker_screen.dart';
 import 'region_translations.dart';
 import 'chat_screen.dart';
-import 'profile_screen.dart';
 import 'app_drawer.dart';
 import 'widgets.dart';
 
@@ -33,6 +32,7 @@ String _trCategory(String cat) {
     'Долги и коллекторы': 'category.debts',
     'Уголовные дела': 'category.criminal',
     'Исполнение решения суда / ЧСИ': 'category.enforcement',
+    'Нотариальные услуги': 'category.notary',
     'Другой вопрос': 'category.other',
   };
   final key = map[cat];
@@ -73,7 +73,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
         'Составить или проверить договор', 'Споры, суды и долги',
         'Трудовые споры', 'Семья, брак и развод', 'Штрафы, налоги и госорганы',
         'Бизнес, ИП и ТОО', 'Земельные вопросы', 'Долги и коллекторы',
-        'Исполнение решения суда / ЧСИ', 'Другой вопрос',
+        'Исполнение решения суда / ЧСИ', 'Нотариальные услуги', 'Другой вопрос',
       ];
     } else {
       // advocate — все категории
@@ -81,7 +81,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
         'Составить или проверить договор', 'Споры, суды и долги',
         'Трудовые споры', 'Семья, брак и развод', 'Штрафы, налоги и госорганы',
         'Бизнес, ИП и ТОО', 'Земельные вопросы', 'Долги и коллекторы',
-        'Уголовные дела', 'Исполнение решения суда / ЧСИ', 'Другой вопрос',
+        'Уголовные дела', 'Исполнение решения суда / ЧСИ', 'Нотариальные услуги', 'Другой вопрос',
       ];
     }
   }
@@ -1135,14 +1135,6 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
         ),
         actions: [
           if (!_isSearching) ...[
-            IconButton(
-              icon: const Icon(Icons.person_outline, color: Colors.white),
-              tooltip: 'profile.title'.tr(),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProfileScreen()),
-              ),
-            ),
             IconButton(
               icon: const Icon(Icons.search, color: Colors.white),
               onPressed: () => setState(() => _isSearching = true),

@@ -78,7 +78,9 @@
     "delete_account": "Delete account",
     "delete_confirm_title": "Delete account?",
     "delete_confirm_body": "All data will be deleted. This action is irreversible.",
-    "required": "Required field"
+    "required": "Required field",
+    "completed_cases": "Completed cases",
+    "active_cases": "In progress"
   },
   "profile_view": {
     "title": "Specialist profile",
@@ -118,7 +120,9 @@
     "in_progress_empty": "No cases in progress",
     "accept_client_price": "Accept client's price",
     "no_client_price": "Client has not set a price",
-    "agreed_price": "Agreed payment"
+    "agreed_price": "Agreed payment",
+    "statistics_menu": "Statistics",
+    "statistics_coming_soon": "The statistics section is coming soon"
   },
   "client": {
     "orders_title": "My Orders",
@@ -197,6 +201,7 @@
     "debts": "Debts & collectors",
     "criminal": "Criminal cases",
     "enforcement": "Court enforcement / Bailiff",
+    "notary": "Notary services",
     "other": "Other issue"
   },
   "search": {

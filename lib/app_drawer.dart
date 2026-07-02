@@ -1,8 +1,12 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'client_orders_screen.dart';
 import 'chat_screen.dart';
+import 'profile_screen.dart';
+import 'statistics_screen.dart';
+import 'auth_screen.dart';
 
 class AppDrawer extends StatelessWidget {
   final String role;
@@ -11,6 +15,10 @@ class AppDrawer extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Читаем context.locale, чтобы виджет подписался на смену языка —
+    // иначе .tr() ниже не обновится при context.setLocale() из _LangChip.
+    context.locale;
+
     return Drawer(
       child: SafeArea(
         child: Column(
@@ -35,8 +43,17 @@ class AppDrawer extends StatelessWidget {
                 ],
               ),
             ),
+            ListTile(
+              leading: const Icon(Icons.person_outline_rounded, color: const Color(0xFFA6192E)),
+              title: Text('profile.title'.tr()),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+              },
+            ),
+            const Divider(),
             Padding(
-              padding: const EdgeInsets.fromLTRB(16, 16, 16, 4),
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
               child: Text(
                 'profile.preferred_language'.tr(),
                 style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w500),
@@ -64,7 +81,7 @@ class AppDrawer extends StatelessWidget {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const ClientOrdersScreen()));
                 },
               ),
-            if (role == 'lawyer')
+            if (role == 'lawyer') ...[
               ListTile(
                 leading: const Icon(Icons.chat_bubble_outline_rounded, color: const Color(0xFFA6192E)),
                 title: Text('lawyer.my_responses'.tr()),
@@ -73,6 +90,34 @@ class AppDrawer extends StatelessWidget {
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const LawyerConversationListScreen()));
                 },
               ),
+              ListTile(
+                leading: const Icon(Icons.bar_chart_rounded, color: const Color(0xFFA6192E)),
+                title: Text('lawyer.statistics_menu'.tr()),
+                onTap: () {
+                  Navigator.pop(context);
+                  Navigator.push(context, MaterialPageRoute(builder: (_) => const StatisticsScreen()));
+                },
+              ),
+            ],
+            const Spacer(),
+            const Divider(height: 1),
+            ListTile(
+              leading: const Icon(Icons.logout_rounded, color: Colors.grey),
+              title: Text('common.logout'.tr(), style: TextStyle(color: Colors.grey[800])),
+              onTap: () async {
+                // Navigator сохраняем ДО await и pop() — после закрытия меню и
+                // сигнала signOut() этот BuildContext может успеть размонтироваться,
+                // из-за чего переход на экран входа раньше просто не происходил.
+                final navigator = Navigator.of(context, rootNavigator: true);
+                Navigator.pop(context);
+                await Supabase.instance.client.auth.signOut();
+                navigator.pushAndRemoveUntil(
+                  MaterialPageRoute(builder: (_) => const AuthScreen()),
+                  (_) => false,
+                );
+              },
+            ),
+            const SizedBox(height: 8),
           ],
         ),
       ),

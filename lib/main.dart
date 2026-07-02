@@ -8,15 +8,23 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'lawyer_screen.dart';
 import 'auth_screen.dart';
 import 'client_orders_screen.dart';
-import 'profile_screen.dart';
 import 'region_translations.dart';
 import 'region_picker_screen.dart';
 import 'services/push_service.dart';
 import 'app_drawer.dart';
 import 'widgets.dart';
 
-const supabaseUrl = String.fromEnvironment('SUPABASE_URL');
-const supabaseAnonKey = String.fromEnvironment('SUPABASE_ANON_KEY');
+// anon key — публичный ключ (виден всем в собранном web-бандле на applawyer.online),
+// защита данных идёт через RLS, а не через секретность ключа.
+// Дефолты нужны, чтобы обычный `flutter run` работал без --dart-define.
+const supabaseUrl = String.fromEnvironment(
+  'SUPABASE_URL',
+  defaultValue: 'https://xkxontehimricgmmkjbw.supabase.co',
+);
+const supabaseAnonKey = String.fromEnvironment(
+  'SUPABASE_ANON_KEY',
+  defaultValue: 'sb_publishable_fnR2skXYZE1ZDn3q0Wbzwg_2l57Qhz9',
+);
 
 const _kBrandRed = MaterialColor(0xFFA6192E, {
   50:  Color(0xFFFAE8EB),
@@ -247,6 +255,11 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
 
   @override
   Widget build(BuildContext context) {
+    // Читаем context.locale, чтобы экран подписался на смену языка —
+    // иначе .tr() ниже не обновится при setLocale() из меню (тот же баг,
+    // что был в app_drawer.dart/auth_screen.dart).
+    context.locale;
+
     final List<Map<String, dynamic>> allCategories = [
       {'id': 'Составить или проверить договор', 'title': 'category.contract'.tr(), 'icon': Icons.description_rounded},
       {'id': 'Споры, суды и долги', 'title': 'category.disputes'.tr(), 'icon': Icons.gavel_rounded},
@@ -258,6 +271,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
       {'id': 'Долги и коллекторы', 'title': 'category.debts'.tr(), 'icon': Icons.money_off_rounded},
       {'id': 'Уголовные дела', 'title': 'category.criminal'.tr(), 'icon': Icons.security_rounded},
       {'id': 'Исполнение решения суда / ЧСИ', 'title': 'category.enforcement'.tr(), 'icon': Icons.assignment_turned_in_rounded},
+      {'id': 'Нотариальные услуги', 'title': 'category.notary'.tr(), 'icon': Icons.approval_rounded},
       {'id': 'Другой вопрос', 'title': 'category.other'.tr(), 'icon': Icons.help_outline_rounded},
     ];
 
@@ -289,14 +303,6 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
             : Text('category.screen_title'.tr()),
         actions: [
           if (!_isSearching) ...[
-            IconButton(
-              icon: const Icon(Icons.person_outline),
-              tooltip: 'profile.title'.tr(),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (_) => const ProfileScreen()),
-              ),
-            ),
             IconButton(
               icon: const Icon(Icons.search),
               onPressed: () => setState(() => _isSearching = true),
@@ -557,6 +563,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
       'Долги и коллекторы': 'category.debts'.tr(),
       'Уголовные дела': 'category.criminal'.tr(),
       'Исполнение решения суда / ЧСИ': 'category.enforcement'.tr(),
+      'Нотариальные услуги': 'category.notary'.tr(),
       'Другой вопрос': 'category.other'.tr(),
     };
 
