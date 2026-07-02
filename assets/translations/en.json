@@ -3,7 +3,7 @@
     "cancel": "Cancel",
     "no": "No",
     "yes_delete": "Yes, delete",
-    "yes_close": "Yes, close",
+    "yes_confirm": "Yes, confirm",
     "required": "Required field",
     "logout": "Log out"
   },
@@ -95,7 +95,8 @@
     "lawyer": "Lawyer",
     "advocate": "Advocate",
     "pce": "Bailiff",
-    "pce_full": "Private Bailiff"
+    "pce_full": "Private Bailiff",
+    "notary": "Notary"
   },
   "lawyer": {
     "workspace": "Dashboard",
@@ -123,7 +124,12 @@
     "agreed_price": "Agreed payment",
     "statistics_menu": "Statistics",
     "statistics_coming_soon": "The statistics section is coming soon",
-    "own_case": "This is your request"
+    "own_case": "This is your request",
+    "confirm_completion": "Confirm completion",
+    "confirm_completion_title": "Confirm the work is complete?",
+    "confirm_completion_body": "The case closes only after both sides confirm. The platform commission (by category) is then deducted.",
+    "waiting_client_confirmation": "You've confirmed. Waiting for the client's confirmation",
+    "case_completed_badge": "Case completed"
   },
   "role_switch": {
     "to_client": "Client mode",
@@ -133,14 +139,14 @@
     "orders_title": "My Orders",
     "no_orders": "You have no orders yet",
     "responses": "Responses",
-    "close": "Close",
     "delete": "Delete",
     "delete_confirm_title": "Delete order?",
     "delete_confirm_body": "The order will be permanently deleted. Confirm?",
-    "close_confirm_title": "Close case?",
-    "close_confirm_body": "The order will be marked as completed. Confirm?",
     "order_deleted": "Order deleted",
-    "order_closed": "Case closed"
+    "confirm_completion": "Confirm completion",
+    "confirm_completion_title": "Confirm the work is complete?",
+    "confirm_completion_body": "The case closes only after both sides confirm — you and the lawyer. The platform commission is then deducted.",
+    "waiting_lawyer_confirmation": "You've confirmed. Waiting for the lawyer's confirmation"
   },
   "case": {
     "describe_title": "Describe your case",

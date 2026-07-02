@@ -136,7 +136,9 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                     ? 'specialist.advocate'.tr()
                     : subtype == 'private_court_executor'
                         ? 'specialist.pce'.tr()
-                        : 'specialist.lawyer'.tr();
+                        : subtype == 'notary'
+                            ? 'specialist.notary'.tr()
+                            : 'specialist.lawyer'.tr();
 
                 final displayName = name.isNotEmpty
                     ? name

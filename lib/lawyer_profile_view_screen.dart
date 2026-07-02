@@ -12,6 +12,8 @@ class LawyerProfileViewScreen extends StatelessWidget {
         return 'specialist.advocate'.tr();
       case 'private_court_executor':
         return 'specialist.pce_full'.tr();
+      case 'notary':
+        return 'specialist.notary'.tr();
       default:
         return 'specialist.lawyer'.tr();
     }

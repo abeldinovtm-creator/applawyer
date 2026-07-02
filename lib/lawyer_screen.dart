@@ -68,6 +68,8 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
   static List<String> _allowedCategories(String subtype) {
     if (subtype == 'private_court_executor') {
       return ['Исполнение решения суда / ЧСИ'];
+    } else if (subtype == 'notary') {
+      return ['Нотариальные услуги'];
     } else if (subtype == 'lawyer') {
       return [
         'Составить или проверить договор', 'Споры, суды и долги',
@@ -90,6 +92,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
     switch (subtype) {
       case 'advocate': return 'specialist.advocate'.tr();
       case 'private_court_executor': return 'specialist.pce'.tr();
+      case 'notary': return 'specialist.notary'.tr();
       default: return 'specialist.lawyer'.tr();
     }
   }
@@ -193,6 +196,43 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
             }).toList();
           });
     });
+  }
+
+  // Дело закрывается только после подтверждения ОБЕИХ сторон — эта функция
+  // ставит только сторону юриста. Остальное (status='completed', списание
+  // комиссии) делает серверный триггер, когда клиент подтвердит тоже
+  // (см. supabase/migrations/20260703_escrow_commission_dual_confirmation.sql).
+  Future<void> _confirmCompletion(String caseId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('lawyer.confirm_completion_title'.tr()),
+        content: Text('lawyer.confirm_completion_body'.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('common.no'.tr()),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('common.yes_confirm'.tr(), style: const TextStyle(color: Colors.green)),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    try {
+      await _supabase
+          .from('cases')
+          .update({'lawyer_confirmed_completion_at': DateTime.now().toIso8601String()})
+          .eq('id', caseId);
+      _refreshInProgress();
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(context, 'Ошибка: $e', kind: SnackKind.error);
+      }
+    }
   }
 
   Future<void> _sendResponse(String caseId, Map<String, dynamic> caseItem) async {
@@ -992,9 +1032,12 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
               final conv = items[index];
               final caseData = Map<String, dynamic>.from(conv['case'] as Map? ?? {});
               final convId = conv['id'].toString();
+              final caseId = caseData['id'].toString();
               final String title = caseData['title'] ?? 'case.legal_help'.tr();
               final String category = caseData['category'] ?? '';
               final String region = caseData['region'] ?? '';
+              final bool isCaseCompleted = caseData['status'] == 'completed';
+              final bool lawyerConfirmed = caseData['lawyer_confirmed_completion_at'] != null;
               final int? agreedPrepay = conv['price_prepayment'] as int?;
               final int? agreedCompletion = conv['price_on_completion'] as int?;
               final int? agreedResult = conv['price_on_result'] as int?;
@@ -1097,6 +1140,41 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                           label: Text('chat.open_chat'.tr()),
                         ),
                       ),
+                      const SizedBox(height: 8),
+                      if (isCaseCompleted)
+                        Container(
+                          width: double.infinity,
+                          padding: const EdgeInsets.symmetric(vertical: 8),
+                          alignment: Alignment.center,
+                          decoration: BoxDecoration(
+                            color: Colors.green[50],
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            'lawyer.case_completed_badge'.tr(),
+                            style: TextStyle(color: Colors.green[800], fontWeight: FontWeight.bold, fontSize: 13),
+                          ),
+                        )
+                      else if (lawyerConfirmed)
+                        Text(
+                          'lawyer.waiting_client_confirmation'.tr(),
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                        )
+                      else
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.green[800],
+                              side: BorderSide(color: Colors.green.shade300),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            onPressed: () => _confirmCompletion(caseId),
+                            icon: const Icon(Icons.check_circle_outline, size: 16),
+                            label: Text('lawyer.confirm_completion'.tr()),
+                          ),
+                        ),
                     ],
                   ),
                 ),

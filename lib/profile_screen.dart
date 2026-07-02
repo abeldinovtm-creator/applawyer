@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:image_picker/image_picker.dart';
 import 'region_picker_screen.dart';
 import 'auth_screen.dart';
+import 'main.dart';
 import 'privacy_policy_screen.dart';
 import 'widgets.dart';
 
@@ -29,6 +30,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   String _role = 'client';
   String _lawyerSubtype = 'lawyer';
+  String _loadedLawyerSubtype = 'lawyer';
   String _selectedRegion = '';
   String _preferredLang = 'kk';
   String? _avatarUrl;
@@ -75,6 +77,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         setState(() {
           _role = data['role'] ?? 'client';
           _lawyerSubtype = data['lawyer_subtype'] ?? 'lawyer';
+          _loadedLawyerSubtype = _lawyerSubtype;
           _nameCtrl.text = data['full_name'] ?? '';
           _phoneCtrl.text = data['phone'] ?? '';
           _selectedRegion = data['city'] ?? '';
@@ -176,6 +179,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'phone': _phoneCtrl.text.trim(),
         'preferred_language': _preferredLang,
         if (_isLawyer) 'city': _selectedRegion,
+        if (_isLawyer) 'lawyer_subtype': _lawyerSubtype,
         if (_isLawyer) 'experience_years': int.tryParse(_expCtrl.text) ?? 0,
         if (_isLawyer) 'about': _aboutCtrl.text.trim(),
         if (_isLawyer) 'iin': _iinCtrl.text.trim(),
@@ -183,6 +187,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
       if (mounted) {
         context.setLocale(Locale(_preferredLang));
+      }
+
+      // Смена специализации меняет доступные категории заявок в дашборде юриста —
+      // он кеширует lawyerSubtype в конструкторе, поэтому нужен полный перезаход
+      // через AuthRouter, чтобы дашборд перечитал профиль из БД.
+      final subtypeChanged = _isLawyer && _lawyerSubtype != _loadedLawyerSubtype;
+      if (mounted && subtypeChanged) {
+        Navigator.of(context, rootNavigator: true).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const AuthRouter()),
+          (_) => false,
+        );
+        return;
       }
 
       if (mounted) {
@@ -280,6 +296,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     switch (_lawyerSubtype) {
       case 'advocate': return 'specialist.advocate'.tr();
       case 'private_court_executor': return 'specialist.pce_full'.tr();
+      case 'notary': return 'specialist.notary'.tr();
       default: return 'specialist.lawyer'.tr();
     }
   }
@@ -452,8 +469,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ),
                     const SizedBox(height: 8),
 
-                    // Поля только для юристов/адвокатов/ЧСИ
+                    // Поля только для юристов/адвокатов/ЧСИ/нотариусов
                     if (_isLawyer) ...[
+                      const SizedBox(height: 12),
+
+                      // Специализация — можно сменить после регистрации
+                      DropdownButtonFormField<String>(
+                        initialValue: _lawyerSubtype,
+                        decoration: InputDecoration(
+                          labelText: 'auth.specialization'.tr(),
+                          prefixIcon: const Icon(Icons.gavel_outlined),
+                          border: const OutlineInputBorder(),
+                        ),
+                        items: [
+                          DropdownMenuItem(value: 'lawyer', child: Text('specialist.lawyer'.tr())),
+                          DropdownMenuItem(value: 'advocate', child: Text('specialist.advocate'.tr())),
+                          DropdownMenuItem(value: 'private_court_executor', child: Text('specialist.pce_full'.tr())),
+                          DropdownMenuItem(value: 'notary', child: Text('specialist.notary'.tr())),
+                        ],
+                        onChanged: (v) => setState(() => _lawyerSubtype = v!),
+                      ),
                       const SizedBox(height: 12),
 
                       // ИИН

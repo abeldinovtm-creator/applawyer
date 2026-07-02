@@ -384,6 +384,10 @@ class _AuthScreenState extends State<AuthScreen> {
                               value: 'private_court_executor',
                               child: Text('specialist.pce_full'.tr()),
                             ),
+                            DropdownMenuItem(
+                              value: 'notary',
+                              child: Text('specialist.notary'.tr()),
+                            ),
                           ],
                           onChanged: (v) => setState(() => _selectedLawyerSubtype = v!),
                         ),

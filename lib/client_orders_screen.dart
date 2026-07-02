@@ -41,11 +41,31 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
     final user = _supabase.auth.currentUser;
     if (user == null) return [];
 
-    return await _supabase
+    final orders = await _supabase
         .from('cases')
         .select('*')
         .eq('client_id', user.id)
         .order('created_at', ascending: false);
+
+    final list = List<Map<String, dynamic>>.from(orders);
+    if (list.isEmpty) return list;
+
+    // Отмечаем, по каким заявкам уже принят юрист — только тогда имеет
+    // смысл показывать «Подтвердить завершение» вместо простого «Отменить».
+    final caseIds = list.map((o) => o['id'].toString()).toList();
+    final acceptedRaw = await _supabase
+        .from('conversations')
+        .select('case_id')
+        .inFilter('case_id', caseIds)
+        .eq('status', 'accepted');
+    final acceptedCaseIds = List<Map<String, dynamic>>.from(acceptedRaw)
+        .map((c) => c['case_id'].toString())
+        .toSet();
+
+    for (final order in list) {
+      order['_hasAcceptedLawyer'] = acceptedCaseIds.contains(order['id'].toString());
+    }
+    return list;
   }
 
   Widget _budgetChip(String label) {
@@ -60,12 +80,16 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
     );
   }
 
-  Future<void> _closeOrder(String caseId) async {
+  // Дело закрывается только после подтверждения ОБЕИХ сторон — эта функция
+  // ставит только сторону клиента. Остальное (status='completed', списание
+  // комиссии) делает серверный триггер, когда юрист подтвердит тоже
+  // (см. supabase/migrations/20260703_escrow_commission_dual_confirmation.sql).
+  Future<void> _confirmCompletion(String caseId) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text('client.close_confirm_title'.tr()),
-        content: Text('client.close_confirm_body'.tr()),
+        title: Text('client.confirm_completion_title'.tr()),
+        content: Text('client.confirm_completion_body'.tr()),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx, false),
@@ -73,7 +97,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
           ),
           TextButton(
             onPressed: () => Navigator.pop(ctx, true),
-            child: Text('common.yes_close'.tr(), style: const TextStyle(color: Colors.green)),
+            child: Text('common.yes_confirm'.tr(), style: const TextStyle(color: Colors.green)),
           ),
         ],
       ),
@@ -83,9 +107,11 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
 
     setState(() => _isLoading = true);
     try {
-      await _supabase.from('cases').update({'status': 'completed'}).eq('id', caseId);
+      await _supabase
+          .from('cases')
+          .update({'client_confirmed_completion_at': DateTime.now().toIso8601String()})
+          .eq('id', caseId);
       if (mounted) {
-        showAppSnackBar(context, 'client.order_closed'.tr());
         setState(() => _refreshKey++);
       }
     } catch (e) {
@@ -211,6 +237,8 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                     final int? budgetResult = order['budget_on_result'] as int?;
                     final bool hasBudgetBreakdown = budgetPrepay != null || budgetCompletion != null || budgetResult != null;
                     final int totalBudget = ((order['budget'] ?? 0) as num).toInt();
+                    final bool hasAcceptedLawyer = order['_hasAcceptedLawyer'] == true;
+                    final bool clientConfirmed = order['client_confirmed_completion_at'] != null;
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -309,11 +337,20 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                   Row(
                                     mainAxisSize: MainAxisSize.min,
                                     children: [
-                                      TextButton.icon(
-                                        onPressed: () => _closeOrder(order['id'].toString()),
-                                        icon: const Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
-                                        label: Text('client.close'.tr(), style: const TextStyle(color: Colors.green)),
-                                      ),
+                                      if (hasAcceptedLawyer && clientConfirmed)
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                                          child: Text(
+                                            'client.waiting_lawyer_confirmation'.tr(),
+                                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                          ),
+                                        )
+                                      else if (hasAcceptedLawyer)
+                                        TextButton.icon(
+                                          onPressed: () => _confirmCompletion(order['id'].toString()),
+                                          icon: const Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
+                                          label: Text('client.confirm_completion'.tr(), style: const TextStyle(color: Colors.green)),
+                                        ),
                                       IconButton(
                                         onPressed: () => _cancelOrder(order['id'].toString()),
                                         icon: const Icon(Icons.delete_outline, color: Colors.grey, size: 20),

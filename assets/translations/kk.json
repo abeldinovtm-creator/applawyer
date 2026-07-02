@@ -3,7 +3,7 @@
     "cancel": "Бас тарту",
     "no": "Жоқ",
     "yes_delete": "Иә, жою",
-    "yes_close": "Иә, жабу",
+    "yes_confirm": "Иә, растаймын",
     "required": "Өрісті толтырыңыз",
     "logout": "Шығу"
   },
@@ -95,7 +95,8 @@
     "lawyer": "Заңгер",
     "advocate": "Адвокат",
     "pce": "ЖСО",
-    "pce_full": "Жеке сот орындаушысы (ЖСО)"
+    "pce_full": "Жеке сот орындаушысы (ЖСО)",
+    "notary": "Нотариус"
   },
   "lawyer": {
     "workspace": "Жұмыс кеңістігі",
@@ -123,7 +124,12 @@
     "agreed_price": "Келісілген төлем",
     "statistics_menu": "Статистика",
     "statistics_coming_soon": "Статистика бөлімі жақында қосылады",
-    "own_case": "Бұл сіздің өтінімiңіз"
+    "own_case": "Бұл сіздің өтінімiңіз",
+    "confirm_completion": "Аяқталуын растау",
+    "confirm_completion_title": "Жұмыстың аяқталғанын растайсыз ба?",
+    "confirm_completion_body": "Іс екі тарап та растағаннан кейін ғана жабылады. Содан кейін іс санатына сәйкес платформа комиссиясы ұсталады.",
+    "waiting_client_confirmation": "Сіз растадыңыз. Клиенттің растауын күтудеміз",
+    "case_completed_badge": "Іс аяқталды"
   },
   "role_switch": {
     "to_client": "Клиент режимі",
@@ -133,14 +139,14 @@
     "orders_title": "Менің өтінімдерім",
     "no_orders": "Өтінімдер әлі жоқ",
     "responses": "Өтінімдер",
-    "close": "Жабу",
     "delete": "Жою",
     "delete_confirm_title": "Өтінімді жою?",
     "delete_confirm_body": "Өтінім толығымен жойылады. Растайсыз ба?",
-    "close_confirm_title": "Істі жабу?",
-    "close_confirm_body": "Заявка аяқталды деп белгіленеді. Растайсыз ба?",
     "order_deleted": "Өтінім жойылды",
-    "order_closed": "Заявка жабылды"
+    "confirm_completion": "Аяқталуын растау",
+    "confirm_completion_title": "Жұмыстың аяқталғанын растайсыз ба?",
+    "confirm_completion_body": "Іс екі тарап та растағаннан кейін ғана жабылады — сіз және заңгер. Содан кейін платформа комиссиясы ұсталады.",
+    "waiting_lawyer_confirmation": "Сіз растадыңыз. Заңгердің растауын күтудеміз"
   },
   "case": {
     "describe_title": "Өтінішті сипаттау",
