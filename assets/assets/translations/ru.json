@@ -122,7 +122,12 @@
     "no_client_price": "Клиент не указал цену",
     "agreed_price": "Согласованная оплата",
     "statistics_menu": "Статистика",
-    "statistics_coming_soon": "Раздел статистики скоро появится"
+    "statistics_coming_soon": "Раздел статистики скоро появится",
+    "own_case": "Это ваша заявка"
+  },
+  "role_switch": {
+    "to_client": "Режим клиента",
+    "to_lawyer": "Режим юриста"
   },
   "client": {
     "orders_title": "Мои заявки",

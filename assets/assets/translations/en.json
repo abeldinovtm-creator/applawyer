@@ -122,7 +122,12 @@
     "no_client_price": "Client has not set a price",
     "agreed_price": "Agreed payment",
     "statistics_menu": "Statistics",
-    "statistics_coming_soon": "The statistics section is coming soon"
+    "statistics_coming_soon": "The statistics section is coming soon",
+    "own_case": "This is your request"
+  },
+  "role_switch": {
+    "to_client": "Client mode",
+    "to_lawyer": "Lawyer mode"
   },
   "client": {
     "orders_title": "My Orders",

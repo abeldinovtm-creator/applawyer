@@ -122,7 +122,12 @@
     "no_client_price": "Клиент баға көрсетпеді",
     "agreed_price": "Келісілген төлем",
     "statistics_menu": "Статистика",
-    "statistics_coming_soon": "Статистика бөлімі жақында қосылады"
+    "statistics_coming_soon": "Статистика бөлімі жақында қосылады",
+    "own_case": "Бұл сіздің өтінімiңіз"
+  },
+  "role_switch": {
+    "to_client": "Клиент режимі",
+    "to_lawyer": "Заңгер режимі"
   },
   "client": {
     "orders_title": "Менің өтінімдерім",
