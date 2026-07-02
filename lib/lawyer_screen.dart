@@ -836,6 +836,10 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                       final bool hasBudgetBreakdown = budgetPrepay != null || budgetCompletion != null || budgetResult != null;
                       final String clientLang = (item['language'] ?? 'ru').toUpperCase();
                       final String region = item['region'] ?? '';
+                      // Защита от самооткликов на UI-уровне (дублирует RESTRICTIVE
+                      // RLS-политику lawyer_cannot_respond_own_case на conversations) —
+                      // актуально при переключении роли (active_role) на одном аккаунте.
+                      final bool isOwnCase = item['client_id'] == _supabase.auth.currentUser?.id;
 
                       return Card(
                         margin: const EdgeInsets.only(bottom: 16),
@@ -917,16 +921,21 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                                                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
                                           ],
                                         ),
-                                  ElevatedButton.icon(
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: const Color(0xFFA6192E),
-                                      foregroundColor: Colors.white,
-                                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                                    ),
-                                    onPressed: () => _sendResponse(item['id'].toString(), item),
-                                    icon: const Icon(Icons.send_outlined, size: 16),
-                                    label: Text(respondBtn),
-                                  ),
+                                  isOwnCase
+                                      ? Text(
+                                          'lawyer.own_case'.tr(),
+                                          style: TextStyle(fontSize: 13, color: Colors.grey[600]),
+                                        )
+                                      : ElevatedButton.icon(
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: const Color(0xFFA6192E),
+                                            foregroundColor: Colors.white,
+                                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                                          ),
+                                          onPressed: () => _sendResponse(item['id'].toString(), item),
+                                          icon: const Icon(Icons.send_outlined, size: 16),
+                                          label: Text(respondBtn),
+                                        ),
                                 ],
                               ),
                             ],

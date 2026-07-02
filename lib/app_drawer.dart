@@ -7,6 +7,7 @@ import 'chat_screen.dart';
 import 'profile_screen.dart';
 import 'statistics_screen.dart';
 import 'auth_screen.dart';
+import 'main.dart';
 
 class AppDrawer extends StatelessWidget {
   final String role;
@@ -72,6 +73,22 @@ class AppDrawer extends StatelessWidget {
               ),
             ),
             const Divider(),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+              child: OutlinedButton.icon(
+                onPressed: () => _switchRole(context, role),
+                style: OutlinedButton.styleFrom(
+                  foregroundColor: const Color(0xFFA6192E),
+                  side: const BorderSide(color: Color(0xFFA6192E)),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
+                ),
+                icon: Icon(role == 'lawyer' ? Icons.person_outline_rounded : Icons.gavel_rounded),
+                label: Text(
+                  role == 'lawyer' ? 'role_switch.to_client'.tr() : 'role_switch.to_lawyer'.tr(),
+                ),
+              ),
+            ),
+            const Divider(),
             if (role == 'client')
               ListTile(
                 leading: const Icon(Icons.assignment_turned_in_rounded, color: const Color(0xFFA6192E)),
@@ -121,6 +138,27 @@ class AppDrawer extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  // Переключает active_role в profiles и перезапускает AuthRouter,
+  // чтобы он заново прочитал роль из БД и показал нужный экран.
+  // Основная role в БД не меняется — только active_role.
+  Future<void> _switchRole(BuildContext context, String currentRole) async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return;
+
+    final newRole = currentRole == 'lawyer' ? 'client' : 'lawyer';
+    final navigator = Navigator.of(context, rootNavigator: true);
+    Navigator.pop(context);
+
+    await Supabase.instance.client
+        .from('profiles')
+        .upsert({'id': user.id, 'active_role': newRole});
+
+    navigator.pushAndRemoveUntil(
+      MaterialPageRoute(builder: (_) => const AuthRouter()),
+      (_) => false,
     );
   }
 }

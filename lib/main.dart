@@ -172,7 +172,7 @@ class _AuthRouterState extends State<AuthRouter> {
     _profileFuture = user != null
         ? Supabase.instance.client
             .from('profiles')
-            .select('role, lawyer_subtype, preferred_language')
+            .select('role, active_role, lawyer_subtype, preferred_language')
             .eq('id', user.id)
             .maybeSingle()
         : Future.value(null);
@@ -199,9 +199,15 @@ class _AuthRouterState extends State<AuthRouter> {
         }
 
         final data = snapshot.data;
-        final role = (data != null && data['role'] != null)
+        final baseRole = (data != null && data['role'] != null)
             ? data['role'].toString()
             : 'client';
+        // active_role — ручное переключение режима (lawyer ↔ client) из drawer.
+        // Основная role в БД при этом не меняется, RLS остаётся по role.
+        final activeRoleRaw = data?['active_role']?.toString();
+        final role = (activeRoleRaw != null && activeRoleRaw.isNotEmpty)
+            ? activeRoleRaw
+            : baseRole;
         final lawyerSubtype = data?['lawyer_subtype']?.toString() ?? 'lawyer';
         final preferredLang = data?['preferred_language']?.toString();
 
