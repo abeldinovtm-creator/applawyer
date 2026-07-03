@@ -331,14 +331,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            if (!_isSearching) ...[
-              const SizedBox(height: 10),
-              Text(
-                'category.welcome'.tr(),
-                style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87),
-              ),
-              const SizedBox(height: 20),
-            ],
+            if (!_isSearching) const SizedBox(height: 12),
             if (categories.isEmpty)
               Expanded(
                 child: Center(
@@ -350,45 +343,85 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
               )
             else
               Expanded(
-                child: GridView.builder(
-                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                    crossAxisCount: 2,
-                    crossAxisSpacing: 14,
-                    mainAxisSpacing: 14,
-                    childAspectRatio: 1.1,
-                  ),
-                  itemCount: categories.length,
-                  itemBuilder: (context, index) {
-                    final cat = categories[index];
-                    return Card(
-                      elevation: 2,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                      child: InkWell(
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CreateCaseScreen(initialCategory: cat['id']),
+                child: LayoutBuilder(
+                  builder: (context, constraints) {
+                    final isDesktop = constraints.maxWidth >= 600;
+                    void openCategory(Map<String, dynamic> cat) {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CreateCaseScreen(initialCategory: cat['id']),
+                        ),
+                      );
+                    }
+
+                    if (isDesktop) {
+                      return ListView.separated(
+                        itemCount: categories.length,
+                        separatorBuilder: (context, index) => const SizedBox(height: 10),
+                        itemBuilder: (context, index) {
+                          final cat = categories[index];
+                          return Card(
+                            elevation: 1,
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            child: InkWell(
+                              onTap: () => openCategory(cat),
+                              borderRadius: BorderRadius.circular(12),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                                child: Row(
+                                  children: [
+                                    Icon(cat['icon'], size: 28, color: const Color(0xFFA6192E)),
+                                    const SizedBox(width: 20),
+                                    Expanded(
+                                      child: Text(
+                                        cat['title'],
+                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
                             ),
                           );
                         },
-                        borderRadius: BorderRadius.circular(16),
-                        child: Padding(
-                          padding: const EdgeInsets.all(16.0),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            children: [
-                              Icon(cat['icon'], size: 40, color: const Color(0xFFA6192E)),
-                              const SizedBox(height: 12),
-                              Text(
-                                cat['title'],
-                                textAlign: TextAlign.center,
-                                style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
-                              ),
-                            ],
-                          ),
-                        ),
+                      );
+                    }
+
+                    return GridView.builder(
+                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 14,
+                        mainAxisSpacing: 14,
+                        childAspectRatio: 1.1,
                       ),
+                      itemCount: categories.length,
+                      itemBuilder: (context, index) {
+                        final cat = categories[index];
+                        return Card(
+                          elevation: 2,
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          child: InkWell(
+                            onTap: () => openCategory(cat),
+                            borderRadius: BorderRadius.circular(16),
+                            child: Padding(
+                              padding: const EdgeInsets.all(16.0),
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(cat['icon'], size: 40, color: const Color(0xFFA6192E)),
+                                  const SizedBox(height: 12),
+                                  Text(
+                                    cat['title'],
+                                    textAlign: TextAlign.center,
+                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        );
+                      },
                     );
                   },
                 ),
