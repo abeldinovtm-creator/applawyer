@@ -95,7 +95,7 @@
     "lawyer": "Lawyer",
     "advocate": "Advocate",
     "pce": "Bailiff",
-    "pce_full": "Private Bailiff",
+    "pce_full": "Private Enforcement Officer",
     "notary": "Notary"
   },
   "lawyer": {
@@ -103,7 +103,7 @@
     "active_cases": "Active Cases",
     "no_cases": "No cases found",
     "budget": "Budget:",
-    "respond_btn": "Apply",
+    "respond_btn": "Respond",
     "my_responses": "My Responses",
     "no_responses": "No responses yet",
     "response_sent": "Response sent!",
@@ -164,7 +164,7 @@
     "title": "Chat",
     "no_messages": "No messages. Be the first to write!",
     "message_hint": "Message...",
-    "lawyers_responded": "Lawyers responded",
+    "lawyers_responded": "Lawyers have responded",
     "no_lawyers": "No lawyers have written yet",
     "full_profile": "Full profile",
     "accept": "Accept",
