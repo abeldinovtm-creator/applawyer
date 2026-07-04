@@ -11,6 +11,10 @@
     "amount": "Amount",
     "amount_hint": "Enter the amount in tenge"
   },
+  "notifications": {
+    "title": "Notifications",
+    "empty": "No notifications yet"
+  },
   "auth": {
     "sign_in": "Sign In",
     "sign_up": "Sign Up",
