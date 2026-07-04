@@ -154,11 +154,18 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                 final displayName = name.isNotEmpty
                     ? name
                     : '${'specialist.lawyer'.tr()} ${i + 1}';
+                final isUnread = UnreadCountsService.instance.unreadConversationIds.value.contains(convId);
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 14),
                   elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  color: isUnread ? const Color(0xFFFFF3F3) : null,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: isUnread
+                        ? const BorderSide(color: Color(0xFFA6192E), width: 1.5)
+                        : BorderSide.none,
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Column(
@@ -470,11 +477,18 @@ class _LawyerConversationListScreenState extends State<LawyerConversationListScr
                     statusColor = Colors.orange;
                     statusLabel = 'lawyer.status_pending'.tr();
                 }
+                final isUnread = UnreadCountsService.instance.unreadConversationIds.value.contains(convId);
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
                   elevation: 2,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  color: isUnread ? const Color(0xFFFFF3F3) : null,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                    side: isUnread
+                        ? const BorderSide(color: Color(0xFFA6192E), width: 1.5)
+                        : BorderSide.none,
+                  ),
                   child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Column(

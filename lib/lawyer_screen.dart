@@ -972,11 +972,18 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
               final bool lawyerConfirmed = caseData['lawyer_confirmed_completion_at'] != null;
               final int? agreedAmount = conv['price_amount'] as int?;
               final hasAgreedPrice = agreedAmount != null;
+              final isUnread = UnreadCountsService.instance.unreadConversationIds.value.contains(convId);
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 14),
                 elevation: 3,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                color: isUnread ? const Color(0xFFFFF3F3) : null,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  side: isUnread
+                      ? const BorderSide(color: Color(0xFFA6192E), width: 1.5)
+                      : BorderSide.none,
+                ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),
                   child: Column(

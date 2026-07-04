@@ -225,11 +225,17 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                     final bool hasAcceptedLawyer = order['_hasAcceptedLawyer'] == true;
                     final bool clientConfirmed = order['client_confirmed_completion_at'] != null;
                     final String caseId = order['id'].toString();
+                    final bool isUnread = UnreadCountsService.instance.unreadCaseIds.value.contains(caseId);
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 16),
+                      color: isUnread ? const Color(0xFFFFF3F3) : null,
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12)),
+                        borderRadius: BorderRadius.circular(12),
+                        side: isUnread
+                            ? const BorderSide(color: Color(0xFFA6192E), width: 1.5)
+                            : BorderSide.none,
+                      ),
                       elevation: 3,
                       child: Padding(
                         padding: const EdgeInsets.all(16),

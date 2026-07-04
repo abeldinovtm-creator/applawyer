@@ -110,13 +110,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 final title = n['title']?.toString() ?? '';
                 final body = n['body']?.toString() ?? '';
                 final createdAt = DateTime.tryParse(n['created_at']?.toString() ?? '');
+                final isUnread = _unreadIds.contains(n['id'].toString());
 
                 return Card(
                   elevation: 0,
-                  color: Colors.grey[50],
+                  color: isUnread ? const Color(0xFFFFF3F3) : Colors.grey[50],
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
-                    side: BorderSide(color: Colors.grey.shade200),
+                    side: isUnread
+                        ? const BorderSide(color: Color(0xFFA6192E), width: 1.5)
+                        : BorderSide(color: Colors.grey.shade200),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(14),
