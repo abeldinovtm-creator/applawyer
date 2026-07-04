@@ -285,8 +285,10 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                               overflow: TextOverflow.ellipsis,
                             ),
                             const SizedBox(height: 12),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            Wrap(
+                              alignment: WrapAlignment.spaceBetween,
+                              crossAxisAlignment: WrapCrossAlignment.center,
+                              runSpacing: 6,
                               children: [
                                 TextButton.icon(
                                   onPressed: () => Navigator.push(
@@ -304,8 +306,8 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                 if (status == 'active' ||
                                     status == 'open' ||
                                     status == 'in_progress')
-                                  Row(
-                                    mainAxisSize: MainAxisSize.min,
+                                  Wrap(
+                                    crossAxisAlignment: WrapCrossAlignment.center,
                                     children: [
                                       if (hasAcceptedLawyer && clientConfirmed)
                                         Padding(
