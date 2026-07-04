@@ -38,11 +38,12 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
 
     Map<String, Map<String, dynamic>> profileMap = {};
     try {
-      // Явный список колонок — клиент не должен получать телефон/город
-      // юриста (не показываем это ему в UI, поэтому и не запрашиваем).
+      // Явный список колонок — клиент не должен получать телефон юриста
+      // (не показываем это ему в UI, поэтому и не запрашиваем). Город —
+      // не персональный контакт, его показывать можно.
       final profileRaw = await _supabase
           .from('profiles')
-          .select('id, full_name, experience_years, about, lawyer_subtype')
+          .select('id, full_name, city, experience_years, about, lawyer_subtype')
           .inFilter('id', lawyerIds);
       for (final p in List<Map<String, dynamic>>.from(profileRaw as List)) {
         profileMap[p['id'].toString()] = p;
@@ -126,6 +127,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                 final status = conv['status']?.toString() ?? 'pending';
 
                 final name = profile['full_name']?.toString() ?? '';
+                final city = profile['city']?.toString() ?? '';
                 final exp = profile['experience_years'];
                 final about = profile['about']?.toString() ?? '';
                 final subtype = profile['lawyer_subtype']?.toString() ?? 'lawyer';
@@ -201,10 +203,14 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                                       ),
                                     ],
                                   ),
-                                  if (exp != null && exp > 0) ...[
+                                  if (city.isNotEmpty || (exp != null && exp > 0)) ...[
                                     const SizedBox(height: 3),
                                     Text(
-                                      '${'profile_view.experience'.tr()} $exp ${'profile_view.years'.tr()}',
+                                      [
+                                        if (city.isNotEmpty) city,
+                                        if (exp != null && exp > 0)
+                                          '${'profile_view.experience'.tr()} $exp ${'profile_view.years'.tr()}',
+                                      ].join(' · '),
                                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
                                     ),
                                   ],
