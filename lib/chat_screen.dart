@@ -70,8 +70,17 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   }
 
   Future<void> _updateStatus(String convId, String status) async {
-    await _supabase.from('conversations').update({'status': status}).eq('id', convId);
-    setState(() => _refreshKey++);
+    try {
+      await _supabase.from('conversations').update({'status': status}).eq('id', convId);
+      if (mounted) setState(() => _refreshKey++);
+    } catch (e) {
+      // Триггер conversations_auto_reject_others_on_accept может отклонить
+      // принятие, если по этой заявке гонкой уже принят другой отклик.
+      if (mounted) {
+        showAppSnackBar(context, 'chat.accept_race_error'.tr(), kind: SnackKind.error);
+        setState(() => _refreshKey++);
+      }
+    }
   }
 
   @override
