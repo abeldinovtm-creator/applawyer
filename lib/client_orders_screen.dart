@@ -68,18 +68,6 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
     return list;
   }
 
-  Widget _budgetChip(String label) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-      decoration: BoxDecoration(
-        color: Colors.green[50],
-        borderRadius: BorderRadius.circular(6),
-        border: Border.all(color: Colors.green.shade200),
-      ),
-      child: Text(label, style: TextStyle(fontSize: 11, color: Colors.green[800], fontWeight: FontWeight.w600)),
-    );
-  }
-
   // Дело закрывается только после подтверждения ОБЕИХ сторон — эта функция
   // ставит только сторону клиента. Остальное (status='completed', списание
   // комиссии) делает серверный триггер, когда юрист подтвердит тоже
@@ -232,10 +220,6 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                     final String desc = order['description'] ?? '';
                     final String region = order['region'] ?? '';
                     final String category = order['category'] ?? '';
-                    final int? budgetPrepay = order['budget_prepayment'] as int?;
-                    final int? budgetCompletion = order['budget_on_completion'] as int?;
-                    final int? budgetResult = order['budget_on_result'] as int?;
-                    final bool hasBudgetBreakdown = budgetPrepay != null || budgetCompletion != null || budgetResult != null;
                     final int totalBudget = ((order['budget'] ?? 0) as num).toInt();
                     final bool hasAcceptedLawyer = order['_hasAcceptedLawyer'] == true;
                     final bool clientConfirmed = order['client_confirmed_completion_at'] != null;
@@ -288,21 +272,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                 ],
                               ),
                             const SizedBox(height: 6),
-                            if (hasBudgetBreakdown) ...[
-                              Wrap(
-                                spacing: 8,
-                                runSpacing: 4,
-                                children: [
-                                  if (budgetPrepay != null)
-                                    _budgetChip('${'payment.prepay_short'.tr()}: $budgetPrepay ₸'),
-                                  if (budgetCompletion != null)
-                                    _budgetChip('${'payment.after_short'.tr()}: $budgetCompletion ₸'),
-                                  if (budgetResult != null)
-                                    _budgetChip('${'payment.result_short'.tr()}: $budgetResult ₸'),
-                                ],
-                              ),
-                              const SizedBox(height: 6),
-                            ] else if (totalBudget > 0) ...[
+                            if (totalBudget > 0) ...[
                               Text('${'filter.budget'.tr()}: $totalBudget ₸',
                                   style: TextStyle(fontSize: 13, color: Colors.green[700], fontWeight: FontWeight.bold)),
                               const SizedBox(height: 6),

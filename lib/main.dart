@@ -451,9 +451,7 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
   final _formKey = GlobalKey<FormState>();
   final _titleController = TextEditingController();
   final _descriptionController = TextEditingController();
-  final _budgetPrepayCtrl = TextEditingController();
-  final _budgetCompletionCtrl = TextEditingController();
-  final _budgetResultCtrl = TextEditingController();
+  final _budgetAmountCtrl = TextEditingController();
   
   late String _selectedCategory;
   String _selectedServiceType = 'Консультация';
@@ -544,18 +542,13 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
       final user = Supabase.instance.client.auth.currentUser;
       if (user == null) throw Exception("Пользователь не авторизован");
 
-      final prepay = _budgetPrepayCtrl.text.isNotEmpty ? int.tryParse(_budgetPrepayCtrl.text) : null;
-      final completion = _budgetCompletionCtrl.text.isNotEmpty ? int.tryParse(_budgetCompletionCtrl.text) : null;
-      final result = _budgetResultCtrl.text.isNotEmpty ? int.tryParse(_budgetResultCtrl.text) : null;
+      final amount = _budgetAmountCtrl.text.isNotEmpty ? int.tryParse(_budgetAmountCtrl.text) : null;
 
-      if (prepay == null && completion == null && result == null) {
-        showAppSnackBar(context, 'payment.fill_error'.tr(), kind: SnackKind.error);
+      if (amount == null || amount <= 0) {
+        showAppSnackBar(context, 'common.required'.tr(), kind: SnackKind.error);
         setState(() => _isLoading = false);
         return;
       }
-
-      // budget = сумма всех полей для фильтрации по бюджету у юриста
-      final totalBudget = (prepay ?? 0) + (completion ?? 0) + (result ?? 0);
 
       await Supabase.instance.client.from('cases').insert({
         'client_id': user.id,
@@ -564,20 +557,15 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
         'category': _selectedCategory,
         'language': context.locale.languageCode,
         'status': 'open',
-        'budget': totalBudget,
-        if (prepay != null) 'budget_prepayment': prepay,
-        if (completion != null) 'budget_on_completion': completion,
-        if (result != null) 'budget_on_result': result,
+        'budget': amount,
         'service_type': _selectedServiceType,
         'region': _selectedRegion,
       });
 
       _titleController.clear();
       _descriptionController.clear();
-      _budgetPrepayCtrl.clear();
-      _budgetCompletionCtrl.clear();
-      _budgetResultCtrl.clear();
-      
+      _budgetAmountCtrl.clear();
+
       showAppSnackBar(context, 'case.success'.tr());
       Navigator.pop(context);
     } catch (e) {
@@ -712,38 +700,12 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
                           ),
                           const SizedBox(height: 12),
                           TextField(
-                            controller: _budgetPrepayCtrl,
+                            controller: _budgetAmountCtrl,
                             keyboardType: TextInputType.number,
                             inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                             decoration: InputDecoration(
-                              labelText: 'payment.prepayment'.tr(),
-                              hintText: '0',
-                              border: const OutlineInputBorder(),
-                              suffixText: '₸',
-                              isDense: true,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          TextField(
-                            controller: _budgetCompletionCtrl,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                            decoration: InputDecoration(
-                              labelText: 'payment.after_service'.tr(),
-                              hintText: '0',
-                              border: const OutlineInputBorder(),
-                              suffixText: '₸',
-                              isDense: true,
-                            ),
-                          ),
-                          const SizedBox(height: 10),
-                          TextField(
-                            controller: _budgetResultCtrl,
-                            keyboardType: TextInputType.number,
-                            inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                            decoration: InputDecoration(
-                              labelText: 'payment.on_result'.tr(),
-                              hintText: '0',
+                              labelText: 'payment.amount'.tr(),
+                              hintText: 'payment.amount_hint'.tr(),
                               border: const OutlineInputBorder(),
                               suffixText: '₸',
                               isDense: true,

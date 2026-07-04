@@ -172,7 +172,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
     setState(() {
       _inProgressFuture = _supabase
           .from('conversations')
-          .select('id, case_id, created_at, price_prepayment, price_on_completion, price_on_result')
+          .select('id, case_id, created_at, price_amount')
           .eq('lawyer_id', user.id)
           .eq('status', 'accepted')
           .then((convRaw) async {
@@ -267,17 +267,11 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
     }
 
     // Бюджет клиента из заявки
-    final clientPrepay = caseItem['budget_prepayment'] as int?;
-    final clientCompletion = caseItem['budget_on_completion'] as int?;
-    final clientResult = caseItem['budget_on_result'] as int?;
     final clientBudget = ((caseItem['budget'] ?? 0) as num).toInt();
-    final hasClientPrice = clientPrepay != null || clientCompletion != null ||
-        clientResult != null || clientBudget > 0;
+    final hasClientPrice = clientBudget > 0;
 
     if (!mounted) return;
-    final prepayCtrl = TextEditingController();
-    final completionCtrl = TextEditingController();
-    final resultCtrl = TextEditingController();
+    final amountCtrl = TextEditingController();
     bool useClientPrice = false;
     String? validationError;
 
@@ -308,14 +302,10 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                     setModalState(() {
                       useClientPrice = !useClientPrice;
                       if (useClientPrice) {
-                        prepayCtrl.text = clientPrepay?.toString() ?? (clientBudget > 0 ? clientBudget.toString() : '');
-                        completionCtrl.text = clientCompletion?.toString() ?? '';
-                        resultCtrl.text = clientResult?.toString() ?? '';
+                        amountCtrl.text = clientBudget.toString();
                         validationError = null;
                       } else {
-                        prepayCtrl.clear();
-                        completionCtrl.clear();
-                        resultCtrl.clear();
+                        amountCtrl.clear();
                       }
                     });
                   },
@@ -358,50 +348,14 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                 const SizedBox(height: 8),
               ],
 
-              if (!useClientPrice) ...[
-                Text('payment.fill_hint'.tr(),
-                    style: TextStyle(fontSize: 13, color: Colors.grey[600])),
-                const SizedBox(height: 16),
-              ],
-
               TextField(
-                controller: prepayCtrl,
+                controller: amountCtrl,
                 enabled: !useClientPrice,
                 keyboardType: TextInputType.number,
                 inputFormatters: [FilteringTextInputFormatter.digitsOnly],
                 decoration: InputDecoration(
-                  labelText: 'payment.prepayment'.tr(),
-                  hintText: '0',
-                  border: const OutlineInputBorder(),
-                  suffixText: '₸',
-                  filled: useClientPrice,
-                  fillColor: Colors.green[50],
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: completionCtrl,
-                enabled: !useClientPrice,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: InputDecoration(
-                  labelText: 'payment.after_service'.tr(),
-                  hintText: '0',
-                  border: const OutlineInputBorder(),
-                  suffixText: '₸',
-                  filled: useClientPrice,
-                  fillColor: Colors.green[50],
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: resultCtrl,
-                enabled: !useClientPrice,
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                decoration: InputDecoration(
-                  labelText: 'payment.on_result'.tr(),
-                  hintText: '0',
+                  labelText: 'payment.amount'.tr(),
+                  hintText: 'payment.amount_hint'.tr(),
                   border: const OutlineInputBorder(),
                   suffixText: '₸',
                   filled: useClientPrice,
@@ -422,11 +376,9 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                 ),
                 onPressed: () {
                   if (!useClientPrice) {
-                    final anyFilled = prepayCtrl.text.isNotEmpty ||
-                        completionCtrl.text.isNotEmpty ||
-                        resultCtrl.text.isNotEmpty;
-                    if (!anyFilled) {
-                      setModalState(() => validationError = 'payment.fill_error'.tr());
+                    final amount = int.tryParse(amountCtrl.text);
+                    if (amount == null || amount <= 0) {
+                      setModalState(() => validationError = 'common.required'.tr());
                       return;
                     }
                   }
@@ -443,18 +395,14 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
 
     if (confirmed != true) return;
 
-    final prepay = prepayCtrl.text.isNotEmpty ? int.tryParse(prepayCtrl.text) : null;
-    final completion = completionCtrl.text.isNotEmpty ? int.tryParse(completionCtrl.text) : null;
-    final result = resultCtrl.text.isNotEmpty ? int.tryParse(resultCtrl.text) : null;
+    final amount = int.tryParse(amountCtrl.text);
 
     try {
       await _supabase.from('conversations').insert({
         'case_id': caseId,
         'lawyer_id': user.id,
         'status': 'pending',
-        if (prepay != null) 'price_prepayment': prepay,
-        if (completion != null) 'price_on_completion': completion,
-        if (result != null) 'price_on_result': result,
+        if (amount != null) 'price_amount': amount,
       });
       if (!mounted) return;
       showAppSnackBar(context, 'lawyer.response_sent'.tr());
@@ -870,10 +818,6 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                       final String category = item['category'] ?? '';
                       final String serviceType = item['service_type'] ?? 'Консультация';
                       final int budget = ((item['budget'] ?? 0) as num).toInt();
-                      final int? budgetPrepay = item['budget_prepayment'] as int?;
-                      final int? budgetCompletion = item['budget_on_completion'] as int?;
-                      final int? budgetResult = item['budget_on_result'] as int?;
-                      final bool hasBudgetBreakdown = budgetPrepay != null || budgetCompletion != null || budgetResult != null;
                       final String clientLang = (item['language'] ?? 'ru').toUpperCase();
                       final String region = item['region'] ?? '';
                       // Защита от самооткликов на UI-уровне (дублирует RESTRICTIVE
@@ -940,27 +884,14 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                               Row(
                                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                                 children: [
-                                  hasBudgetBreakdown
-                                      ? Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(budgetPrefix, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                                            if (budgetPrepay != null)
-                                              _budgetLine('payment.prepay_short'.tr(), budgetPrepay),
-                                            if (budgetCompletion != null)
-                                              _budgetLine('payment.after_short'.tr(), budgetCompletion),
-                                            if (budgetResult != null)
-                                              _budgetLine('payment.result_short'.tr(), budgetResult),
-                                          ],
-                                        )
-                                      : Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
-                                          children: [
-                                            Text(budgetPrefix, style: const TextStyle(fontSize: 11, color: Colors.grey)),
-                                            Text('$budget ₸',
-                                                style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
-                                          ],
-                                        ),
+                                  Column(
+                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                    children: [
+                                      Text(budgetPrefix, style: const TextStyle(fontSize: 11, color: Colors.grey)),
+                                      Text('$budget ₸',
+                                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.green)),
+                                    ],
+                                  ),
                                   isOwnCase
                                       ? Text(
                                           'lawyer.own_case'.tr(),
@@ -1038,10 +969,8 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
               final String region = caseData['region'] ?? '';
               final bool isCaseCompleted = caseData['status'] == 'completed';
               final bool lawyerConfirmed = caseData['lawyer_confirmed_completion_at'] != null;
-              final int? agreedPrepay = conv['price_prepayment'] as int?;
-              final int? agreedCompletion = conv['price_on_completion'] as int?;
-              final int? agreedResult = conv['price_on_result'] as int?;
-              final hasAgreedPrice = agreedPrepay != null || agreedCompletion != null || agreedResult != null;
+              final int? agreedAmount = conv['price_amount'] as int?;
+              final hasAgreedPrice = agreedAmount != null;
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 14),
@@ -1108,12 +1037,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                                 ],
                               ),
                               const SizedBox(height: 6),
-                              if (agreedPrepay != null)
-                                _budgetLine('payment.prepay_short'.tr(), agreedPrepay),
-                              if (agreedCompletion != null)
-                                _budgetLine('payment.after_short'.tr(), agreedCompletion),
-                              if (agreedResult != null)
-                                _budgetLine('payment.result_short'.tr(), agreedResult),
+                              _budgetLine('payment.amount'.tr(), agreedAmount),
                             ],
                           ),
                         ),

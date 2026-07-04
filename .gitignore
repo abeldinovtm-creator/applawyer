@@ -5,6 +5,7 @@
 .env.*.local
 dart-defines.json
 .vscode/launch.json
+.mcp.json
 
 # Miscellaneous
 *.class

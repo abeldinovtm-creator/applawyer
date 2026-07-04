@@ -26,7 +26,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   Future<List<Map<String, dynamic>>> _load() async {
     final convRaw = await _supabase
         .from('conversations')
-        .select('id, lawyer_id, created_at, status, price_prepayment, price_on_completion, price_on_result')
+        .select('id, lawyer_id, created_at, status, price_amount')
         .eq('case_id', widget.caseId)
         .order('created_at', ascending: false);
 
@@ -127,10 +127,8 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                 final exp = profile['experience_years'];
                 final about = profile['about']?.toString() ?? '';
                 final subtype = profile['lawyer_subtype']?.toString() ?? 'lawyer';
-                final pricePrepay = conv['price_prepayment'] as int?;
-                final priceCompletion = conv['price_on_completion'] as int?;
-                final priceResult = conv['price_on_result'] as int?;
-                final hasPrice = pricePrepay != null || priceCompletion != null || priceResult != null;
+                final priceAmount = conv['price_amount'] as int?;
+                final hasPrice = priceAmount != null;
 
                 final subtypeLabel = subtype == 'advocate'
                     ? 'specialist.advocate'.tr()
@@ -250,12 +248,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                                   ],
                                 ),
                                 const SizedBox(height: 6),
-                                if (pricePrepay != null)
-                                  _priceRow('payment.prepayment'.tr(), pricePrepay),
-                                if (priceCompletion != null)
-                                  _priceRow('payment.after_service'.tr(), priceCompletion),
-                                if (priceResult != null)
-                                  _priceRow('payment.on_result'.tr(), priceResult),
+                                _priceRow('payment.amount'.tr(), priceAmount),
                               ],
                             ),
                           ),
