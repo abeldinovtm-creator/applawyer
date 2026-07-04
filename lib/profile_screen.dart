@@ -27,6 +27,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _iinCtrl = TextEditingController();
   final _newPassCtrl = TextEditingController();
   final _confirmPassCtrl = TextEditingController();
+  final _emailCtrl = TextEditingController();
+  final _backupEmailCtrl = TextEditingController();
 
   String _role = 'client';
   String _lawyerSubtype = 'lawyer';
@@ -41,6 +43,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _uploadingAvatar = false;
   bool _obscureNew = true;
   bool _obscureConfirm = true;
+  bool _changingEmail = false;
   int _completedCases = 0;
   int _activeCases = 0;
 
@@ -61,6 +64,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
     _iinCtrl.dispose();
     _newPassCtrl.dispose();
     _confirmPassCtrl.dispose();
+    _emailCtrl.dispose();
+    _backupEmailCtrl.dispose();
     super.dispose();
   }
 
@@ -70,22 +75,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final data = await _supabase
           .from('profiles')
-          .select('full_name, phone, city, experience_years, about, role, lawyer_subtype, iin, preferred_language, avatar_url')
+          .select('full_name, phone, city, experience_years, about, role, lawyer_subtype, iin, preferred_language, avatar_url, backup_email')
           .eq('id', user.id)
           .maybeSingle();
-      if (data != null && mounted) {
+      if (mounted) {
         setState(() {
-          _role = data['role'] ?? 'client';
-          _lawyerSubtype = data['lawyer_subtype'] ?? 'lawyer';
-          _loadedLawyerSubtype = _lawyerSubtype;
-          _nameCtrl.text = data['full_name'] ?? '';
-          _phoneCtrl.text = data['phone'] ?? '';
-          _selectedRegion = data['city'] ?? '';
-          _expCtrl.text = (data['experience_years'] ?? 0).toString();
-          _aboutCtrl.text = data['about'] ?? '';
-          _iinCtrl.text = data['iin'] ?? '';
-          _preferredLang = data['preferred_language'] ?? 'kk';
-          _avatarUrl = data['avatar_url'];
+          _emailCtrl.text = user.email ?? '';
+          if (data != null) {
+            _role = data['role'] ?? 'client';
+            _lawyerSubtype = data['lawyer_subtype'] ?? 'lawyer';
+            _loadedLawyerSubtype = _lawyerSubtype;
+            _nameCtrl.text = data['full_name'] ?? '';
+            _phoneCtrl.text = data['phone'] ?? '';
+            _selectedRegion = data['city'] ?? '';
+            _expCtrl.text = (data['experience_years'] ?? 0).toString();
+            _aboutCtrl.text = data['about'] ?? '';
+            _iinCtrl.text = data['iin'] ?? '';
+            _preferredLang = data['preferred_language'] ?? 'kk';
+            _avatarUrl = data['avatar_url'];
+            _backupEmailCtrl.text = data['backup_email'] ?? '';
+          }
         });
       }
     } catch (_) {}
@@ -177,6 +186,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'id': user.id,
         'full_name': _nameCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
+        'backup_email': _backupEmailCtrl.text.trim(),
         'preferred_language': _preferredLang,
         if (_isLawyer) 'city': _selectedRegion,
         if (_isLawyer) 'lawyer_subtype': _lawyerSubtype,
@@ -213,6 +223,31 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } finally {
       if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  // Смена основного email через Supabase Auth — не мгновенная: письмо со
+  // ссылкой подтверждения уходит на новый адрес, сам email в auth.users
+  // меняется только после перехода по ссылке.
+  Future<void> _changeEmail() async {
+    final newEmail = _emailCtrl.text.trim();
+    if (newEmail.isEmpty || !newEmail.contains('@')) {
+      _showSnack('profile.email_invalid'.tr(), Colors.orange);
+      return;
+    }
+    final currentEmail = _supabase.auth.currentUser?.email ?? '';
+    if (newEmail == currentEmail) return;
+
+    setState(() => _changingEmail = true);
+    try {
+      await _supabase.auth.updateUser(UserAttributes(email: newEmail));
+      if (mounted) {
+        _showSnack('profile.email_change_sent'.tr(), Colors.green);
+      }
+    } catch (e) {
+      if (mounted) _showSnack('Ошибка: $e', const Color(0xFFA6192E));
+    } finally {
+      if (mounted) setState(() => _changingEmail = false);
     }
   }
 
@@ -427,6 +462,44 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         labelText: 'profile.phone'.tr(),
                         hintText: '+7 777 000 00 00',
                         prefixIcon: const Icon(Icons.phone_outlined),
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+
+                    TextFormField(
+                      controller: _emailCtrl,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        labelText: 'profile.email'.tr(),
+                        prefixIcon: const Icon(Icons.email_outlined),
+                        border: const OutlineInputBorder(),
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: TextButton(
+                        onPressed: _changingEmail ? null : _changeEmail,
+                        child: _changingEmail
+                            ? const SizedBox(
+                                height: 16,
+                                width: 16,
+                                child: CircularProgressIndicator(strokeWidth: 2),
+                              )
+                            : Text('profile.change_email_btn'.tr(),
+                                style: const TextStyle(color: Color(0xFFA6192E), fontWeight: FontWeight.bold)),
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+
+                    TextFormField(
+                      controller: _backupEmailCtrl,
+                      keyboardType: TextInputType.emailAddress,
+                      decoration: InputDecoration(
+                        labelText: 'profile.backup_email'.tr(),
+                        hintText: 'profile.backup_email_hint'.tr(),
+                        prefixIcon: const Icon(Icons.alternate_email_rounded),
                         border: const OutlineInputBorder(),
                       ),
                     ),
