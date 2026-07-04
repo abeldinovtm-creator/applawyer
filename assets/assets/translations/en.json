@@ -174,7 +174,8 @@
     "reject": "Reject",
     "rejected": "Rejected",
     "open_chat": "Open chat",
-    "price_terms": "Payment terms"
+    "price_terms": "Payment terms",
+    "accept_race_error": "Another response for this case has already been accepted"
   },
   "filter": {
     "region": "Region",
