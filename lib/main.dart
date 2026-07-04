@@ -11,6 +11,7 @@ import 'client_orders_screen.dart';
 import 'region_translations.dart';
 import 'region_picker_screen.dart';
 import 'services/push_service.dart';
+import 'services/unread_counts_service.dart';
 import 'app_drawer.dart';
 import 'widgets.dart';
 
@@ -95,14 +96,17 @@ Future<void> main() async {
   Supabase.instance.client.auth.onAuthStateChange.listen((data) {
     if (data.event == AuthChangeEvent.signedIn) {
       PushService.init();
+      UnreadCountsService.instance.refresh();
     } else if (data.event == AuthChangeEvent.signedOut) {
       PushService.clearToken();
+      UnreadCountsService.instance.reset();
     }
   });
 
   // Если сессия уже активна при запуске
   if (Supabase.instance.client.auth.currentSession != null) {
     PushService.init();
+    UnreadCountsService.instance.refresh();
   }
 
   runApp(
@@ -291,6 +295,9 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
 
     return Scaffold(
       endDrawer: const AppDrawer(role: 'client'),
+      onEndDrawerChanged: (isOpen) {
+        if (isOpen) UnreadCountsService.instance.refresh();
+      },
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: _isSearching
@@ -318,12 +325,7 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
               icon: const Icon(Icons.close),
               onPressed: _stopSearch,
             ),
-          Builder(
-            builder: (ctx) => IconButton(
-              icon: const Icon(Icons.menu),
-              onPressed: () => Scaffold.of(ctx).openEndDrawer(),
-            ),
-          ),
+          const MenuIconWithBadge(),
         ],
       ),
       body: Padding(

@@ -1,6 +1,8 @@
 import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 
+import 'services/unread_counts_service.dart';
+
 enum SnackKind { success, error, warning }
 
 void showAppSnackBar(BuildContext context, String message, {SnackKind kind = SnackKind.success}) {
@@ -80,6 +82,69 @@ class LanguageButton extends StatelessWidget {
             color: isSelected ? selectedText : unselectedText,
           ),
         ),
+      ),
+    );
+  }
+}
+
+// Маленький числовой бейдж — для пунктов меню и иконок.
+class CountBadge extends StatelessWidget {
+  final int count;
+
+  const CountBadge({super.key, required this.count});
+
+  @override
+  Widget build(BuildContext context) {
+    if (count <= 0) return const SizedBox.shrink();
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+      constraints: const BoxConstraints(minWidth: 18, minHeight: 18),
+      decoration: BoxDecoration(
+        color: Colors.redAccent,
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Text(
+        count > 99 ? '99+' : '$count',
+        textAlign: TextAlign.center,
+        style: const TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.bold),
+      ),
+    );
+  }
+}
+
+// Иконка открытия endDrawer с бейджем суммарного количества непрочитанного
+// (уведомления + сообщения в чатах). Подписывается на UnreadCountsService.
+class MenuIconWithBadge extends StatelessWidget {
+  final Color? color;
+
+  const MenuIconWithBadge({super.key, this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Builder(
+      builder: (ctx) => IconButton(
+        icon: ValueListenableBuilder<int>(
+          valueListenable: UnreadCountsService.instance.notifications,
+          builder: (_, notifCount, __) => ValueListenableBuilder<int>(
+            valueListenable: UnreadCountsService.instance.messages,
+            builder: (_, msgCount, __) {
+              final total = notifCount + msgCount;
+              return Stack(
+                clipBehavior: Clip.none,
+                children: [
+                  Icon(Icons.menu, color: color),
+                  if (total > 0)
+                    Positioned(
+                      right: -6,
+                      top: -4,
+                      child: CountBadge(count: total),
+                    ),
+                ],
+              );
+            },
+          ),
+        ),
+        onPressed: () => Scaffold.of(ctx).openEndDrawer(),
       ),
     );
   }

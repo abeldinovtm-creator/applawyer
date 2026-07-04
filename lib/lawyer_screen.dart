@@ -8,6 +8,7 @@ import 'region_translations.dart';
 import 'chat_screen.dart';
 import 'app_drawer.dart';
 import 'widgets.dart';
+import 'services/unread_counts_service.dart';
 
 String _trServiceType(String type) {
   const map = {
@@ -1118,6 +1119,9 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
 
     return Scaffold(
       endDrawer: const AppDrawer(role: 'lawyer'),
+      onEndDrawerChanged: (isOpen) {
+        if (isOpen) UnreadCountsService.instance.refresh();
+      },
       appBar: AppBar(
         automaticallyImplyLeading: false,
         title: _isSearching
@@ -1159,12 +1163,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                 _searchCtrl.clear();
               }),
             ),
-          Builder(
-            builder: (ctx) => IconButton(
-              icon: const Icon(Icons.menu, color: Colors.white),
-              onPressed: () => Scaffold.of(ctx).openEndDrawer(),
-            ),
-          ),
+          const MenuIconWithBadge(color: Colors.white),
         ],
       ),
       body: TabBarView(

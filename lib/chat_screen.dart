@@ -3,6 +3,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'lawyer_profile_view_screen.dart';
 import 'widgets.dart';
+import 'services/unread_counts_service.dart';
 
 // Список бесед по заявке (для клиента)
 class ConversationListScreen extends StatefulWidget {
@@ -548,10 +549,28 @@ class _ChatScreenState extends State<ChatScreen> {
         .stream(primaryKey: ['id'])
         .eq('conversation_id', widget.conversationId)
         .order('created_at', ascending: true);
+    _markRead();
+  }
+
+  // Отмечаем чат прочитанным и при входе, и при выходе — если новое
+  // сообщение придёт по реалтайму, пока экран уже открыт, оно тоже
+  // не должно потом считаться непрочитанным.
+  Future<void> _markRead() async {
+    final uid = _supabase.auth.currentUser?.id;
+    if (uid == null) return;
+    try {
+      await _supabase.from('conversation_reads').upsert({
+        'conversation_id': widget.conversationId,
+        'user_id': uid,
+        'last_read_at': DateTime.now().toUtc().toIso8601String(),
+      }, onConflict: 'conversation_id,user_id');
+      UnreadCountsService.instance.refresh();
+    } catch (_) {}
   }
 
   @override
   void dispose() {
+    _markRead();
     _textCtrl.dispose();
     _scrollCtrl.dispose();
     super.dispose();

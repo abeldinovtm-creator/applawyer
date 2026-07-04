@@ -6,8 +6,11 @@ import 'client_orders_screen.dart';
 import 'chat_screen.dart';
 import 'profile_screen.dart';
 import 'statistics_screen.dart';
+import 'notifications_screen.dart';
 import 'auth_screen.dart';
 import 'main.dart';
+import 'services/unread_counts_service.dart';
+import 'widgets.dart';
 
 class AppDrawer extends StatelessWidget {
   final String role;
@@ -52,6 +55,18 @@ class AppDrawer extends StatelessWidget {
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.notifications_none_rounded, color: const Color(0xFFA6192E)),
+              title: Text('notifications.title'.tr()),
+              trailing: ValueListenableBuilder<int>(
+                valueListenable: UnreadCountsService.instance.notifications,
+                builder: (_, count, __) => CountBadge(count: count),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+              },
+            ),
             const Divider(),
             Padding(
               padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
@@ -93,6 +108,10 @@ class AppDrawer extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.assignment_turned_in_rounded, color: const Color(0xFFA6192E)),
                 title: Text('client.orders_title'.tr()),
+                trailing: ValueListenableBuilder<int>(
+                  valueListenable: UnreadCountsService.instance.messages,
+                  builder: (_, count, __) => CountBadge(count: count),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const ClientOrdersScreen()));
@@ -102,6 +121,10 @@ class AppDrawer extends StatelessWidget {
               ListTile(
                 leading: const Icon(Icons.chat_bubble_outline_rounded, color: const Color(0xFFA6192E)),
                 title: Text('lawyer.my_responses'.tr()),
+                trailing: ValueListenableBuilder<int>(
+                  valueListenable: UnreadCountsService.instance.messages,
+                  builder: (_, count, __) => CountBadge(count: count),
+                ),
                 onTap: () {
                   Navigator.pop(context);
                   Navigator.push(context, MaterialPageRoute(builder: (_) => const LawyerConversationListScreen()));
