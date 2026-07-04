@@ -22,11 +22,9 @@ class LawyerProfileViewScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final name = profile['full_name']?.toString() ?? '';
-    final city = profile['city']?.toString() ?? '';
     final expRaw = profile['experience_years'];
     final exp = expRaw != null ? (expRaw as num).toInt() : 0;
     final about = profile['about']?.toString() ?? '';
-    final phone = profile['phone']?.toString() ?? '';
     final subtype = profile['lawyer_subtype']?.toString() ?? 'lawyer';
 
     final displayName = name.isNotEmpty ? name : 'profile_view.specialist'.tr();
@@ -82,22 +80,11 @@ class LawyerProfileViewScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 28),
-            _infoRow(
-              Icons.location_on_outlined,
-              'profile_view.city'.tr(),
-              city.isNotEmpty ? city : '—',
-            ),
             if (exp > 0)
               _infoRow(
                 Icons.work_history_outlined,
                 'profile_view.experience'.tr(),
                 '$exp ${'profile_view.years'.tr()}',
-              ),
-            if (phone.isNotEmpty)
-              _infoRow(
-                Icons.phone_outlined,
-                'profile_view.phone'.tr(),
-                phone,
               ),
             if (about.isNotEmpty) ...[
               const SizedBox(height: 8),
