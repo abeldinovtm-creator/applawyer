@@ -87,6 +87,27 @@ class LanguageButton extends StatelessWidget {
   }
 }
 
+// Маленькая точка — точечный индикатор "здесь есть непрочитанное" на
+// конкретной карточке заявки/отклика (без числа, в отличие от CountBadge).
+class UnreadDot extends StatelessWidget {
+  final bool show;
+
+  const UnreadDot({super.key, required this.show});
+
+  @override
+  Widget build(BuildContext context) {
+    if (!show) return const SizedBox.shrink();
+    return Container(
+      width: 10,
+      height: 10,
+      decoration: const BoxDecoration(
+        color: Colors.redAccent,
+        shape: BoxShape.circle,
+      ),
+    );
+  }
+}
+
 // Маленький числовой бейдж — для пунктов меню и иконок.
 class CountBadge extends StatelessWidget {
   final int count;

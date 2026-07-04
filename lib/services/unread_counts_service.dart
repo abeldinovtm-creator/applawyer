@@ -16,6 +16,11 @@ class UnreadCountsService {
   final ValueNotifier<int> messagesAsClient = ValueNotifier<int>(0);
   final ValueNotifier<int> messagesAsLawyer = ValueNotifier<int>(0);
 
+  // Точечные id — какие именно беседы/заявки содержат непрочитанное,
+  // чтобы подсветить конкретную карточку, а не только показать общее число.
+  final ValueNotifier<Set<String>> unreadConversationIds = ValueNotifier<Set<String>>({});
+  final ValueNotifier<Set<String>> unreadCaseIds = ValueNotifier<Set<String>>({});
+
   Future<void> refresh() async {
     final uid = Supabase.instance.client.auth.currentUser?.id;
     if (uid == null) {
@@ -30,11 +35,19 @@ class UnreadCountsService {
       messagesAsClient.value = (row['unread_messages_client'] as num?)?.toInt() ?? 0;
       messagesAsLawyer.value = (row['unread_messages_lawyer'] as num?)?.toInt() ?? 0;
     } catch (_) {}
+
+    try {
+      final idRows = await Supabase.instance.client.rpc('get_unread_conversation_ids') as List;
+      unreadConversationIds.value = idRows.map((r) => (r as Map)['conversation_id'].toString()).toSet();
+      unreadCaseIds.value = idRows.map((r) => (r as Map)['case_id'].toString()).toSet();
+    } catch (_) {}
   }
 
   void reset() {
     notifications.value = 0;
     messagesAsClient.value = 0;
     messagesAsLawyer.value = 0;
+    unreadConversationIds.value = {};
+    unreadCaseIds.value = {};
   }
 }

@@ -195,6 +195,13 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                                           ),
                                         ),
                                       ),
+                                      ValueListenableBuilder<Set<String>>(
+                                        valueListenable: UnreadCountsService.instance.unreadConversationIds,
+                                        builder: (_, ids, __) => Padding(
+                                          padding: const EdgeInsets.only(right: 6),
+                                          child: UnreadDot(show: ids.contains(convId)),
+                                        ),
+                                      ),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                         decoration: BoxDecoration(
@@ -477,9 +484,20 @@ class _LawyerConversationListScreenState extends State<LawyerConversationListScr
                           Text(category,
                               style: TextStyle(fontSize: 12, color: const Color(0xFFA6192E), fontWeight: FontWeight.bold)),
                         const SizedBox(height: 4),
-                        Text(
-                          caseTitle.isNotEmpty ? caseTitle : '—',
-                          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        Row(
+                          children: [
+                            Flexible(
+                              child: Text(
+                                caseTitle.isNotEmpty ? caseTitle : '—',
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                              ),
+                            ),
+                            const SizedBox(width: 6),
+                            ValueListenableBuilder<Set<String>>(
+                              valueListenable: UnreadCountsService.instance.unreadConversationIds,
+                              builder: (_, ids, __) => UnreadDot(show: ids.contains(convId)),
+                            ),
+                          ],
                         ),
                         const SizedBox(height: 10),
                         Row(

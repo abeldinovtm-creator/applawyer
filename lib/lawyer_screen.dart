@@ -1003,8 +1003,19 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                         ],
                       ),
                       const SizedBox(height: 6),
-                      Text(title,
-                          style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                      Row(
+                        children: [
+                          Flexible(
+                            child: Text(title,
+                                style: const TextStyle(fontSize: 17, fontWeight: FontWeight.bold)),
+                          ),
+                          const SizedBox(width: 6),
+                          ValueListenableBuilder<Set<String>>(
+                            valueListenable: UnreadCountsService.instance.unreadConversationIds,
+                            builder: (_, ids, __) => UnreadDot(show: ids.contains(convId)),
+                          ),
+                        ],
+                      ),
                       if (region.isNotEmpty) ...[
                         const SizedBox(height: 4),
                         Row(

@@ -4,6 +4,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'chat_screen.dart';
 import 'region_translations.dart';
 import 'widgets.dart';
+import 'services/unread_counts_service.dart';
 
 String _trCat(String cat) {
   const map = {
@@ -223,6 +224,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                     final int totalBudget = ((order['budget'] ?? 0) as num).toInt();
                     final bool hasAcceptedLawyer = order['_hasAcceptedLawyer'] == true;
                     final bool clientConfirmed = order['client_confirmed_completion_at'] != null;
+                    final String caseId = order['id'].toString();
 
                     return Card(
                       margin: const EdgeInsets.only(bottom: 16),
@@ -238,12 +240,23 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
                                 Expanded(
-                                  child: Text(
-                                    title,
-                                    style: const TextStyle(
-                                        fontSize: 18, fontWeight: FontWeight.bold),
-                                    maxLines: 1,
-                                    overflow: TextOverflow.ellipsis,
+                                  child: Row(
+                                    children: [
+                                      Flexible(
+                                        child: Text(
+                                          title,
+                                          style: const TextStyle(
+                                              fontSize: 18, fontWeight: FontWeight.bold),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 6),
+                                      ValueListenableBuilder<Set<String>>(
+                                        valueListenable: UnreadCountsService.instance.unreadCaseIds,
+                                        builder: (_, ids, __) => UnreadDot(show: ids.contains(caseId)),
+                                      ),
+                                    ],
                                   ),
                                 ),
                                 _buildStatusChip(status),
