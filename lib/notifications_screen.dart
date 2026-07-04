@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'services/unread_counts_service.dart';
+import 'widgets.dart';
 
 class NotificationsScreen extends StatefulWidget {
   const NotificationsScreen({super.key});
@@ -14,6 +15,12 @@ class NotificationsScreen extends StatefulWidget {
 class _NotificationsScreenState extends State<NotificationsScreen> {
   final _supabase = Supabase.instance.client;
   late Future<List<Map<String, dynamic>>> _future;
+
+  // Какие уведомления были непрочитаны ДО открытия этого экрана — сам
+  // экран сразу помечает всё прочитанным (для бейджа в меню), но точку
+  // "новое" на конкретном пункте показываем по этому снимку состояния,
+  // иначе она пропадала бы мгновенно вместе с бейджем.
+  Set<String> _unreadIds = {};
 
   @override
   void initState() {
@@ -32,6 +39,17 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         .order('created_at', ascending: false);
 
     final items = List<Map<String, dynamic>>.from(raw as List);
+
+    try {
+      final readRows = await _supabase
+          .from('notification_reads')
+          .select('notification_id')
+          .eq('user_id', uid);
+      final alreadyRead = Set<String>.from(
+          List<Map<String, dynamic>>.from(readRows as List).map((r) => r['notification_id'].toString()));
+      _unreadIds = items.map((n) => n['id'].toString()).where((id) => !alreadyRead.contains(id)).toSet();
+    } catch (_) {}
+
     await _markAllRead(items, uid);
     return items;
   }
@@ -111,7 +129,16 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(title, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                              Row(
+                                children: [
+                                  Flexible(
+                                    child: Text(title,
+                                        style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  UnreadDot(show: _unreadIds.contains(n['id'].toString())),
+                                ],
+                              ),
                               if (body.isNotEmpty) ...[
                                 const SizedBox(height: 4),
                                 Text(body, style: TextStyle(fontSize: 13, color: Colors.grey[700])),
