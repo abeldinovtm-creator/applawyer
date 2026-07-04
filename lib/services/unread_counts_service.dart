@@ -9,13 +9,17 @@ class UnreadCountsService {
   static final instance = UnreadCountsService._();
 
   final ValueNotifier<int> notifications = ValueNotifier<int>(0);
-  final ValueNotifier<int> messages = ValueNotifier<int>(0);
+  // Раздельно: одному аккаунту может быть видно и как клиенту, и как
+  // юристу (переключение active_role) — единый счётчик "сообщений"
+  // вешал непрочитанное юриста на пункт "Мои заявки", откуда его не
+  // открыть, и бейдж никогда не гас.
+  final ValueNotifier<int> messagesAsClient = ValueNotifier<int>(0);
+  final ValueNotifier<int> messagesAsLawyer = ValueNotifier<int>(0);
 
   Future<void> refresh() async {
     final uid = Supabase.instance.client.auth.currentUser?.id;
     if (uid == null) {
-      notifications.value = 0;
-      messages.value = 0;
+      reset();
       return;
     }
     try {
@@ -23,12 +27,14 @@ class UnreadCountsService {
       final rows = result as List;
       final row = rows.isNotEmpty ? rows.first as Map : <String, dynamic>{};
       notifications.value = (row['unread_notifications'] as num?)?.toInt() ?? 0;
-      messages.value = (row['unread_messages'] as num?)?.toInt() ?? 0;
+      messagesAsClient.value = (row['unread_messages_client'] as num?)?.toInt() ?? 0;
+      messagesAsLawyer.value = (row['unread_messages_lawyer'] as num?)?.toInt() ?? 0;
     } catch (_) {}
   }
 
   void reset() {
     notifications.value = 0;
-    messages.value = 0;
+    messagesAsClient.value = 0;
+    messagesAsLawyer.value = 0;
   }
 }

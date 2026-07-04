@@ -101,9 +101,18 @@ $$ LANGUAGE plpgsql SECURITY DEFINER;
 -- 5. get_unread_counts() — RPC для бейджей в меню. SECURITY DEFINER,
 --    чтобы не упереться в RLS-рекурсию между cases/conversations
 --    (см. feedback-bugs-fixed про 42P17) — фильтруем сами по auth.uid().
+--
+--    Сообщения считаются раздельно как "как клиент" и "как юрист" —
+--    один и тот же пользователь может одновременно иметь свои заявки
+--    (client_id) и отклики на чужие (conversations.lawyer_id) при
+--    переключении active_role, единая сумма вешала непрочитанные
+--    сообщения из чатов-юриста на пункт меню "Мои заявки", которые
+--    оттуда физически не открыть — бейдж никогда не гас (найдено
+--    04.07.2026 на тестовом аккаунте role=lawyer/active_role=client).
 -- =====================================================================
+DROP FUNCTION IF EXISTS get_unread_counts();
 CREATE OR REPLACE FUNCTION get_unread_counts()
-RETURNS TABLE(unread_notifications BIGINT, unread_messages BIGINT)
+RETURNS TABLE(unread_notifications BIGINT, unread_messages_client BIGINT, unread_messages_lawyer BIGINT)
 LANGUAGE plpgsql
 SECURITY DEFINER
 STABLE
@@ -113,7 +122,7 @@ DECLARE
   v_uid UUID := auth.uid();
 BEGIN
   IF v_uid IS NULL THEN
-    RETURN QUERY SELECT 0::BIGINT, 0::BIGINT;
+    RETURN QUERY SELECT 0::BIGINT, 0::BIGINT, 0::BIGINT;
     RETURN;
   END IF;
 
@@ -130,10 +139,18 @@ BEGIN
     (
       SELECT count(*) FROM messages m
       JOIN conversations c ON c.id = m.conversation_id
-      LEFT JOIN cases cs ON cs.id = c.case_id
+      JOIN cases cs ON cs.id = c.case_id
       LEFT JOIN conversation_reads cr ON cr.conversation_id = c.id AND cr.user_id = v_uid
       WHERE m.sender_id != v_uid
-        AND (c.lawyer_id = v_uid OR cs.client_id = v_uid)
+        AND cs.client_id = v_uid
+        AND m.created_at > COALESCE(cr.last_read_at, '-infinity'::timestamptz)
+    ),
+    (
+      SELECT count(*) FROM messages m
+      JOIN conversations c ON c.id = m.conversation_id
+      LEFT JOIN conversation_reads cr ON cr.conversation_id = c.id AND cr.user_id = v_uid
+      WHERE m.sender_id != v_uid
+        AND c.lawyer_id = v_uid
         AND m.created_at > COALESCE(cr.last_read_at, '-infinity'::timestamptz)
     );
 END;

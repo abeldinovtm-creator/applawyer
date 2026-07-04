@@ -126,22 +126,25 @@ class MenuIconWithBadge extends StatelessWidget {
         icon: ValueListenableBuilder<int>(
           valueListenable: UnreadCountsService.instance.notifications,
           builder: (_, notifCount, __) => ValueListenableBuilder<int>(
-            valueListenable: UnreadCountsService.instance.messages,
-            builder: (_, msgCount, __) {
-              final total = notifCount + msgCount;
-              return Stack(
-                clipBehavior: Clip.none,
-                children: [
-                  Icon(Icons.menu, color: color),
-                  if (total > 0)
-                    Positioned(
-                      right: -6,
-                      top: -4,
-                      child: CountBadge(count: total),
-                    ),
-                ],
-              );
-            },
+            valueListenable: UnreadCountsService.instance.messagesAsClient,
+            builder: (_, clientMsgCount, __) => ValueListenableBuilder<int>(
+              valueListenable: UnreadCountsService.instance.messagesAsLawyer,
+              builder: (_, lawyerMsgCount, __) {
+                final total = notifCount + clientMsgCount + lawyerMsgCount;
+                return Stack(
+                  clipBehavior: Clip.none,
+                  children: [
+                    Icon(Icons.menu, color: color),
+                    if (total > 0)
+                      Positioned(
+                        right: -6,
+                        top: -4,
+                        child: CountBadge(count: total),
+                      ),
+                  ],
+                );
+              },
+            ),
           ),
         ),
         onPressed: () => Scaffold.of(ctx).openEndDrawer(),

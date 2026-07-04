@@ -109,7 +109,7 @@ class AppDrawer extends StatelessWidget {
                 leading: const Icon(Icons.assignment_turned_in_rounded, color: const Color(0xFFA6192E)),
                 title: Text('client.orders_title'.tr()),
                 trailing: ValueListenableBuilder<int>(
-                  valueListenable: UnreadCountsService.instance.messages,
+                  valueListenable: UnreadCountsService.instance.messagesAsClient,
                   builder: (_, count, __) => CountBadge(count: count),
                 ),
                 onTap: () {
@@ -122,7 +122,7 @@ class AppDrawer extends StatelessWidget {
                 leading: const Icon(Icons.chat_bubble_outline_rounded, color: const Color(0xFFA6192E)),
                 title: Text('lawyer.my_responses'.tr()),
                 trailing: ValueListenableBuilder<int>(
-                  valueListenable: UnreadCountsService.instance.messages,
+                  valueListenable: UnreadCountsService.instance.messagesAsLawyer,
                   builder: (_, count, __) => CountBadge(count: count),
                 ),
                 onTap: () {
