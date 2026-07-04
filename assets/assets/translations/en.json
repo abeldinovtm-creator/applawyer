@@ -8,15 +8,8 @@
     "logout": "Log out"
   },
   "payment": {
-    "terms": "Payment terms",
-    "prepayment": "Prepayment",
-    "after_service": "After service",
-    "on_result": "On result",
-    "prepay_short": "Prepay",
-    "after_short": "After",
-    "result_short": "Result",
-    "fill_hint": "Fill in the applicable fields",
-    "fill_error": "Fill in at least one field"
+    "amount": "Amount",
+    "amount_hint": "Enter the amount in tenge"
   },
   "auth": {
     "sign_in": "Sign In",
@@ -157,7 +150,7 @@
     "city_label": "City / Region",
     "send_btn": "Send to lawyers",
     "success": "Successfully submitted!",
-    "payment_section": "Payment terms (fill at least one)",
+    "payment_section": "Service cost",
     "legal_help": "Legal help"
   },
   "chat": {
