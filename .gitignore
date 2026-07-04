@@ -6,6 +6,7 @@
 dart-defines.json
 .vscode/launch.json
 .mcp.json
+supabase/.temp/
 
 # Miscellaneous
 *.class

@@ -5,12 +5,12 @@ importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js
 importScripts('https://www.gstatic.com/firebasejs/10.12.0/firebase-messaging-compat.js');
 
 firebase.initializeApp({
-  apiKey: 'TODO_API_KEY',
-  authDomain: 'TODO_PROJECT_ID.firebaseapp.com',
-  projectId: 'TODO_PROJECT_ID',
-  storageBucket: 'TODO_PROJECT_ID.appspot.com',
-  messagingSenderId: 'TODO_SENDER_ID',
-  appId: 'TODO_APP_ID',
+  apiKey: 'AIzaSyBm5LDp7Coxca6-5f_zBIaAKtk6EwichLg',
+  authDomain: 'applawyer-1d3ef.firebaseapp.com',
+  projectId: 'applawyer-1d3ef',
+  storageBucket: 'applawyer-1d3ef.firebasestorage.app',
+  messagingSenderId: '765945070709',
+  appId: '1:765945070709:web:31d7a663cddd38e7b4e43c',
 });
 
 const messaging = firebase.messaging();
