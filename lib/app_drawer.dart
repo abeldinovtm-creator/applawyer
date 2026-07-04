@@ -87,22 +87,47 @@ class AppDrawer extends StatelessWidget {
                 ],
               ),
             ),
-            const Divider(),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
-              child: OutlinedButton.icon(
-                onPressed: () => _switchRole(context, role),
-                style: OutlinedButton.styleFrom(
-                  foregroundColor: const Color(0xFFA6192E),
-                  side: const BorderSide(color: Color(0xFFA6192E)),
-                  padding: const EdgeInsets.symmetric(vertical: 12),
+            // Переключение в режим юриста доступно только зарегистрированным
+            // юристам (profiles.role == 'lawyer') — активная роль (active_role)
+            // сама по себе не даёт прав отвечать на заявки (RLS-политика
+            // "Юрист создаёт беседу" проверяет базовую role, а не active_role),
+            // поэтому клиенту показывать эту кнопку нельзя — иначе он попадает
+            // в лже-режим юриста, где страница выглядит рабочей, но любой
+            // отклик падает с ошибкой RLS 42501.
+            if (role == 'lawyer')
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                child: OutlinedButton.icon(
+                  onPressed: () => _switchRole(context, role),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: const Color(0xFFA6192E),
+                    side: const BorderSide(color: Color(0xFFA6192E)),
+                    padding: const EdgeInsets.symmetric(vertical: 12),
+                  ),
+                  icon: const Icon(Icons.person_outline_rounded),
+                  label: Text('role_switch.to_client'.tr()),
                 ),
-                icon: Icon(role == 'lawyer' ? Icons.person_outline_rounded : Icons.gavel_rounded),
-                label: Text(
-                  role == 'lawyer' ? 'role_switch.to_client'.tr() : 'role_switch.to_lawyer'.tr(),
-                ),
+              )
+            else
+              FutureBuilder<bool>(
+                future: _isRealLawyer(),
+                builder: (context, snap) {
+                  if (snap.data != true) return const SizedBox.shrink();
+                  return Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 4, 16, 8),
+                    child: OutlinedButton.icon(
+                      onPressed: () => _switchRole(context, role),
+                      style: OutlinedButton.styleFrom(
+                        foregroundColor: const Color(0xFFA6192E),
+                        side: const BorderSide(color: Color(0xFFA6192E)),
+                        padding: const EdgeInsets.symmetric(vertical: 12),
+                      ),
+                      icon: const Icon(Icons.gavel_rounded),
+                      label: Text('role_switch.to_lawyer'.tr()),
+                    ),
+                  );
+                },
               ),
-            ),
             const Divider(),
             if (role == 'client')
               ListTile(
@@ -164,6 +189,21 @@ class AppDrawer extends StatelessWidget {
     );
   }
 
+  Future<bool> _isRealLawyer() async {
+    final user = Supabase.instance.client.auth.currentUser;
+    if (user == null) return false;
+    try {
+      final data = await Supabase.instance.client
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .maybeSingle();
+      return data?['role'] == 'lawyer';
+    } catch (_) {
+      return false;
+    }
+  }
+
   // Переключает active_role в profiles и перезапускает AuthRouter,
   // чтобы он заново прочитал роль из БД и показал нужный экран.
   // Основная role в БД не меняется — только active_role.
@@ -172,6 +212,11 @@ class AppDrawer extends StatelessWidget {
     if (user == null) return;
 
     final newRole = currentRole == 'lawyer' ? 'client' : 'lawyer';
+
+    // Повторная проверка на случай гонки/устаревшего UI — переключиться в
+    // режим юриста может только реально зарегистрированный юрист.
+    if (newRole == 'lawyer' && !await _isRealLawyer()) return;
+
     final navigator = Navigator.of(context, rootNavigator: true);
     Navigator.pop(context);
 
