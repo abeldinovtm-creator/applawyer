@@ -35,6 +35,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _saving = false;
   bool _uploadingAvatar = false;
   bool _changingEmail = false;
+  bool _editing = false;
   int _completedCases = 0;
   int _activeCases = 0;
 
@@ -195,6 +196,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
 
       if (mounted) {
+        setState(() => _editing = false);
         _showSnack('profile.saved'.tr(), Colors.green);
       }
     } catch (e) {
@@ -207,6 +209,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } finally {
       if (mounted) setState(() => _saving = false);
     }
+  }
+
+  // Отмена редактирования — перечитываем профиль из БД, чтобы отбросить
+  // непосохранённые изменения в полях, и возвращаемся в режим просмотра.
+  Future<void> _cancelEditing() async {
+    setState(() => _loading = true);
+    await _loadProfile();
+    if (mounted) setState(() => _editing = false);
   }
 
   // Смена основного email через Supabase Auth — не мгновенная: письмо со
@@ -261,6 +271,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     return Scaffold(
       appBar: AppBar(
         title: Text('profile.title'.tr()),
+        actions: [
+          if (!_loading)
+            IconButton(
+              icon: Icon(_editing ? Icons.close : Icons.edit_outlined),
+              tooltip: _editing ? 'common.cancel'.tr() : 'profile.edit'.tr(),
+              onPressed: _editing ? _cancelEditing : () => setState(() => _editing = true),
+            ),
+        ],
       ),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
@@ -296,28 +314,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       )
                                     : null,
                               ),
-                              Positioned(
-                                right: 0,
-                                bottom: 0,
-                                child: GestureDetector(
-                                  onTap: _uploadingAvatar ? null : _pickAndUploadAvatar,
-                                  child: Container(
-                                    padding: const EdgeInsets.all(6),
-                                    decoration: BoxDecoration(
-                                      color: const Color(0xFFA6192E),
-                                      shape: BoxShape.circle,
-                                      border: Border.all(color: Colors.white, width: 2),
+                              if (_editing)
+                                Positioned(
+                                  right: 0,
+                                  bottom: 0,
+                                  child: GestureDetector(
+                                    onTap: _uploadingAvatar ? null : _pickAndUploadAvatar,
+                                    child: Container(
+                                      padding: const EdgeInsets.all(6),
+                                      decoration: BoxDecoration(
+                                        color: const Color(0xFFA6192E),
+                                        shape: BoxShape.circle,
+                                        border: Border.all(color: Colors.white, width: 2),
+                                      ),
+                                      child: _uploadingAvatar
+                                          ? const SizedBox(
+                                              width: 14,
+                                              height: 14,
+                                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                                            )
+                                          : const Icon(Icons.camera_alt_rounded, size: 14, color: Colors.white),
                                     ),
-                                    child: _uploadingAvatar
-                                        ? const SizedBox(
-                                            width: 14,
-                                            height: 14,
-                                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                                          )
-                                        : const Icon(Icons.camera_alt_rounded, size: 14, color: Colors.white),
                                   ),
                                 ),
-                              ),
                             ],
                           ),
                           if (_isLawyer) ...[
@@ -358,182 +377,196 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     _sectionHeader('profile.personal_data'.tr()),
                     const SizedBox(height: 12),
 
-                    TextFormField(
-                      controller: _nameCtrl,
-                      textCapitalization: TextCapitalization.words,
-                      decoration: InputDecoration(
-                        labelText: 'profile.full_name'.tr(),
-                        prefixIcon: const Icon(Icons.person_outline),
-                        border: const OutlineInputBorder(),
-                      ),
-                      validator: (v) => v!.trim().isEmpty ? 'profile.required'.tr() : null,
-                    ),
-                    const SizedBox(height: 12),
-
-                    TextFormField(
-                      controller: _phoneCtrl,
-                      keyboardType: TextInputType.phone,
-                      inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-\s()]'))],
-                      decoration: InputDecoration(
-                        labelText: 'profile.phone'.tr(),
-                        hintText: '+7 777 000 00 00',
-                        prefixIcon: const Icon(Icons.phone_outlined),
-                        border: const OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    TextFormField(
-                      controller: _emailCtrl,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: 'profile.email'.tr(),
-                        prefixIcon: const Icon(Icons.email_outlined),
-                        border: const OutlineInputBorder(),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Align(
-                      alignment: Alignment.centerRight,
-                      child: TextButton(
-                        onPressed: _changingEmail ? null : _changeEmail,
-                        child: _changingEmail
-                            ? const SizedBox(
-                                height: 16,
-                                width: 16,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : Text('profile.change_email_btn'.tr(),
-                                style: const TextStyle(color: Color(0xFFA6192E), fontWeight: FontWeight.bold)),
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-
-                    TextFormField(
-                      controller: _backupEmailCtrl,
-                      keyboardType: TextInputType.emailAddress,
-                      decoration: InputDecoration(
-                        labelText: 'profile.backup_email'.tr(),
-                        hintText: 'profile.backup_email_hint'.tr(),
-                        prefixIcon: const Icon(Icons.alternate_email_rounded),
-                        border: const OutlineInputBorder(),
-                      ),
-                    ),
-
-                    const SizedBox(height: 8),
-
-                    // Поля только для юристов/адвокатов/ЧСИ/нотариусов
-                    if (_isLawyer) ...[
-                      const SizedBox(height: 12),
-
-                      // Специализация — можно сменить после регистрации
-                      DropdownButtonFormField<String>(
-                        initialValue: _lawyerSubtype,
-                        decoration: InputDecoration(
-                          labelText: 'auth.specialization'.tr(),
-                          prefixIcon: const Icon(Icons.gavel_outlined),
-                          border: const OutlineInputBorder(),
-                        ),
-                        items: [
-                          DropdownMenuItem(value: 'lawyer', child: Text('specialist.lawyer'.tr())),
-                          DropdownMenuItem(value: 'advocate', child: Text('specialist.advocate'.tr())),
-                          DropdownMenuItem(value: 'private_court_executor', child: Text('specialist.pce_full'.tr())),
-                          DropdownMenuItem(value: 'notary', child: Text('specialist.notary'.tr())),
-                        ],
-                        onChanged: (v) => setState(() => _lawyerSubtype = v!),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // ИИН
+                    if (!_editing) ...[
+                      _infoRow(Icons.person_outline, 'profile.full_name'.tr(), _nameCtrl.text),
+                      _infoRow(Icons.phone_outlined, 'profile.phone'.tr(), _phoneCtrl.text),
+                      _infoRow(Icons.email_outlined, 'profile.email'.tr(), _emailCtrl.text),
+                      _infoRow(Icons.alternate_email_rounded, 'profile.backup_email'.tr(), _backupEmailCtrl.text),
+                      if (_isLawyer) ...[
+                        _infoRow(Icons.gavel_outlined, 'auth.specialization'.tr(), _subtypeName()),
+                        _infoRow(Icons.badge_outlined, 'profile.iin'.tr(), _iinCtrl.text),
+                        _infoRow(Icons.location_on_outlined, 'profile.city'.tr(), _selectedRegion),
+                        _infoRow(Icons.work_history_outlined, 'profile.experience'.tr(), _expCtrl.text),
+                        _infoRow(Icons.description_outlined, 'profile.about'.tr(), _aboutCtrl.text),
+                      ],
+                    ] else ...[
                       TextFormField(
-                        controller: _iinCtrl,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [
-                          FilteringTextInputFormatter.digitsOnly,
-                          LengthLimitingTextInputFormatter(12),
-                        ],
+                        controller: _nameCtrl,
+                        textCapitalization: TextCapitalization.words,
                         decoration: InputDecoration(
-                          labelText: 'profile.iin'.tr(),
-                          hintText: '000000000000',
-                          prefixIcon: const Icon(Icons.badge_outlined),
+                          labelText: 'profile.full_name'.tr(),
+                          prefixIcon: const Icon(Icons.person_outline),
                           border: const OutlineInputBorder(),
                         ),
-                        validator: (v) {
-                          if (v == null || v.trim().isEmpty) return 'profile.iin_required'.tr();
-                          if (v.trim().length != 12) return 'profile.iin_length'.tr();
-                          return null;
-                        },
+                        validator: (v) => v!.trim().isEmpty ? 'profile.required'.tr() : null,
                       ),
                       const SizedBox(height: 12),
 
-                      // Регион — пикер
-                      InkWell(
-                        onTap: _pickRegion,
-                        borderRadius: BorderRadius.circular(4),
-                        child: InputDecorator(
+                      TextFormField(
+                        controller: _phoneCtrl,
+                        keyboardType: TextInputType.phone,
+                        inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'[0-9+\-\s()]'))],
+                        decoration: InputDecoration(
+                          labelText: 'profile.phone'.tr(),
+                          hintText: '+7 777 000 00 00',
+                          prefixIcon: const Icon(Icons.phone_outlined),
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+
+                      TextFormField(
+                        controller: _emailCtrl,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          labelText: 'profile.email'.tr(),
+                          prefixIcon: const Icon(Icons.email_outlined),
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      Align(
+                        alignment: Alignment.centerRight,
+                        child: TextButton(
+                          onPressed: _changingEmail ? null : _changeEmail,
+                          child: _changingEmail
+                              ? const SizedBox(
+                                  height: 16,
+                                  width: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : Text('profile.change_email_btn'.tr(),
+                                  style: const TextStyle(color: Color(0xFFA6192E), fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+
+                      TextFormField(
+                        controller: _backupEmailCtrl,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          labelText: 'profile.backup_email'.tr(),
+                          hintText: 'profile.backup_email_hint'.tr(),
+                          prefixIcon: const Icon(Icons.alternate_email_rounded),
+                          border: const OutlineInputBorder(),
+                        ),
+                      ),
+
+                      const SizedBox(height: 8),
+
+                      // Поля только для юристов/адвокатов/ЧСИ/нотариусов
+                      if (_isLawyer) ...[
+                        const SizedBox(height: 12),
+
+                        // Специализация — можно сменить после регистрации
+                        DropdownButtonFormField<String>(
+                          initialValue: _lawyerSubtype,
                           decoration: InputDecoration(
-                            labelText: 'profile.city'.tr(),
-                            prefixIcon: const Icon(Icons.location_on_outlined),
-                            suffixIcon: const Icon(Icons.arrow_drop_down),
+                            labelText: 'auth.specialization'.tr(),
+                            prefixIcon: const Icon(Icons.gavel_outlined),
                             border: const OutlineInputBorder(),
                           ),
-                          child: Text(
-                            _selectedRegion.isNotEmpty
-                                ? _selectedRegion
-                                : 'profile.city_select'.tr(),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: _selectedRegion.isNotEmpty ? Colors.black87 : Colors.grey,
+                          items: [
+                            DropdownMenuItem(value: 'lawyer', child: Text('specialist.lawyer'.tr())),
+                            DropdownMenuItem(value: 'advocate', child: Text('specialist.advocate'.tr())),
+                            DropdownMenuItem(value: 'private_court_executor', child: Text('specialist.pce_full'.tr())),
+                            DropdownMenuItem(value: 'notary', child: Text('specialist.notary'.tr())),
+                          ],
+                          onChanged: (v) => setState(() => _lawyerSubtype = v!),
+                        ),
+                        const SizedBox(height: 12),
+
+                        // ИИН
+                        TextFormField(
+                          controller: _iinCtrl,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [
+                            FilteringTextInputFormatter.digitsOnly,
+                            LengthLimitingTextInputFormatter(12),
+                          ],
+                          decoration: InputDecoration(
+                            labelText: 'profile.iin'.tr(),
+                            hintText: '000000000000',
+                            prefixIcon: const Icon(Icons.badge_outlined),
+                            border: const OutlineInputBorder(),
+                          ),
+                          validator: (v) {
+                            if (v == null || v.trim().isEmpty) return 'profile.iin_required'.tr();
+                            if (v.trim().length != 12) return 'profile.iin_length'.tr();
+                            return null;
+                          },
+                        ),
+                        const SizedBox(height: 12),
+
+                        // Регион — пикер
+                        InkWell(
+                          onTap: _pickRegion,
+                          borderRadius: BorderRadius.circular(4),
+                          child: InputDecorator(
+                            decoration: InputDecoration(
+                              labelText: 'profile.city'.tr(),
+                              prefixIcon: const Icon(Icons.location_on_outlined),
+                              suffixIcon: const Icon(Icons.arrow_drop_down),
+                              border: const OutlineInputBorder(),
+                            ),
+                            child: Text(
+                              _selectedRegion.isNotEmpty
+                                  ? _selectedRegion
+                                  : 'profile.city_select'.tr(),
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: _selectedRegion.isNotEmpty ? Colors.black87 : Colors.grey,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 12),
 
-                      TextFormField(
-                        controller: _expCtrl,
-                        keyboardType: TextInputType.number,
-                        inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                        decoration: InputDecoration(
-                          labelText: 'profile.experience'.tr(),
-                          prefixIcon: const Icon(Icons.work_history_outlined),
-                          border: const OutlineInputBorder(),
+                        TextFormField(
+                          controller: _expCtrl,
+                          keyboardType: TextInputType.number,
+                          inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                          decoration: InputDecoration(
+                            labelText: 'profile.experience'.tr(),
+                            prefixIcon: const Icon(Icons.work_history_outlined),
+                            border: const OutlineInputBorder(),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 12),
+                        const SizedBox(height: 12),
 
-                      TextFormField(
-                        controller: _aboutCtrl,
-                        maxLines: 5,
-                        maxLength: 600,
-                        decoration: InputDecoration(
-                          labelText: 'profile.about'.tr(),
-                          hintText: 'profile.about_hint'.tr(),
-                          prefixIcon: const Icon(Icons.description_outlined),
-                          border: const OutlineInputBorder(),
-                          alignLabelWithHint: true,
+                        TextFormField(
+                          controller: _aboutCtrl,
+                          maxLines: 5,
+                          maxLength: 600,
+                          decoration: InputDecoration(
+                            labelText: 'profile.about'.tr(),
+                            hintText: 'profile.about_hint'.tr(),
+                            prefixIcon: const Icon(Icons.description_outlined),
+                            border: const OutlineInputBorder(),
+                            alignLabelWithHint: true,
+                          ),
                         ),
+                      ],
+
+                      const SizedBox(height: 8),
+                      ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFA6192E),
+                          foregroundColor: Colors.white,
+                          minimumSize: const Size(double.infinity, 50),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        ),
+                        onPressed: _saving ? null : _saveProfile,
+                        child: _saving
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+                              )
+                            : Text('profile.save'.tr(),
+                                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                       ),
                     ],
-
-                    const SizedBox(height: 8),
-                    ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: const Color(0xFFA6192E),
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 50),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                      ),
-                      onPressed: _saving ? null : _saveProfile,
-                      child: _saving
-                          ? const SizedBox(
-                              height: 20,
-                              width: 20,
-                              child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                            )
-                          : Text('profile.save'.tr(),
-                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    ),
                     const SizedBox(height: 40),
                   ],
                 ),
@@ -569,6 +602,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 fontSize: 16, fontWeight: FontWeight.bold, color: Colors.black87)),
         const Divider(height: 16),
       ],
+    );
+  }
+
+  Widget _infoRow(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(icon, size: 20, color: const Color(0xFFA6192E)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: TextStyle(fontSize: 11, color: Colors.grey[500])),
+                const SizedBox(height: 2),
+                Text(
+                  value.isNotEmpty ? value : '—',
+                  style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

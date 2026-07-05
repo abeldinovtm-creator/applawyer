@@ -49,6 +49,7 @@
   },
   "profile": {
     "title": "Profile",
+    "edit": "Edit",
     "personal_data": "Personal data",
     "full_name": "Full name",
     "phone": "Phone",
