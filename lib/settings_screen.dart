@@ -3,6 +3,9 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'services/push_service.dart';
+import 'auth_screen.dart';
+import 'privacy_policy_screen.dart';
+import 'widgets.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -20,10 +23,24 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _notifyStatusChange = true;
   bool _notifyNewMessage = true;
 
+  final _newPassCtrl = TextEditingController();
+  final _confirmPassCtrl = TextEditingController();
+  bool _obscureNew = true;
+  bool _obscureConfirm = true;
+  bool _changingPass = false;
+  bool _deletingAccount = false;
+
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  @override
+  void dispose() {
+    _newPassCtrl.dispose();
+    _confirmPassCtrl.dispose();
+    super.dispose();
   }
 
   Future<void> _load() async {
@@ -88,6 +105,82 @@ class _SettingsScreenState extends State<SettingsScreen> {
     } catch (_) {}
   }
 
+  void _showSnack(String msg, Color color) {
+    final kind = color == Colors.green
+        ? SnackKind.success
+        : color == Colors.orange
+            ? SnackKind.warning
+            : SnackKind.error;
+    showAppSnackBar(context, msg, kind: kind);
+  }
+
+  Future<void> _changePassword() async {
+    final newPass = _newPassCtrl.text.trim();
+    final confirmPass = _confirmPassCtrl.text.trim();
+
+    if (newPass.length < 6) {
+      _showSnack('profile.password_min'.tr(), Colors.orange);
+      return;
+    }
+    if (newPass != confirmPass) {
+      _showSnack('profile.password_mismatch'.tr(), Colors.orange);
+      return;
+    }
+
+    setState(() => _changingPass = true);
+    try {
+      await _supabase.auth.updateUser(UserAttributes(password: newPass));
+      _newPassCtrl.clear();
+      _confirmPassCtrl.clear();
+      if (mounted) {
+        _showSnack('profile.password_changed'.tr(), Colors.green);
+      }
+    } catch (e) {
+      if (mounted) _showSnack('Ошибка: $e', const Color(0xFFA6192E));
+    } finally {
+      if (mounted) setState(() => _changingPass = false);
+    }
+  }
+
+  Future<void> _deleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('profile.delete_confirm_title'.tr()),
+        content: Text('profile.delete_confirm_body'.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: Text('common.cancel'.tr()),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: Text('common.yes_delete'.tr(), style: const TextStyle(color: const Color(0xFFA6192E))),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true || !mounted) return;
+
+    setState(() => _deletingAccount = true);
+    try {
+      await _supabase.rpc('delete_user');
+      await _supabase.auth.signOut();
+      if (!mounted) return;
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (_) => const AuthScreen()),
+        (_) => false,
+      );
+    } catch (e) {
+      if (mounted) {
+        _showSnack('Ошибка: $e', const Color(0xFFA6192E));
+        setState(() => _deletingAccount = false);
+      }
+    }
+  }
+
   Widget _sectionHeader(String text) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -148,6 +241,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                         ),
                     ],
                   ),
+
                   const SizedBox(height: 32),
                   _sectionHeader('profile.notifications'.tr()),
                   const SizedBox(height: 4),
@@ -191,6 +285,102 @@ class _SettingsScreenState extends State<SettingsScreen> {
                       _saveNotifyPref('notify_new_message', v);
                     },
                   ),
+
+                  const SizedBox(height: 32),
+                  _sectionHeader('profile.change_password'.tr()),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _newPassCtrl,
+                    obscureText: _obscureNew,
+                    decoration: InputDecoration(
+                      labelText: 'profile.new_password'.tr(),
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      border: const OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscureNew ? Icons.visibility_off : Icons.visibility),
+                        onPressed: () => setState(() => _obscureNew = !_obscureNew),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  TextFormField(
+                    controller: _confirmPassCtrl,
+                    obscureText: _obscureConfirm,
+                    decoration: InputDecoration(
+                      labelText: 'profile.confirm_password'.tr(),
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      border: const OutlineInputBorder(),
+                      suffixIcon: IconButton(
+                        icon: Icon(_obscureConfirm ? Icons.visibility_off : Icons.visibility),
+                        onPressed: () => setState(() => _obscureConfirm = !_obscureConfirm),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  OutlinedButton(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                      side: const BorderSide(color: const Color(0xFFA6192E)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: _changingPass ? null : _changePassword,
+                    child: _changingPass
+                        ? const SizedBox(
+                            height: 20,
+                            width: 20,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: const Color(0xFFA6192E)),
+                          )
+                        : Text('profile.change_password_btn'.tr(),
+                            style: const TextStyle(
+                              color: const Color(0xFFA6192E),
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                  ),
+
+                  const SizedBox(height: 32),
+                  _sectionHeader('profile.documents'.tr()),
+                  const SizedBox(height: 8),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.shield_outlined, color: const Color(0xFFA6192E)),
+                    title: Text('profile.privacy_policy'.tr()),
+                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PrivacyPolicyScreen())),
+                  ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.description_outlined, color: const Color(0xFFA6192E)),
+                    title: Text('profile.terms_of_service'.tr()),
+                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsOfServiceScreen())),
+                  ),
+
+                  const SizedBox(height: 24),
+                  _sectionHeader('profile.danger_zone'.tr()),
+                  const SizedBox(height: 12),
+                  OutlinedButton.icon(
+                    style: OutlinedButton.styleFrom(
+                      minimumSize: const Size(double.infinity, 50),
+                      side: const BorderSide(color: Colors.grey),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      foregroundColor: Colors.grey[700],
+                    ),
+                    onPressed: _deletingAccount ? null : _deleteAccount,
+                    icon: _deletingAccount
+                        ? const SizedBox(
+                            height: 16,
+                            width: 16,
+                            child: CircularProgressIndicator(strokeWidth: 2),
+                          )
+                        : const Icon(Icons.delete_forever_outlined),
+                    label: Text(
+                      'profile.delete_account'.tr(),
+                      style: const TextStyle(fontSize: 15),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
