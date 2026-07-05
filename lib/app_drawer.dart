@@ -21,7 +21,7 @@ class AppDrawer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     // Читаем context.locale, чтобы виджет подписался на смену языка —
-    // иначе .tr() ниже не обновится при context.setLocale() из _LangChip.
+    // иначе .tr() ниже не обновится сразу при смене языка в "Настройках".
     context.locale;
 
     return Drawer(
@@ -77,25 +77,6 @@ class AppDrawer extends StatelessWidget {
               },
             ),
             const Divider(),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 4, 16, 4),
-              child: Text(
-                'profile.preferred_language'.tr(),
-                style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w500),
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 6, 16, 8),
-              child: Row(
-                children: [
-                  _LangChip(code: 'kk', label: 'Қазақша'),
-                  const SizedBox(width: 8),
-                  _LangChip(code: 'ru', label: 'Русский'),
-                  const SizedBox(width: 8),
-                  _LangChip(code: 'en', label: 'English'),
-                ],
-              ),
-            ),
             // Переключение в режим юриста доступно только зарегистрированным
             // юристам (profiles.role == 'lawyer') — активная роль (active_role)
             // сама по себе не даёт прав отвечать на заявки (RLS-политика
@@ -236,43 +217,6 @@ class AppDrawer extends StatelessWidget {
     navigator.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const AuthRouter()),
       (_) => false,
-    );
-  }
-}
-
-class _LangChip extends StatelessWidget {
-  final String code;
-  final String label;
-
-  const _LangChip({required this.code, required this.label});
-
-  @override
-  Widget build(BuildContext context) {
-    final isSelected = context.locale.languageCode == code;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => context.setLocale(Locale(code)),
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 150),
-          padding: const EdgeInsets.symmetric(vertical: 9),
-          decoration: BoxDecoration(
-            color: isSelected ? const Color(0xFFA6192E) : Colors.grey[100],
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isSelected ? const Color(0xFFA6192E) : Colors.grey.shade300,
-            ),
-          ),
-          child: Text(
-            label,
-            textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.bold,
-              color: isSelected ? Colors.white : Colors.black87,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }
