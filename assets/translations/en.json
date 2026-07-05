@@ -215,7 +215,8 @@
     "land": "Land issues",
     "debts": "Debts & collectors",
     "criminal": "Criminal cases",
-    "enforcement": "Court enforcement / Bailiff",
+    "enforcement": "Court enforcement",
+    "pce": "Bailiff",
     "notary": "Notary services",
     "other": "Other issue",
     "unavailable": "No specialists available yet"

@@ -17,7 +17,8 @@ String _trCat(String cat) {
     'Земельные вопросы': 'category.land',
     'Долги и коллекторы': 'category.debts',
     'Уголовные дела': 'category.criminal',
-    'Исполнение решения суда / ЧСИ': 'category.enforcement',
+    'Исполнение решения суда': 'category.enforcement',
+    'ЧСИ': 'category.pce',
     'Нотариальные услуги': 'category.notary',
     'Другой вопрос': 'category.other',
   };

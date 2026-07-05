@@ -32,7 +32,8 @@ String _trCategory(String cat) {
     'Земельные вопросы': 'category.land',
     'Долги и коллекторы': 'category.debts',
     'Уголовные дела': 'category.criminal',
-    'Исполнение решения суда / ЧСИ': 'category.enforcement',
+    'Исполнение решения суда': 'category.enforcement',
+    'ЧСИ': 'category.pce',
     'Нотариальные услуги': 'category.notary',
     'Другой вопрос': 'category.other',
   };
@@ -68,7 +69,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
   // Категории, доступные по подтипу специалиста
   static List<String> _allowedCategories(String subtype) {
     if (subtype == 'private_court_executor') {
-      return ['Исполнение решения суда / ЧСИ'];
+      return ['Исполнение решения суда', 'ЧСИ'];
     } else if (subtype == 'notary') {
       return ['Нотариальные услуги'];
     } else if (subtype == 'lawyer') {
@@ -76,7 +77,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
         'Составить или проверить договор', 'Споры, суды и долги',
         'Трудовые споры', 'Семья, брак и развод', 'Штрафы, налоги и госорганы',
         'Бизнес, ИП и ТОО', 'Земельные вопросы', 'Долги и коллекторы',
-        'Исполнение решения суда / ЧСИ', 'Нотариальные услуги', 'Другой вопрос',
+        'Исполнение решения суда', 'Нотариальные услуги', 'Другой вопрос',
       ];
     } else {
       // advocate — все категории
@@ -84,7 +85,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
         'Составить или проверить договор', 'Споры, суды и долги',
         'Трудовые споры', 'Семья, брак и развод', 'Штрафы, налоги и госорганы',
         'Бизнес, ИП и ТОО', 'Земельные вопросы', 'Долги и коллекторы',
-        'Уголовные дела', 'Исполнение решения суда / ЧСИ', 'Нотариальные услуги', 'Другой вопрос',
+        'Уголовные дела', 'Исполнение решения суда', 'ЧСИ', 'Нотариальные услуги', 'Другой вопрос',
       ];
     }
   }

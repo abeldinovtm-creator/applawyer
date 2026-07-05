@@ -251,7 +251,8 @@ const Map<String, List<String>> _categorySubtypes = {
   'Земельные вопросы': ['lawyer', 'advocate'],
   'Долги и коллекторы': ['lawyer', 'advocate'],
   'Уголовные дела': ['advocate'],
-  'Исполнение решения суда / ЧСИ': ['lawyer', 'advocate', 'private_court_executor'],
+  'Исполнение решения суда': ['lawyer', 'advocate'],
+  'ЧСИ': ['advocate', 'private_court_executor'],
   'Нотариальные услуги': ['lawyer', 'advocate', 'notary'],
   'Другой вопрос': ['lawyer', 'advocate'],
 };
@@ -328,7 +329,8 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
       {'id': 'Земельные вопросы', 'title': 'category.land'.tr(), 'icon': Icons.landscape_rounded},
       {'id': 'Долги и коллекторы', 'title': 'category.debts'.tr(), 'icon': Icons.money_off_rounded},
       {'id': 'Уголовные дела', 'title': 'category.criminal'.tr(), 'icon': Icons.security_rounded},
-      {'id': 'Исполнение решения суда / ЧСИ', 'title': 'category.enforcement'.tr(), 'icon': Icons.assignment_turned_in_rounded},
+      {'id': 'Исполнение решения суда', 'title': 'category.enforcement'.tr(), 'icon': Icons.assignment_turned_in_rounded},
+      {'id': 'ЧСИ', 'title': 'category.pce'.tr(), 'icon': Icons.badge_rounded},
       {'id': 'Нотариальные услуги', 'title': 'category.notary'.tr(), 'icon': Icons.approval_rounded},
       {'id': 'Другой вопрос', 'title': 'category.other'.tr(), 'icon': Icons.help_outline_rounded},
     ];
@@ -675,7 +677,8 @@ class _CreateCaseScreenState extends State<CreateCaseScreen> {
       'Земельные вопросы': 'category.land'.tr(),
       'Долги и коллекторы': 'category.debts'.tr(),
       'Уголовные дела': 'category.criminal'.tr(),
-      'Исполнение решения суда / ЧСИ': 'category.enforcement'.tr(),
+      'Исполнение решения суда': 'category.enforcement'.tr(),
+      'ЧСИ': 'category.pce'.tr(),
       'Нотариальные услуги': 'category.notary'.tr(),
       'Другой вопрос': 'category.other'.tr(),
     };
