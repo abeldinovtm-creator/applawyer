@@ -7,6 +7,9 @@
     "required": "Заполните поле",
     "logout": "Выход"
   },
+  "settings": {
+    "title": "Настройки"
+  },
   "payment": {
     "amount": "Сумма",
     "amount_hint": "Укажите сумму в тенге"

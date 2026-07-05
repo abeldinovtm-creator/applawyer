@@ -8,7 +8,6 @@ import 'auth_screen.dart';
 import 'main.dart';
 import 'privacy_policy_screen.dart';
 import 'widgets.dart';
-import 'services/push_service.dart';
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -35,7 +34,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _lawyerSubtype = 'lawyer';
   String _loadedLawyerSubtype = 'lawyer';
   String _selectedRegion = '';
-  String _preferredLang = 'kk';
   String? _avatarUrl;
   bool _loading = true;
   bool _saving = false;
@@ -47,12 +45,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _changingEmail = false;
   int _completedCases = 0;
   int _activeCases = 0;
-
-  bool _pushEnabled = false;
-  bool _pushToggling = false;
-  bool _notifyNewResponse = true;
-  bool _notifyStatusChange = true;
-  bool _notifyNewMessage = true;
 
   bool get _isLawyer => _role == 'lawyer';
 
@@ -82,7 +74,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     try {
       final data = await _supabase
           .from('profiles')
-          .select('full_name, phone, city, experience_years, about, role, lawyer_subtype, iin, preferred_language, avatar_url, backup_email, fcm_token, notify_new_response, notify_status_change, notify_new_message')
+          .select('full_name, phone, city, experience_years, about, role, lawyer_subtype, iin, avatar_url, backup_email')
           .eq('id', user.id)
           .maybeSingle();
       if (mounted) {
@@ -98,13 +90,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _expCtrl.text = (data['experience_years'] ?? 0).toString();
             _aboutCtrl.text = data['about'] ?? '';
             _iinCtrl.text = data['iin'] ?? '';
-            _preferredLang = data['preferred_language'] ?? 'kk';
             _avatarUrl = data['avatar_url'];
             _backupEmailCtrl.text = data['backup_email'] ?? '';
-            _pushEnabled = data['fcm_token'] != null;
-            _notifyNewResponse = data['notify_new_response'] ?? true;
-            _notifyStatusChange = data['notify_status_change'] ?? true;
-            _notifyNewMessage = data['notify_new_message'] ?? true;
           }
         });
       }
@@ -198,17 +185,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'full_name': _nameCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
         'backup_email': _backupEmailCtrl.text.trim(),
-        'preferred_language': _preferredLang,
         if (_isLawyer) 'city': _selectedRegion,
         if (_isLawyer) 'lawyer_subtype': _lawyerSubtype,
         if (_isLawyer) 'experience_years': int.tryParse(_expCtrl.text) ?? 0,
         if (_isLawyer) 'about': _aboutCtrl.text.trim(),
         if (_isLawyer) 'iin': _iinCtrl.text.trim(),
       });
-
-      if (mounted) {
-        context.setLocale(Locale(_preferredLang));
-      }
 
       // Смена специализации меняет доступные категории заявок в дашборде юриста —
       // он кеширует lawyerSubtype в конструкторе, поэтому нужен полный перезаход
@@ -260,35 +242,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } finally {
       if (mounted) setState(() => _changingEmail = false);
     }
-  }
-
-  // Общий вкл/выкл push — управляет реальной подпиской в браузере через
-  // PushService (запрос разрешения / удаление токена), а не отдельным
-  // флагом в БД: наличие fcm_token и есть источник истины.
-  Future<void> _togglePush(bool value) async {
-    setState(() => _pushToggling = true);
-    try {
-      if (value) {
-        await PushService.init();
-      } else {
-        await PushService.clearToken();
-      }
-      final user = _supabase.auth.currentUser;
-      if (user != null) {
-        final data = await _supabase.from('profiles').select('fcm_token').eq('id', user.id).maybeSingle();
-        if (mounted) setState(() => _pushEnabled = data?['fcm_token'] != null);
-      }
-    } finally {
-      if (mounted) setState(() => _pushToggling = false);
-    }
-  }
-
-  Future<void> _saveNotifyPref(String column, bool value) async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) return;
-    try {
-      await _supabase.from('profiles').update({column: value}).eq('id', user.id);
-    } catch (_) {}
   }
 
   Future<void> _changePassword() async {
@@ -544,42 +497,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
                     ),
 
-                    const SizedBox(height: 20),
-                    _sectionHeader('profile.preferred_language'.tr()),
-                    const SizedBox(height: 8),
-                    Row(
-                      children: [
-                        for (final entry in [('kk', 'Қазақша'), ('ru', 'Русский'), ('en', 'English')])
-                          Expanded(
-                            child: Padding(
-                              padding: const EdgeInsets.only(right: 6),
-                              child: GestureDetector(
-                                onTap: () => setState(() => _preferredLang = entry.$1),
-                                child: AnimatedContainer(
-                                  duration: const Duration(milliseconds: 150),
-                                  padding: const EdgeInsets.symmetric(vertical: 12),
-                                  decoration: BoxDecoration(
-                                    color: _preferredLang == entry.$1 ? const Color(0xFFA6192E) : Colors.grey[100],
-                                    borderRadius: BorderRadius.circular(10),
-                                    border: Border.all(
-                                      color: _preferredLang == entry.$1 ? const Color(0xFFA6192E) : Colors.grey.shade300,
-                                    ),
-                                  ),
-                                  child: Text(
-                                    entry.$2,
-                                    textAlign: TextAlign.center,
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      fontWeight: FontWeight.bold,
-                                      color: _preferredLang == entry.$1 ? Colors.white : Colors.black87,
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                          ),
-                      ],
-                    ),
                     const SizedBox(height: 8),
 
                     // Поля только для юристов/адвокатов/ЧСИ/нотариусов
@@ -693,50 +610,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             )
                           : Text('profile.save'.tr(),
                               style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                    ),
-
-                    const SizedBox(height: 32),
-                    _sectionHeader('profile.notifications'.tr()),
-                    const SizedBox(height: 4),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      activeThumbColor: const Color(0xFFA6192E),
-                      title: Text('profile.push_enabled'.tr()),
-                      subtitle: Text('profile.push_enabled_hint'.tr(),
-                          style: TextStyle(fontSize: 12, color: Colors.grey[600])),
-                      value: _pushEnabled,
-                      onChanged: _pushToggling ? null : _togglePush,
-                    ),
-                    const Divider(height: 8),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      activeThumbColor: const Color(0xFFA6192E),
-                      title: Text('profile.notify_new_response'.tr()),
-                      value: _notifyNewResponse,
-                      onChanged: (v) {
-                        setState(() => _notifyNewResponse = v);
-                        _saveNotifyPref('notify_new_response', v);
-                      },
-                    ),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      activeThumbColor: const Color(0xFFA6192E),
-                      title: Text('profile.notify_status_change'.tr()),
-                      value: _notifyStatusChange,
-                      onChanged: (v) {
-                        setState(() => _notifyStatusChange = v);
-                        _saveNotifyPref('notify_status_change', v);
-                      },
-                    ),
-                    SwitchListTile(
-                      contentPadding: EdgeInsets.zero,
-                      activeThumbColor: const Color(0xFFA6192E),
-                      title: Text('profile.notify_new_message'.tr()),
-                      value: _notifyNewMessage,
-                      onChanged: (v) {
-                        setState(() => _notifyNewMessage = v);
-                        _saveNotifyPref('notify_new_message', v);
-                      },
                     ),
 
                     const SizedBox(height: 32),

@@ -7,6 +7,7 @@ import 'chat_screen.dart';
 import 'profile_screen.dart';
 import 'statistics_screen.dart';
 import 'notifications_screen.dart';
+import 'settings_screen.dart';
 import 'auth_screen.dart';
 import 'main.dart';
 import 'services/unread_counts_service.dart';
@@ -65,6 +66,14 @@ class AppDrawer extends StatelessWidget {
               onTap: () {
                 Navigator.pop(context);
                 Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings_outlined, color: const Color(0xFFA6192E)),
+              title: Text('settings.title'.tr()),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
               },
             ),
             const Divider(),
