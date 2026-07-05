@@ -252,8 +252,8 @@ const Map<String, List<String>> _categorySubtypes = {
   'Долги и коллекторы': ['lawyer', 'advocate'],
   'Уголовные дела': ['advocate'],
   'Исполнение решения суда': ['lawyer', 'advocate'],
-  'ЧСИ': ['advocate', 'private_court_executor'],
-  'Нотариальные услуги': ['lawyer', 'advocate', 'notary'],
+  'ЧСИ': ['private_court_executor'],
+  'Нотариальные услуги': ['notary'],
   'Другой вопрос': ['lawyer', 'advocate'],
 };
 
