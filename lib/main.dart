@@ -237,6 +237,25 @@ class _AuthRouterState extends State<AuthRouter> {
   }
 }
 
+// Какие подтипы юриста обрабатывают каждую категорию — зеркало
+// _allowedCategories() из lawyer_screen.dart, но в обратную сторону
+// (категория → кто её видит), нужно чтобы понять, есть ли вообще кому
+// откликнуться, прежде чем клиент создаст заявку в пустоту.
+const Map<String, List<String>> _categorySubtypes = {
+  'Составить или проверить договор': ['lawyer', 'advocate'],
+  'Споры, суды и долги': ['lawyer', 'advocate'],
+  'Трудовые споры': ['lawyer', 'advocate'],
+  'Семья, брак и развод': ['lawyer', 'advocate'],
+  'Штрафы, налоги и госорганы': ['lawyer', 'advocate'],
+  'Бизнес, ИП и ТОО': ['lawyer', 'advocate'],
+  'Земельные вопросы': ['lawyer', 'advocate'],
+  'Долги и коллекторы': ['lawyer', 'advocate'],
+  'Уголовные дела': ['advocate'],
+  'Исполнение решения суда / ЧСИ': ['lawyer', 'advocate', 'private_court_executor'],
+  'Нотариальные услуги': ['lawyer', 'advocate', 'notary'],
+  'Другой вопрос': ['lawyer', 'advocate'],
+};
+
 class CategorySelectionScreen extends StatefulWidget {
   const CategorySelectionScreen({Key? key}) : super(key: key);
 
@@ -248,6 +267,35 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
   bool _isSearching = false;
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
+
+  // null, пока не загружено — до этого момента все категории считаем
+  // активными, чтобы не мигать disabled-состоянием на старте.
+  Set<String>? _unavailableCategories;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadCategoryAvailability();
+  }
+
+  Future<void> _loadCategoryAvailability() async {
+    try {
+      final raw = await Supabase.instance.client
+          .from('profiles')
+          .select('lawyer_subtype')
+          .eq('role', 'lawyer');
+      final subtypeCounts = <String, int>{};
+      for (final row in List<Map<String, dynamic>>.from(raw as List)) {
+        final subtype = row['lawyer_subtype']?.toString() ?? 'lawyer';
+        subtypeCounts[subtype] = (subtypeCounts[subtype] ?? 0) + 1;
+      }
+      final unavailable = _categorySubtypes.entries
+          .where((e) => e.value.every((subtype) => (subtypeCounts[subtype] ?? 0) == 0))
+          .map((e) => e.key)
+          .toSet();
+      if (mounted) setState(() => _unavailableCategories = unavailable);
+    } catch (_) {}
+  }
 
   @override
   void dispose() {
@@ -363,22 +411,42 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                         separatorBuilder: (context, index) => const SizedBox(height: 10),
                         itemBuilder: (context, index) {
                           final cat = categories[index];
+                          final isUnavailable = _unavailableCategories?.contains(cat['id']) ?? false;
                           return Card(
                             elevation: 1,
+                            color: isUnavailable ? Colors.grey[100] : null,
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             child: InkWell(
-                              onTap: () => openCategory(cat),
+                              onTap: () => isUnavailable
+                                  ? showAppSnackBar(context, 'category.unavailable'.tr(), kind: SnackKind.warning)
+                                  : openCategory(cat),
                               borderRadius: BorderRadius.circular(12),
                               child: Padding(
                                 padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
                                 child: Row(
                                   children: [
-                                    Icon(cat['icon'], size: 28, color: const Color(0xFFA6192E)),
+                                    Icon(cat['icon'], size: 28, color: isUnavailable ? Colors.grey : const Color(0xFFA6192E)),
                                     const SizedBox(width: 20),
                                     Expanded(
-                                      child: Text(
-                                        cat['title'],
-                                        style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.black87),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            cat['title'],
+                                            style: TextStyle(
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.w600,
+                                              color: isUnavailable ? Colors.grey : Colors.black87,
+                                            ),
+                                          ),
+                                          if (isUnavailable) ...[
+                                            const SizedBox(height: 2),
+                                            Text(
+                                              'category.unavailable'.tr(),
+                                              style: TextStyle(fontSize: 12, color: Colors.grey[500]),
+                                            ),
+                                          ],
+                                        ],
                                       ),
                                     ),
                                   ],
@@ -400,24 +468,40 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                       itemCount: categories.length,
                       itemBuilder: (context, index) {
                         final cat = categories[index];
+                        final isUnavailable = _unavailableCategories?.contains(cat['id']) ?? false;
                         return Card(
                           elevation: 2,
+                          color: isUnavailable ? Colors.grey[100] : null,
                           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                           child: InkWell(
-                            onTap: () => openCategory(cat),
+                            onTap: () => isUnavailable
+                                ? showAppSnackBar(context, 'category.unavailable'.tr(), kind: SnackKind.warning)
+                                : openCategory(cat),
                             borderRadius: BorderRadius.circular(16),
                             child: Padding(
                               padding: const EdgeInsets.all(16.0),
                               child: Column(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(cat['icon'], size: 40, color: const Color(0xFFA6192E)),
+                                  Icon(cat['icon'], size: 40, color: isUnavailable ? Colors.grey : const Color(0xFFA6192E)),
                                   const SizedBox(height: 12),
                                   Text(
                                     cat['title'],
                                     textAlign: TextAlign.center,
-                                    style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.black87),
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.w600,
+                                      color: isUnavailable ? Colors.grey : Colors.black87,
+                                    ),
                                   ),
+                                  if (isUnavailable) ...[
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'category.unavailable'.tr(),
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                                    ),
+                                  ],
                                 ],
                               ),
                             ),

@@ -217,7 +217,8 @@
     "criminal": "Criminal cases",
     "enforcement": "Court enforcement / Bailiff",
     "notary": "Notary services",
-    "other": "Other issue"
+    "other": "Other issue",
+    "unavailable": "No specialists available yet"
   },
   "search": {
     "hint": "Search by service...",
