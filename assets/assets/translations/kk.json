@@ -7,6 +7,9 @@
     "required": "Өрісті толтырыңыз",
     "logout": "Шығу"
   },
+  "settings": {
+    "title": "Баптаулар"
+  },
   "payment": {
     "amount": "Сома",
     "amount_hint": "Соманы теңгемен көрсетіңіз"
