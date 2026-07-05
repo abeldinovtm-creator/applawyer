@@ -335,13 +335,21 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
       {'id': 'Другой вопрос', 'title': 'category.other'.tr(), 'icon': Icons.help_outline_rounded},
     ];
 
-    final categories = _searchQuery.isEmpty
+    final filteredCategories = _searchQuery.isEmpty
         ? allCategories
         : allCategories.where((cat) {
             final q = _searchQuery.toLowerCase();
             return cat['title'].toString().toLowerCase().contains(q) ||
                    cat['id'].toString().toLowerCase().contains(q);
           }).toList();
+
+    // Неактивные категории (нет доступных специалистов) — в конец списка,
+    // порядок внутри каждой группы сохраняется.
+    bool isUnavailableCat(Map<String, dynamic> cat) => _unavailableCategories?.contains(cat['id']) ?? false;
+    final categories = [
+      ...filteredCategories.where((c) => !isUnavailableCat(c)),
+      ...filteredCategories.where(isUnavailableCat),
+    ];
 
     return Scaffold(
       endDrawer: const AppDrawer(role: 'client'),
