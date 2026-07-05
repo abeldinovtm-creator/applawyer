@@ -69,7 +69,9 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
   // Категории, доступные по подтипу специалиста
   static List<String> _allowedCategories(String subtype) {
     if (subtype == 'private_court_executor') {
-      return ['Исполнение решения суда', 'ЧСИ'];
+      // ЧСИ исполняет, а не консультирует — "Исполнение решения суда"
+      // (сопровождение процесса) остаётся юристам/адвокатам.
+      return ['ЧСИ'];
     } else if (subtype == 'notary') {
       return ['Нотариальные услуги'];
     } else if (subtype == 'lawyer') {
