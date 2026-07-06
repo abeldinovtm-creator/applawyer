@@ -104,6 +104,18 @@
     "phone": "Телефон",
     "about": "Өзі туралы"
   },
+  "review": {
+    "section_title": "Пікірлер",
+    "no_reviews": "Әзірге пікір жоқ",
+    "reviews_count": "пікір",
+    "leave_review": "Пікір қалдыру",
+    "review_left": "Пікір қалдырылды",
+    "dialog_title": "Заңгердің жұмысын бағалаңыз",
+    "rating_required": "Бағаны қойыңыз",
+    "comment_hint": "Пікір (міндетті емес)",
+    "submit": "Жіберу",
+    "submitted": "Пікіріңізге рахмет!"
+  },
   "specialist": {
     "lawyer": "Заңгер",
     "advocate": "Адвокат",

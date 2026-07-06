@@ -104,6 +104,18 @@
     "phone": "Phone",
     "about": "About"
   },
+  "review": {
+    "section_title": "Reviews",
+    "no_reviews": "No reviews yet",
+    "reviews_count": "reviews",
+    "leave_review": "Leave a review",
+    "review_left": "Review submitted",
+    "dialog_title": "Rate the lawyer's work",
+    "rating_required": "Please set a rating",
+    "comment_hint": "Comment (optional)",
+    "submit": "Submit",
+    "submitted": "Thank you for your review!"
+  },
   "specialist": {
     "lawyer": "Lawyer",
     "advocate": "Advocate",
