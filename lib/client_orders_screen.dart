@@ -95,6 +95,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
 
   Future<void> _submitReview(String caseId, String lawyerId) async {
     int rating = 0;
+    bool isAnonymous = false;
     final commentController = TextEditingController();
 
     final submitted = await showDialog<bool>(
@@ -117,6 +118,14 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                   hintText: 'review.comment_hint'.tr(),
                   border: const OutlineInputBorder(),
                 ),
+              ),
+              CheckboxListTile(
+                value: isAnonymous,
+                onChanged: (v) => setDialogState(() => isAnonymous = v ?? false),
+                title: Text('review.anonymous_checkbox'.tr(), style: const TextStyle(fontSize: 13)),
+                controlAffinity: ListTileControlAffinity.leading,
+                contentPadding: EdgeInsets.zero,
+                dense: true,
               ),
             ],
           ),
@@ -149,6 +158,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
         'lawyer_id': lawyerId,
         'rating': rating,
         'comment': commentController.text.trim().isEmpty ? null : commentController.text.trim(),
+        'is_anonymous': isAnonymous,
       });
       if (mounted) {
         showAppSnackBar(context, 'review.submitted'.tr());

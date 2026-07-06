@@ -53,7 +53,7 @@ class AppDrawer extends StatelessWidget {
               title: Text('profile.title'.tr()),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfileScreen()));
+                Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: '/profile'), builder: (_) => const ProfileScreen()));
               },
             ),
             ListTile(
@@ -65,7 +65,7 @@ class AppDrawer extends StatelessWidget {
               ),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+                Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: '/notifications'), builder: (_) => const NotificationsScreen()));
               },
             ),
             ListTile(
@@ -73,7 +73,7 @@ class AppDrawer extends StatelessWidget {
               title: Text('settings.title'.tr()),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen()));
+                Navigator.push(context, MaterialPageRoute(settings: const RouteSettings(name: '/settings'), builder: (_) => const SettingsScreen()));
               },
             ),
             const Divider(),

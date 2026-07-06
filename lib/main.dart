@@ -14,6 +14,10 @@ import 'services/push_service.dart';
 import 'services/unread_counts_service.dart';
 import 'app_drawer.dart';
 import 'widgets.dart';
+import 'profile_screen.dart';
+import 'settings_screen.dart';
+import 'notifications_screen.dart';
+import 'services/route_persistence.dart';
 
 // anon key — публичный ключ (виден всем в собранном web-бандле на applawyer.online),
 // защита данных идёт через RLS, а не через секретность ключа.
@@ -147,8 +151,47 @@ class MyApp extends StatelessWidget {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 8,
         ),
+        progressIndicatorTheme: const ProgressIndicatorThemeData(
+          color: Color(0xFFA6192E),
+        ),
       ),
-      home: session != null ? const AuthRouter() : const AuthScreen(),
+      // Верхнеуровневые экраны без параметров (Профиль/Настройки/Уведомления)
+      // сами пишут своё имя в localStorage при открытии и стирают при
+      // закрытии (см. route_persistence.dart) — URL для этого не годится,
+      // Supabase чистит hash при каждой инициализации на web (проверяет,
+      // нет ли там auth-токенов), так что имя маршрута там не доживает
+      // до перезагрузки страницы.
+      onGenerateInitialRoutes: (initialRouteName) {
+        final homeRoute = MaterialPageRoute(
+          settings: const RouteSettings(name: '/'),
+          builder: (_) => session != null ? const AuthRouter() : const AuthScreen(),
+        );
+        if (session == null) return [homeRoute];
+
+        switch (getLastRoute()) {
+          case '/profile':
+            return [
+              homeRoute,
+              MaterialPageRoute(settings: const RouteSettings(name: '/profile'), builder: (_) => const ProfileScreen()),
+            ];
+          case '/settings':
+            return [
+              homeRoute,
+              MaterialPageRoute(settings: const RouteSettings(name: '/settings'), builder: (_) => const SettingsScreen()),
+            ];
+          case '/notifications':
+            return [
+              homeRoute,
+              MaterialPageRoute(settings: const RouteSettings(name: '/notifications'), builder: (_) => const NotificationsScreen()),
+            ];
+          default:
+            return [homeRoute];
+        }
+      },
+      onGenerateRoute: (settings) => MaterialPageRoute(
+        settings: settings,
+        builder: (_) => session != null ? const AuthRouter() : const AuthScreen(),
+      ),
     );
   }
 }

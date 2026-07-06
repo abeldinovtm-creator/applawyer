@@ -3,20 +3,76 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'widgets.dart';
 
+String _trCategory(String cat) {
+  const map = {
+    'Составить или проверить договор': 'category.contract',
+    'Споры, суды и долги': 'category.disputes',
+    'Трудовые споры': 'category.labor',
+    'Семья, брак и развод': 'category.family',
+    'Штрафы, налоги и госорганы': 'category.taxes',
+    'Бизнес, ИП и ТОО': 'category.business',
+    'Земельные вопросы': 'category.land',
+    'Долги и коллекторы': 'category.debts',
+    'Уголовные дела': 'category.criminal',
+    'Исполнение решения суда': 'category.enforcement',
+    'ЧСИ': 'category.pce',
+    'Нотариальные услуги': 'category.notary',
+    'Другой вопрос': 'category.other',
+  };
+  final key = map[cat];
+  return key != null ? key.tr() : cat;
+}
+
 class LawyerProfileViewScreen extends StatelessWidget {
   final Map<String, dynamic> profile;
 
   const LawyerProfileViewScreen({Key? key, required this.profile}) : super(key: key);
 
+  Future<List<Map<String, dynamic>>> _fetchCategoryStats() async {
+    final lawyerId = profile['id']?.toString();
+    if (lawyerId == null) return [];
+    final raw = await Supabase.instance.client.rpc('get_lawyer_category_stats', params: {'p_lawyer_id': lawyerId});
+    return List<Map<String, dynamic>>.from(raw as List);
+  }
+
   Future<List<Map<String, dynamic>>> _fetchReviews() async {
     final lawyerId = profile['id']?.toString();
     if (lawyerId == null) return [];
-    final raw = await Supabase.instance.client
+    final supabase = Supabase.instance.client;
+    final raw = await supabase
         .from('reviews')
-        .select('rating, comment, created_at')
+        .select('rating, comment, created_at, client_id, is_anonymous')
         .eq('lawyer_id', lawyerId)
         .order('created_at', ascending: false);
-    return List<Map<String, dynamic>>.from(raw as List);
+    final reviews = List<Map<String, dynamic>>.from(raw as List);
+    if (reviews.isEmpty) return reviews;
+
+    // Имя автора подтягиваем только для НЕ анонимных отзывов — для
+    // анонимных даже не делаем запрос к profiles, чтобы не тянуть лишние
+    // персональные данные, если они не нужны.
+    final namedClientIds = reviews
+        .where((r) => r['is_anonymous'] != true)
+        .map((r) => r['client_id'].toString())
+        .toSet()
+        .toList();
+
+    Map<String, String> nameByClientId = {};
+    if (namedClientIds.isNotEmpty) {
+      try {
+        final profilesRaw = await supabase
+            .from('profiles')
+            .select('id, full_name')
+            .inFilter('id', namedClientIds);
+        for (final p in List<Map<String, dynamic>>.from(profilesRaw as List)) {
+          nameByClientId[p['id'].toString()] = p['full_name']?.toString() ?? '';
+        }
+      } catch (_) {}
+    }
+
+    for (final r in reviews) {
+      r['_authorName'] = r['is_anonymous'] == true ? null : nameByClientId[r['client_id'].toString()];
+    }
+    return reviews;
   }
 
   String _subtypeLabel(String subtype) {
@@ -123,6 +179,43 @@ class LawyerProfileViewScreen extends StatelessWidget {
             const Divider(),
             const SizedBox(height: 12),
             Text(
+              'profile_view.category_stats_title'.tr(),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: _fetchCategoryStats(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final stats = snapshot.data ?? [];
+                if (stats.isEmpty) {
+                  return Text(
+                    'profile_view.category_stats_empty'.tr(),
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  );
+                }
+                return Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: stats.map((s) {
+                    final category = s['category']?.toString() ?? '';
+                    final count = (s['completed_count'] as num?)?.toInt() ?? 0;
+                    return Chip(
+                      label: Text('${_trCategory(category)} · $count', style: const TextStyle(fontSize: 12)),
+                      backgroundColor: const Color(0xFFFAE8EB),
+                      labelStyle: const TextStyle(color: Color(0xFFA6192E)),
+                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                    );
+                  }).toList(),
+                );
+              },
+            ),
+            const SizedBox(height: 8),
+            const Divider(),
+            const SizedBox(height: 12),
+            Text(
               'review.section_title'.tr(),
               style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
             ),
@@ -158,12 +251,25 @@ class LawyerProfileViewScreen extends StatelessWidget {
                     const SizedBox(height: 12),
                     ...reviews.map((r) {
                       final comment = r['comment']?.toString() ?? '';
+                      final authorName = r['_authorName']?.toString();
+                      final displayAuthor = (authorName != null && authorName.isNotEmpty)
+                          ? authorName
+                          : 'review.anonymous_author'.tr();
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            StarRatingDisplay(rating: (r['rating'] as num).toDouble(), size: 16),
+                            Row(
+                              children: [
+                                StarRatingDisplay(rating: (r['rating'] as num).toDouble(), size: 16),
+                                const SizedBox(width: 8),
+                                Text(
+                                  displayAuthor,
+                                  style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w600),
+                                ),
+                              ],
+                            ),
                             if (comment.isNotEmpty) ...[
                               const SizedBox(height: 4),
                               Text(comment, style: TextStyle(fontSize: 13, color: Colors.grey[800])),

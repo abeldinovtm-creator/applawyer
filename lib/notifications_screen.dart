@@ -4,6 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'chat_screen.dart';
 import 'lawyer_screen.dart';
+import 'services/route_persistence.dart';
 import 'services/unread_counts_service.dart';
 import 'widgets.dart';
 
@@ -27,7 +28,14 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   void initState() {
     super.initState();
+    setLastRoute('/notifications');
     _future = _load();
+  }
+
+  @override
+  void dispose() {
+    setLastRoute(null);
+    super.dispose();
   }
 
   Future<List<Map<String, dynamic>>> _load() async {

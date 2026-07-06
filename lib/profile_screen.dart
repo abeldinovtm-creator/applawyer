@@ -6,6 +6,27 @@ import 'package:image_picker/image_picker.dart';
 import 'region_picker_screen.dart';
 import 'main.dart';
 import 'widgets.dart';
+import 'services/route_persistence.dart';
+
+String _trCategory(String cat) {
+  const map = {
+    'Составить или проверить договор': 'category.contract',
+    'Споры, суды и долги': 'category.disputes',
+    'Трудовые споры': 'category.labor',
+    'Семья, брак и развод': 'category.family',
+    'Штрафы, налоги и госорганы': 'category.taxes',
+    'Бизнес, ИП и ТОО': 'category.business',
+    'Земельные вопросы': 'category.land',
+    'Долги и коллекторы': 'category.debts',
+    'Уголовные дела': 'category.criminal',
+    'Исполнение решения суда': 'category.enforcement',
+    'ЧСИ': 'category.pce',
+    'Нотариальные услуги': 'category.notary',
+    'Другой вопрос': 'category.other',
+  };
+  final key = map[cat];
+  return key != null ? key.tr() : cat;
+}
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({Key? key}) : super(key: key);
@@ -38,17 +59,20 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _editing = false;
   int _completedCases = 0;
   int _activeCases = 0;
+  List<Map<String, dynamic>> _categoryStats = [];
 
   bool get _isLawyer => _role == 'lawyer';
 
   @override
   void initState() {
     super.initState();
+    setLastRoute('/profile');
     _loadProfile();
   }
 
   @override
   void dispose() {
+    setLastRoute(null);
     _nameCtrl.dispose();
     _phoneCtrl.dispose();
     _expCtrl.dispose();
@@ -88,7 +112,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
       }
     } catch (_) {}
     if (mounted) setState(() => _loading = false);
-    if (_isLawyer) _loadCaseStats();
+    if (_isLawyer) {
+      _loadCaseStats();
+      _loadCategoryStats();
+    }
+  }
+
+  // Сколько завершённых дел у юриста в каждой категории — помогает
+  // самому юристу видеть свою фактическую специализацию по истории дел.
+  Future<void> _loadCategoryStats() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+    try {
+      final raw = await _supabase.rpc('get_lawyer_category_stats', params: {'p_lawyer_id': user.id});
+      if (mounted) setState(() => _categoryStats = List<Map<String, dynamic>>.from(raw as List));
+    } catch (_) {}
   }
 
   // Счётчик завершённых/незавершённых дел юриста: считаем по заявкам,
@@ -371,6 +409,28 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           Expanded(child: _statCard('profile.active_cases'.tr(), _activeCases, Colors.orange)),
                         ],
                       ),
+                      if (_categoryStats.isNotEmpty) ...[
+                        const SizedBox(height: 12),
+                        Text(
+                          'profile_view.category_stats_title'.tr(),
+                          style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w600),
+                        ),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 8,
+                          runSpacing: 8,
+                          children: _categoryStats.map((s) {
+                            final category = s['category']?.toString() ?? '';
+                            final count = (s['completed_count'] as num?)?.toInt() ?? 0;
+                            return Chip(
+                              label: Text('${_trCategory(category)} · $count', style: const TextStyle(fontSize: 12)),
+                              backgroundColor: const Color(0xFFFAE8EB),
+                              labelStyle: const TextStyle(color: Color(0xFFA6192E)),
+                              materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
+                            );
+                          }).toList(),
+                        ),
+                      ],
                       const SizedBox(height: 20),
                     ],
 

@@ -102,7 +102,9 @@
     "experience": "Experience",
     "years": "years",
     "phone": "Phone",
-    "about": "About"
+    "about": "About",
+    "category_stats_title": "Category statistics",
+    "category_stats_empty": "No completed cases yet"
   },
   "review": {
     "section_title": "Reviews",
@@ -114,7 +116,9 @@
     "rating_required": "Please set a rating",
     "comment_hint": "Comment (optional)",
     "submit": "Submit",
-    "submitted": "Thank you for your review!"
+    "submitted": "Thank you for your review!",
+    "anonymous_checkbox": "Leave the review anonymously",
+    "anonymous_author": "Anonymous"
   },
   "specialist": {
     "lawyer": "Lawyer",

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'services/push_service.dart';
+import 'services/route_persistence.dart';
 import 'auth_screen.dart';
 import 'privacy_policy_screen.dart';
 import 'widgets.dart';
@@ -33,11 +34,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
+    setLastRoute('/settings');
     _load();
   }
 
   @override
   void dispose() {
+    setLastRoute(null);
     _newPassCtrl.dispose();
     _confirmPassCtrl.dispose();
     super.dispose();
