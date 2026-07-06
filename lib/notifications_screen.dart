@@ -2,6 +2,7 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'chat_screen.dart';
 import 'services/unread_counts_service.dart';
 import 'widgets.dart';
 
@@ -68,6 +69,32 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } catch (_) {}
   }
 
+  // Открывает чат, к которому привязано уведомление (новый отклик, смена
+  // статуса, сообщение, напоминание о подтверждении завершения) — тап на
+  // уведомление сразу ведёт к делу, а не просто показывает текст.
+  Future<void> _openNotification(Map<String, dynamic> n) async {
+    final conversationId = n['conversation_id']?.toString();
+    if (conversationId == null) return;
+
+    String title = 'case.legal_help'.tr();
+    final caseId = n['case_id']?.toString();
+    if (caseId != null) {
+      try {
+        final caseRow = await _supabase.from('cases').select('title').eq('id', caseId).maybeSingle();
+        final caseTitle = caseRow?['title']?.toString();
+        if (caseTitle != null && caseTitle.isNotEmpty) title = caseTitle;
+      } catch (_) {}
+    }
+
+    if (!mounted) return;
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => ChatScreen(conversationId: conversationId, caseTitle: title),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,6 +138,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 final body = n['body']?.toString() ?? '';
                 final createdAt = DateTime.tryParse(n['created_at']?.toString() ?? '');
                 final isUnread = _unreadIds.contains(n['id'].toString());
+                final hasConversation = n['conversation_id'] != null;
 
                 return Card(
                   elevation: 0,
@@ -121,7 +149,10 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                         ? const BorderSide(color: Color(0xFFA6192E), width: 1.5)
                         : BorderSide(color: Colors.grey.shade200),
                   ),
-                  child: Padding(
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: hasConversation ? () => _openNotification(n) : null,
+                    child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -158,6 +189,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                           ),
                         ),
                       ],
+                    ),
                     ),
                   ),
                 );
