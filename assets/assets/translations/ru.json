@@ -102,7 +102,9 @@
     "experience": "Опыт работы",
     "years": "лет",
     "phone": "Телефон",
-    "about": "О себе"
+    "about": "О себе",
+    "category_stats_title": "Статистика по категориям",
+    "category_stats_empty": "Пока нет завершённых дел"
   },
   "review": {
     "section_title": "Отзывы",
@@ -114,7 +116,9 @@
     "rating_required": "Поставьте оценку",
     "comment_hint": "Комментарий (необязательно)",
     "submit": "Отправить",
-    "submitted": "Спасибо за отзыв!"
+    "submitted": "Спасибо за отзыв!",
+    "anonymous_checkbox": "Оставить отзыв анонимно",
+    "anonymous_author": "Аноним"
   },
   "specialist": {
     "lawyer": "Юрист",

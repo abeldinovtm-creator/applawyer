@@ -102,7 +102,9 @@
     "experience": "Тәжірибе",
     "years": "жыл",
     "phone": "Телефон",
-    "about": "Өзі туралы"
+    "about": "Өзі туралы",
+    "category_stats_title": "Категориялар бойынша статистика",
+    "category_stats_empty": "Әзірге аяқталған істер жоқ"
   },
   "review": {
     "section_title": "Пікірлер",
@@ -114,7 +116,9 @@
     "rating_required": "Бағаны қойыңыз",
     "comment_hint": "Пікір (міндетті емес)",
     "submit": "Жіберу",
-    "submitted": "Пікіріңізге рахмет!"
+    "submitted": "Пікіріңізге рахмет!",
+    "anonymous_checkbox": "Пікірді анонимді қалдыру",
+    "anonymous_author": "Аноним"
   },
   "specialist": {
     "lawyer": "Заңгер",
