@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'chat_screen.dart';
+import 'lawyer_screen.dart';
 import 'services/unread_counts_service.dart';
 import 'widgets.dart';
 
@@ -69,30 +70,69 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     } catch (_) {}
   }
 
-  // Открывает чат, к которому привязано уведомление (новый отклик, смена
-  // статуса, сообщение, напоминание о подтверждении завершения) — тап на
-  // уведомление сразу ведёт к делу, а не просто показывает текст.
+  // Тап по уведомлению ведёт в разные места в зависимости от типа события:
+  // 'new_message' — событие произошло в чате, туда и ведём; остальные типы
+  // ('new_response', 'status_change', 'confirmation_needed') — это события
+  // про само дело, а не про переписку, поэтому ведут в заявку.
   Future<void> _openNotification(Map<String, dynamic> n) async {
+    final type = n['type']?.toString();
     final conversationId = n['conversation_id']?.toString();
-    if (conversationId == null) return;
-
-    String title = 'case.legal_help'.tr();
     final caseId = n['case_id']?.toString();
-    if (caseId != null) {
-      try {
-        final caseRow = await _supabase.from('cases').select('title').eq('id', caseId).maybeSingle();
-        final caseTitle = caseRow?['title']?.toString();
-        if (caseTitle != null && caseTitle.isNotEmpty) title = caseTitle;
-      } catch (_) {}
+
+    if (type == 'new_message') {
+      if (conversationId == null) return;
+      final title = await _fetchCaseTitle(caseId);
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => ChatScreen(conversationId: conversationId, caseTitle: title),
+        ),
+      );
+      return;
     }
 
-    if (!mounted) return;
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (_) => ChatScreen(conversationId: conversationId, caseTitle: title),
-      ),
-    );
+    if (caseId == null) return;
+    final uid = _supabase.auth.currentUser?.id;
+    if (uid == null) return;
+
+    try {
+      final caseRow = await _supabase.from('cases').select('title, client_id').eq('id', caseId).maybeSingle();
+      final title = caseRow?['title']?.toString().isNotEmpty == true
+          ? caseRow!['title'].toString()
+          : 'case.legal_help'.tr();
+      final isClient = caseRow != null && caseRow['client_id']?.toString() == uid;
+
+      if (!mounted) return;
+      if (isClient) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ConversationListScreen(caseId: caseId, caseTitle: title),
+          ),
+        );
+      } else {
+        final profile = await _supabase.from('profiles').select('lawyer_subtype').eq('id', uid).maybeSingle();
+        final subtype = profile?['lawyer_subtype']?.toString() ?? 'lawyer';
+        if (!mounted) return;
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => LawyerDashboardScreen(lawyerSubtype: subtype, initialTabIndex: 1),
+          ),
+        );
+      }
+    } catch (_) {}
+  }
+
+  Future<String> _fetchCaseTitle(String? caseId) async {
+    if (caseId == null) return 'case.legal_help'.tr();
+    try {
+      final caseRow = await _supabase.from('cases').select('title').eq('id', caseId).maybeSingle();
+      final title = caseRow?['title']?.toString();
+      if (title != null && title.isNotEmpty) return title;
+    } catch (_) {}
+    return 'case.legal_help'.tr();
   }
 
   @override
@@ -138,7 +178,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                 final body = n['body']?.toString() ?? '';
                 final createdAt = DateTime.tryParse(n['created_at']?.toString() ?? '');
                 final isUnread = _unreadIds.contains(n['id'].toString());
-                final hasConversation = n['conversation_id'] != null;
+                final hasTarget = n['conversation_id'] != null || n['case_id'] != null;
 
                 return Card(
                   elevation: 0,
@@ -151,7 +191,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
                   ),
                   child: InkWell(
                     borderRadius: BorderRadius.circular(12),
-                    onTap: hasConversation ? () => _openNotification(n) : null,
+                    onTap: hasTarget ? () => _openNotification(n) : null,
                     child: Padding(
                     padding: const EdgeInsets.all(14),
                     child: Row(

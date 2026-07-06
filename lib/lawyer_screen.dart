@@ -43,8 +43,13 @@ String _trCategory(String cat) {
 
 class LawyerDashboardScreen extends StatefulWidget {
   final String lawyerSubtype;
+  final int initialTabIndex;
 
-  const LawyerDashboardScreen({Key? key, required this.lawyerSubtype}) : super(key: key);
+  const LawyerDashboardScreen({
+    Key? key,
+    required this.lawyerSubtype,
+    this.initialTabIndex = 0,
+  }) : super(key: key);
 
   @override
   _LawyerDashboardScreenState createState() => _LawyerDashboardScreenState();
@@ -105,7 +110,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this, initialIndex: widget.initialTabIndex);
     _refreshCases();
     _refreshInProgress();
   }
