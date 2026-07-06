@@ -104,6 +104,18 @@
     "phone": "Телефон",
     "about": "О себе"
   },
+  "review": {
+    "section_title": "Отзывы",
+    "no_reviews": "Пока нет отзывов",
+    "reviews_count": "отзывов",
+    "leave_review": "Оставить отзыв",
+    "review_left": "Отзыв оставлен",
+    "dialog_title": "Оцените работу юриста",
+    "rating_required": "Поставьте оценку",
+    "comment_hint": "Комментарий (необязательно)",
+    "submit": "Отправить",
+    "submitted": "Спасибо за отзыв!"
+  },
   "specialist": {
     "lawyer": "Юрист",
     "advocate": "Адвокат",

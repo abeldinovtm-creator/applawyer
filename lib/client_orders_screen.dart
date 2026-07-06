@@ -64,10 +64,103 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
         .map((c) => c['case_id'].toString())
         .toSet();
 
+    // Для завершённых дел нужен lawyer_id (чтобы оставить отзыв) и признак,
+    // оставлен ли отзыв уже — берём lawyer_id из escrow_accounts, а не из
+    // conversations, т.к. case_id там уникален (один принятый юрист на дело).
+    final escrowRaw = await _supabase
+        .from('escrow_accounts')
+        .select('case_id, lawyer_id')
+        .inFilter('case_id', caseIds);
+    final lawyerIdByCase = {
+      for (final e in List<Map<String, dynamic>>.from(escrowRaw))
+        e['case_id'].toString(): e['lawyer_id'].toString()
+    };
+
+    final reviewsRaw = await _supabase
+        .from('reviews')
+        .select('case_id')
+        .inFilter('case_id', caseIds);
+    final reviewedCaseIds = List<Map<String, dynamic>>.from(reviewsRaw)
+        .map((r) => r['case_id'].toString())
+        .toSet();
+
     for (final order in list) {
-      order['_hasAcceptedLawyer'] = acceptedCaseIds.contains(order['id'].toString());
+      final caseId = order['id'].toString();
+      order['_hasAcceptedLawyer'] = acceptedCaseIds.contains(caseId);
+      order['_lawyerId'] = lawyerIdByCase[caseId];
+      order['_hasReview'] = reviewedCaseIds.contains(caseId);
     }
     return list;
+  }
+
+  Future<void> _submitReview(String caseId, String lawyerId) async {
+    int rating = 0;
+    final commentController = TextEditingController();
+
+    final submitted = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setDialogState) => AlertDialog(
+          title: Text('review.dialog_title'.tr()),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              StarRatingInput(
+                rating: rating,
+                onChanged: (v) => setDialogState(() => rating = v),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: commentController,
+                maxLines: 3,
+                decoration: InputDecoration(
+                  hintText: 'review.comment_hint'.tr(),
+                  border: const OutlineInputBorder(),
+                ),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx, false),
+              child: Text('common.cancel'.tr()),
+            ),
+            TextButton(
+              onPressed: rating == 0
+                  ? null
+                  : () => Navigator.pop(ctx, true),
+              child: Text('review.submit'.tr()),
+            ),
+          ],
+        ),
+      ),
+    );
+
+    if (submitted != true) return;
+
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await _supabase.from('reviews').insert({
+        'case_id': caseId,
+        'client_id': user.id,
+        'lawyer_id': lawyerId,
+        'rating': rating,
+        'comment': commentController.text.trim().isEmpty ? null : commentController.text.trim(),
+      });
+      if (mounted) {
+        showAppSnackBar(context, 'review.submitted'.tr());
+        setState(() => _refreshKey++);
+      }
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(context, 'Ошибка: $e', kind: SnackKind.error);
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
   }
 
   // Дело закрывается только после подтверждения ОБЕИХ сторон — эта функция
@@ -351,6 +444,23 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                       ),
                                     ],
                                   ),
+                                if (status == 'completed' && order['_lawyerId'] != null)
+                                  order['_hasReview'] == true
+                                      ? Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                                          child: Text(
+                                            'review.review_left'.tr(),
+                                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                          ),
+                                        )
+                                      : TextButton.icon(
+                                          onPressed: () => _submitReview(
+                                              order['id'].toString(), order['_lawyerId'].toString()),
+                                          icon: const Icon(Icons.star_outline_rounded,
+                                              color: const Color(0xFFA6192E), size: 18),
+                                          label: Text('review.leave_review'.tr(),
+                                              style: const TextStyle(color: const Color(0xFFA6192E))),
+                                        ),
                               ],
                             ),
                           ],

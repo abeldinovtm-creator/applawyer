@@ -50,9 +50,32 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       }
     } catch (_) {}
 
+    // Рейтинг юриста — чтобы клиент мог сравнить откликнувшихся юристов
+    // прямо в списке, не открывая полный профиль каждого.
+    Map<String, List<int>> ratingsByLawyer = {};
+    try {
+      final reviewsRaw = await _supabase
+          .from('reviews')
+          .select('lawyer_id, rating')
+          .inFilter('lawyer_id', lawyerIds);
+      for (final r in List<Map<String, dynamic>>.from(reviewsRaw as List)) {
+        final key = r['lawyer_id'].toString();
+        ratingsByLawyer.putIfAbsent(key, () => []).add((r['rating'] as num).toInt());
+      }
+    } catch (_) {}
+
     return convs.map((c) {
       final key = c['lawyer_id'].toString();
-      return <String, dynamic>{...c, 'profile': profileMap[key] ?? <String, dynamic>{}};
+      final ratings = ratingsByLawyer[key];
+      final avgRating = (ratings == null || ratings.isEmpty)
+          ? null
+          : ratings.reduce((a, b) => a + b) / ratings.length;
+      return <String, dynamic>{
+        ...c,
+        'profile': profileMap[key] ?? <String, dynamic>{},
+        '_avgRating': avgRating,
+        '_reviewCount': ratings?.length ?? 0,
+      };
     }).toList();
   }
 
@@ -142,6 +165,8 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                 final subtype = profile['lawyer_subtype']?.toString() ?? 'lawyer';
                 final priceAmount = conv['price_amount'] as int?;
                 final hasPrice = priceAmount != null;
+                final avgRating = conv['_avgRating'] as double?;
+                final reviewCount = conv['_reviewCount'] as int? ?? 0;
 
                 final subtypeLabel = subtype == 'advocate'
                     ? 'specialist.advocate'.tr()
@@ -235,6 +260,19 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
                                           '${'profile_view.experience'.tr()} $exp ${'profile_view.years'.tr()}',
                                       ].join(' · '),
                                       style: TextStyle(fontSize: 12, color: Colors.grey[600]),
+                                    ),
+                                  ],
+                                  if (reviewCount > 0) ...[
+                                    const SizedBox(height: 3),
+                                    Row(
+                                      children: [
+                                        StarRatingDisplay(rating: avgRating!, size: 14),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          '${avgRating.toStringAsFixed(1)} ($reviewCount)',
+                                          style: TextStyle(fontSize: 12, color: Colors.grey[700], fontWeight: FontWeight.w600),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ],

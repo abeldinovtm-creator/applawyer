@@ -133,6 +133,60 @@ class CountBadge extends StatelessWidget {
   }
 }
 
+// Интерактивный выбор оценки 1-5 звёзд (форма отзыва).
+class StarRatingInput extends StatelessWidget {
+  final int rating;
+  final ValueChanged<int> onChanged;
+
+  const StarRatingInput({super.key, required this.rating, required this.onChanged});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (i) {
+        final starValue = i + 1;
+        return IconButton(
+          onPressed: () => onChanged(starValue),
+          icon: Icon(
+            starValue <= rating ? Icons.star_rounded : Icons.star_border_rounded,
+            color: const Color(0xFFA6192E),
+            size: 32,
+          ),
+          visualDensity: VisualDensity.compact,
+        );
+      }),
+    );
+  }
+}
+
+// Отображение оценки 1-5 звёзд, только для чтения (профиль юриста, карточки отзывов).
+class StarRatingDisplay extends StatelessWidget {
+  final double rating;
+  final double size;
+
+  const StarRatingDisplay({super.key, required this.rating, this.size = 18});
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: List.generate(5, (i) {
+        final starValue = i + 1;
+        IconData icon;
+        if (rating >= starValue) {
+          icon = Icons.star_rounded;
+        } else if (rating >= starValue - 0.5) {
+          icon = Icons.star_half_rounded;
+        } else {
+          icon = Icons.star_border_rounded;
+        }
+        return Icon(icon, color: const Color(0xFFA6192E), size: size);
+      }),
+    );
+  }
+}
+
 // Иконка открытия endDrawer с бейджем суммарного количества непрочитанного
 // (уведомления + сообщения в чатах). Подписывается на UnreadCountsService.
 class MenuIconWithBadge extends StatelessWidget {

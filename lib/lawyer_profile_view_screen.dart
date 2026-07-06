@@ -1,10 +1,23 @@
 import 'package:flutter/material.dart';
 import 'package:easy_localization/easy_localization.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'widgets.dart';
 
 class LawyerProfileViewScreen extends StatelessWidget {
   final Map<String, dynamic> profile;
 
   const LawyerProfileViewScreen({Key? key, required this.profile}) : super(key: key);
+
+  Future<List<Map<String, dynamic>>> _fetchReviews() async {
+    final lawyerId = profile['id']?.toString();
+    if (lawyerId == null) return [];
+    final raw = await Supabase.instance.client
+        .from('reviews')
+        .select('rating, comment, created_at')
+        .eq('lawyer_id', lawyerId)
+        .order('created_at', ascending: false);
+    return List<Map<String, dynamic>>.from(raw as List);
+  }
 
   String _subtypeLabel(String subtype) {
     switch (subtype) {
@@ -106,6 +119,63 @@ class LawyerProfileViewScreen extends StatelessWidget {
                 style: TextStyle(fontSize: 14, color: Colors.grey[800], height: 1.6),
               ),
             ],
+            const SizedBox(height: 8),
+            const Divider(),
+            const SizedBox(height: 12),
+            Text(
+              'review.section_title'.tr(),
+              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            FutureBuilder<List<Map<String, dynamic>>>(
+              future: _fetchReviews(),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final reviews = snapshot.data ?? [];
+                if (reviews.isEmpty) {
+                  return Text(
+                    'review.no_reviews'.tr(),
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                  );
+                }
+                final avg = reviews.map((r) => (r['rating'] as num).toDouble()).reduce((a, b) => a + b) /
+                    reviews.length;
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        StarRatingDisplay(rating: avg, size: 20),
+                        const SizedBox(width: 8),
+                        Text(
+                          '${avg.toStringAsFixed(1)} · ${reviews.length} ${'review.reviews_count'.tr()}',
+                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 12),
+                    ...reviews.map((r) {
+                      final comment = r['comment']?.toString() ?? '';
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 12),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            StarRatingDisplay(rating: (r['rating'] as num).toDouble(), size: 16),
+                            if (comment.isNotEmpty) ...[
+                              const SizedBox(height: 4),
+                              Text(comment, style: TextStyle(fontSize: 13, color: Colors.grey[800])),
+                            ],
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                );
+              },
+            ),
           ],
         ),
       ),
