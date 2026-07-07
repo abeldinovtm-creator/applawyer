@@ -9,6 +9,7 @@ import 'chat_screen.dart';
 import 'app_drawer.dart';
 import 'widgets.dart';
 import 'services/unread_counts_service.dart';
+import 'test_mode_banner.dart';
 
 String _trServiceType(String type) {
   const map = {
@@ -1193,11 +1194,18 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
           const MenuIconWithBadge(color: Colors.white),
         ],
       ),
-      body: TabBarView(
-        controller: _tabController,
+      body: Column(
         children: [
-          _buildCasesTab(lang),
-          _buildInProgressTab(lang),
+          const TestModeBanner(),
+          Expanded(
+            child: TabBarView(
+              controller: _tabController,
+              children: [
+                _buildCasesTab(lang),
+                _buildInProgressTab(lang),
+              ],
+            ),
+          ),
         ],
       ),
     );

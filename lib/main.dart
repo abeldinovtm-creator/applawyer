@@ -18,6 +18,8 @@ import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'notifications_screen.dart';
 import 'services/route_persistence.dart';
+import 'test_mode_banner.dart';
+import 'test_mode_dialog.dart';
 
 // anon key — публичный ключ (виден всем в собранном web-бандле на applawyer.online),
 // защита данных идёт через RLS, а не через секретность ключа.
@@ -219,11 +221,15 @@ class _AuthRouterState extends State<AuthRouter> {
     _profileFuture = user != null
         ? Supabase.instance.client
             .from('profiles')
-            .select('role, active_role, lawyer_subtype, preferred_language')
+            .select('role, active_role, lawyer_subtype, preferred_language, test_mode_acknowledged')
             .eq('id', user.id)
             .maybeSingle()
         : Future.value(null);
   }
+
+  // Диалог согласия с тестовым режимом показан за время жизни этого State —
+  // защита от повторного показа при перестройках виджета до завершения upsert.
+  bool _testModeDialogShown = false;
 
   @override
   Widget build(BuildContext context) {
@@ -268,6 +274,14 @@ class _AuthRouterState extends State<AuthRouter> {
               if (mounted) context.setLocale(targetLocale);
             });
           }
+        }
+
+        final testModeAcknowledged = data?['test_mode_acknowledged'] == true;
+        if (!_testModeDialogShown && !testModeAcknowledged) {
+          _testModeDialogShown = true;
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) showTestModeDialog(context);
+          });
         }
 
         if (role == 'lawyer') {
@@ -429,13 +443,17 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
           const MenuIconWithBadge(),
         ],
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            if (!_isSearching) const SizedBox(height: 12),
-            if (categories.isEmpty)
+      body: Column(
+        children: [
+          const TestModeBanner(),
+          Expanded(
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  if (!_isSearching) const SizedBox(height: 12),
+                  if (categories.isEmpty)
               Expanded(
                 child: Center(
                   child: Text(
@@ -565,8 +583,11 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                   },
                 ),
               ),
-          ],
-        ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
