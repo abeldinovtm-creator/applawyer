@@ -11,7 +11,7 @@ class TestModeBanner extends StatefulWidget {
 }
 
 class _TestModeBannerState extends State<TestModeBanner> {
-  bool _expanded = false;
+  bool _expanded = true;
 
   @override
   Widget build(BuildContext context) {
