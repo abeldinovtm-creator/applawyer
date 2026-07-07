@@ -5,6 +5,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'lawyer_screen.dart';
 import 'main.dart';
 import 'widgets.dart';
+import 'test_mode_banner.dart';
 
 class AuthScreen extends StatefulWidget {
   const AuthScreen({Key? key}) : super(key: key);
@@ -243,17 +244,21 @@ class _AuthScreenState extends State<AuthScreen> {
           LanguageButton(langCode: 'en', label: 'EN', isDarkAppBar: true),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Padding(
-              padding: const EdgeInsets.all(24.0),
-              child: Form(
-                key: _formKey,
-                child: ListView(
-                  children: [
-                    const SizedBox(height: 20),
-                    Text(
-                      'Applawyer',
+      body: Column(
+        children: [
+          const TestModeBanner(),
+          Expanded(
+            child: _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : Padding(
+                    padding: const EdgeInsets.all(24.0),
+                    child: Form(
+                      key: _formKey,
+                      child: ListView(
+                        children: [
+                          const SizedBox(height: 20),
+                          Text(
+                            'Applawyer',
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 32, fontWeight: FontWeight.bold, color: const Color(0xFF831320)),
                     ),
@@ -443,6 +448,9 @@ class _AuthScreenState extends State<AuthScreen> {
                 ),
               ),
             ),
+          ),
+        ],
+      ),
     );
   }
 }
