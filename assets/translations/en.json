@@ -165,11 +165,7 @@
     "confirm_completion_title": "Confirm the work is complete?",
     "confirm_completion_body": "The case closes only after both sides confirm. The platform commission (by category) is then deducted.",
     "waiting_client_confirmation": "You've confirmed. Waiting for the client's confirmation",
-    "case_completed_badge": "Case completed",
-    "contacts_left_label": "Free responses left: ",
-    "contacts_limit_title": "Response limit reached",
-    "contacts_limit_body": "You've used all your free responses for this month. Paying for extra responses will become available once Kaspi Pay is connected — not available yet.",
-    "contacts_limit_ok": "Got it"
+    "case_completed_badge": "Case completed"
   },
   "role_switch": {
     "to_client": "Client mode",
