@@ -71,6 +71,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
   bool _isSearching = false;
   final _searchCtrl = TextEditingController();
   String _searchQuery = '';
+  int? _contactsLeft;
 
   // Категории, доступные по подтипу специалиста
   static List<String> _allowedCategories(String subtype) {
@@ -114,6 +115,37 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
     _tabController = TabController(length: 2, vsync: this, initialIndex: widget.initialTabIndex);
     _refreshCases();
     _refreshInProgress();
+    _refreshContactsLeft();
+  }
+
+  Future<void> _refreshContactsLeft() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return;
+    final profile = await _supabase
+        .from('profiles')
+        .select('contacts_left')
+        .eq('id', user.id)
+        .maybeSingle();
+    if (!mounted) return;
+    setState(() {
+      _contactsLeft = (profile?['contacts_left'] as num?)?.toInt();
+    });
+  }
+
+  Future<void> _showContactsLimitDialog() {
+    return showDialog<void>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text('lawyer.contacts_limit_title'.tr()),
+        content: Text('lawyer.contacts_limit_body'.tr()),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: Text('lawyer.contacts_limit_ok'.tr()),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -277,6 +309,11 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
       return;
     }
 
+    if ((_contactsLeft ?? 1) <= 0) {
+      await _showContactsLimitDialog();
+      return;
+    }
+
     // Бюджет клиента из заявки
     final clientBudget = ((caseItem['budget'] ?? 0) as num).toInt();
     final hasClientPrice = clientBudget > 0;
@@ -409,12 +446,21 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
     final amount = int.tryParse(amountCtrl.text);
 
     try {
+      final allowed = await _supabase.rpc('consume_free_contact', params: {'p_lawyer_id': user.id});
+      if (allowed != true) {
+        if (!mounted) return;
+        await _showContactsLimitDialog();
+        _refreshContactsLeft();
+        return;
+      }
+
       await _supabase.from('conversations').insert({
         'case_id': caseId,
         'lawyer_id': user.id,
         'status': 'pending',
         if (amount != null) 'price_amount': amount,
       });
+      _refreshContactsLeft();
       if (!mounted) return;
       showAppSnackBar(context, 'lawyer.response_sent'.tr());
     } catch (e) {
@@ -763,6 +809,17 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
               ),
             ],
           ),
+          if (_contactsLeft != null) ...[
+            const SizedBox(height: 2),
+            Text(
+              '${'lawyer.contacts_left_label'.tr()}$_contactsLeft',
+              style: TextStyle(
+                fontSize: 12,
+                color: _contactsLeft! <= 0 ? const Color(0xFFA6192E) : Colors.grey[600],
+                fontWeight: _contactsLeft! <= 0 ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
           AnimatedCrossFade(
             duration: const Duration(milliseconds: 200),
             crossFadeState: _filtersExpanded
