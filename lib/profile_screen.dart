@@ -214,7 +214,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         'full_name': _nameCtrl.text.trim(),
         'phone': _phoneCtrl.text.trim(),
         'backup_email': _backupEmailCtrl.text.trim(),
-        if (_isLawyer) 'city': _selectedRegion,
+        'city': _selectedRegion,
         if (_isLawyer) 'lawyer_subtype': _lawyerSubtype,
         if (_isLawyer) 'experience_years': int.tryParse(_expCtrl.text) ?? 0,
         if (_isLawyer) 'about': _aboutCtrl.text.trim(),
@@ -442,10 +442,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       _infoRow(Icons.phone_outlined, 'profile.phone'.tr(), _phoneCtrl.text),
                       _infoRow(Icons.email_outlined, 'profile.email'.tr(), _emailCtrl.text),
                       _infoRow(Icons.alternate_email_rounded, 'profile.backup_email'.tr(), _backupEmailCtrl.text),
+                      _infoRow(Icons.location_on_outlined, 'profile.city'.tr(), _selectedRegion),
                       if (_isLawyer) ...[
                         _infoRow(Icons.gavel_outlined, 'auth.specialization'.tr(), _subtypeName()),
                         _infoRow(Icons.badge_outlined, 'profile.iin'.tr(), _iinCtrl.text),
-                        _infoRow(Icons.location_on_outlined, 'profile.city'.tr(), _selectedRegion),
                         _infoRow(Icons.work_history_outlined, 'profile.experience'.tr(), _expCtrl.text),
                         _infoRow(Icons.description_outlined, 'profile.about'.tr(), _aboutCtrl.text),
                       ],
@@ -513,6 +513,29 @@ class _ProfileScreenState extends State<ProfileScreen> {
                       ),
 
                       const SizedBox(height: 8),
+
+                      // Регион — пикер (доступен и клиенту, и юристу)
+                      InkWell(
+                        onTap: _pickRegion,
+                        borderRadius: BorderRadius.circular(4),
+                        child: InputDecorator(
+                          decoration: InputDecoration(
+                            labelText: 'profile.city'.tr(),
+                            prefixIcon: const Icon(Icons.location_on_outlined),
+                            suffixIcon: const Icon(Icons.arrow_drop_down),
+                            border: const OutlineInputBorder(),
+                          ),
+                          child: Text(
+                            _selectedRegion.isNotEmpty
+                                ? _selectedRegion
+                                : 'profile.city_select'.tr(),
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: _selectedRegion.isNotEmpty ? Colors.black87 : Colors.grey,
+                            ),
+                          ),
+                        ),
+                      ),
 
                       // Поля только для юристов/адвокатов/ЧСИ/нотариусов
                       if (_isLawyer) ...[
