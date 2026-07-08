@@ -13,7 +13,7 @@
   "test_mode": {
     "banner_label": "Test Mode",
     "dialog_title": "Test Mode",
-    "body": "The app is currently in test mode. Please do not upload real client personal data or confidential documents until testing is complete.",
+    "body": "The app is currently in test mode. Please do not upload real personal data or confidential documents until testing is complete.",
     "checkbox_label": "Understood, I won't upload real documents",
     "confirm_btn": "Got it"
   },
