@@ -93,55 +93,84 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
     return list;
   }
 
+  Widget _criteriaRow(String label, int value, ValueChanged<int> onChanged) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Expanded(
+            child: Text(label, style: const TextStyle(fontSize: 13)),
+          ),
+          StarRatingInput(rating: value, onChanged: onChanged),
+        ],
+      ),
+    );
+  }
+
   Future<void> _submitReview(String caseId, String lawyerId) async {
-    int rating = 0;
+    int communication = 0;
+    int timeliness = 0;
+    int professionalism = 0;
+    int paymentTransparency = 0;
     bool isAnonymous = false;
     final commentController = TextEditingController();
 
     final submitted = await showDialog<bool>(
       context: context,
       builder: (ctx) => StatefulBuilder(
-        builder: (ctx, setDialogState) => AlertDialog(
-          title: Text('review.dialog_title'.tr()),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              StarRatingInput(
-                rating: rating,
-                onChanged: (v) => setDialogState(() => rating = v),
+        builder: (ctx, setDialogState) {
+          final canSubmit = communication > 0 &&
+              timeliness > 0 &&
+              professionalism > 0 &&
+              paymentTransparency > 0;
+          return AlertDialog(
+            title: Text('review.dialog_title'.tr()),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  _criteriaRow('review.criteria_communication'.tr(), communication,
+                      (v) => setDialogState(() => communication = v)),
+                  _criteriaRow('review.criteria_timeliness'.tr(), timeliness,
+                      (v) => setDialogState(() => timeliness = v)),
+                  _criteriaRow('review.criteria_professionalism'.tr(), professionalism,
+                      (v) => setDialogState(() => professionalism = v)),
+                  _criteriaRow('review.criteria_payment_transparency'.tr(), paymentTransparency,
+                      (v) => setDialogState(() => paymentTransparency = v)),
+                  const SizedBox(height: 8),
+                  TextField(
+                    controller: commentController,
+                    maxLines: 3,
+                    decoration: InputDecoration(
+                      hintText: 'review.comment_hint'.tr(),
+                      border: const OutlineInputBorder(),
+                    ),
+                  ),
+                  CheckboxListTile(
+                    value: isAnonymous,
+                    onChanged: (v) => setDialogState(() => isAnonymous = v ?? false),
+                    title: Text('review.anonymous_checkbox'.tr(), style: const TextStyle(fontSize: 13)),
+                    controlAffinity: ListTileControlAffinity.leading,
+                    contentPadding: EdgeInsets.zero,
+                    dense: true,
+                  ),
+                ],
               ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: commentController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: 'review.comment_hint'.tr(),
-                  border: const OutlineInputBorder(),
-                ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx, false),
+                child: Text('common.cancel'.tr()),
               ),
-              CheckboxListTile(
-                value: isAnonymous,
-                onChanged: (v) => setDialogState(() => isAnonymous = v ?? false),
-                title: Text('review.anonymous_checkbox'.tr(), style: const TextStyle(fontSize: 13)),
-                controlAffinity: ListTileControlAffinity.leading,
-                contentPadding: EdgeInsets.zero,
-                dense: true,
+              TextButton(
+                onPressed: canSubmit ? () => Navigator.pop(ctx, true) : null,
+                child: Text('review.submit'.tr()),
               ),
             ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx, false),
-              child: Text('common.cancel'.tr()),
-            ),
-            TextButton(
-              onPressed: rating == 0
-                  ? null
-                  : () => Navigator.pop(ctx, true),
-              child: Text('review.submit'.tr()),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
 
@@ -156,12 +185,48 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
         'case_id': caseId,
         'client_id': user.id,
         'lawyer_id': lawyerId,
-        'rating': rating,
+        'communication_rating': communication,
+        'timeliness_rating': timeliness,
+        'professionalism_rating': professionalism,
+        'payment_transparency_rating': paymentTransparency,
         'comment': commentController.text.trim().isEmpty ? null : commentController.text.trim(),
         'is_anonymous': isAnonymous,
       });
       if (mounted) {
         showAppSnackBar(context, 'review.submitted'.tr());
+        setState(() => _refreshKey++);
+      }
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(context, 'Ошибка: $e', kind: SnackKind.error);
+      }
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _declineLawyer(String caseId) async {
+    final result = await showDeclineReasonDialog(
+      context,
+      title: 'decline.client_title'.tr(),
+      reasons: [
+        MapEntry('not_responding', 'decline.client_reason_not_responding'.tr()),
+        MapEntry('price_disagreement', 'decline.client_reason_price'.tr()),
+        MapEntry('changed_mind', 'decline.client_reason_changed_mind'.tr()),
+        MapEntry('other', 'decline.reason_other'.tr()),
+      ],
+    );
+    if (result == null) return;
+
+    setState(() => _isLoading = true);
+    try {
+      await _supabase.rpc('client_decline_lawyer', params: {
+        'p_case_id': caseId,
+        'p_reason_code': result['reason_code'],
+        'p_reason_text': (result['reason_text'] ?? '').isEmpty ? null : result['reason_text'],
+      });
+      if (mounted) {
+        showAppSnackBar(context, 'decline.success_client'.tr());
         setState(() => _refreshKey++);
       }
     } catch (e) {
@@ -266,6 +331,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
         text = 'status.active'.tr();
         break;
       case 'in_progress':
+      case 'closed':
         color = Colors.orange;
         text = 'status.in_progress'.tr();
         break;
@@ -428,6 +494,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                 ),
                                 if (status == 'active' ||
                                     status == 'open' ||
+                                    status == 'closed' ||
                                     status == 'in_progress')
                                   Wrap(
                                     crossAxisAlignment: WrapCrossAlignment.center,
@@ -440,12 +507,18 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                             style: TextStyle(color: Colors.grey[600], fontSize: 12),
                                           ),
                                         )
-                                      else if (hasAcceptedLawyer)
+                                      else if (hasAcceptedLawyer) ...[
                                         TextButton.icon(
                                           onPressed: () => _confirmCompletion(order['id'].toString()),
                                           icon: const Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
                                           label: Text('client.confirm_completion'.tr(), style: const TextStyle(color: Colors.green)),
                                         ),
+                                        TextButton.icon(
+                                          onPressed: () => _declineLawyer(order['id'].toString()),
+                                          icon: Icon(Icons.person_remove_outlined, color: Colors.grey[700], size: 18),
+                                          label: Text('decline.client_button'.tr(), style: TextStyle(color: Colors.grey[700])),
+                                        ),
+                                      ],
                                       IconButton(
                                         onPressed: () => _cancelOrder(order['id'].toString()),
                                         icon: const Icon(Icons.delete_outline, color: Colors.grey, size: 20),

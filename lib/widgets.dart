@@ -187,6 +187,76 @@ class StarRatingDisplay extends StatelessWidget {
   }
 }
 
+// Диалог отказа с выбором причины (dropdown) — общий для отказа клиента от
+// юриста и отказа юриста от заявки. Возвращает {'reason_code', 'reason_text'}
+// или null при отмене. reason_text обязателен, только если выбрана причина
+// с кодом 'other'.
+Future<Map<String, String>?> showDeclineReasonDialog(
+  BuildContext context, {
+  required String title,
+  required List<MapEntry<String, String>> reasons,
+}) {
+  String? selectedCode;
+  final otherController = TextEditingController();
+
+  return showDialog<Map<String, String>>(
+    context: context,
+    builder: (ctx) => StatefulBuilder(
+      builder: (ctx, setDialogState) {
+        final isOther = selectedCode == 'other';
+        final canSubmit = selectedCode != null && (!isOther || otherController.text.trim().isNotEmpty);
+        return AlertDialog(
+          title: Text(title),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DropdownButtonFormField<String>(
+                value: selectedCode,
+                decoration: InputDecoration(
+                  labelText: 'decline.reason_label'.tr(),
+                  border: const OutlineInputBorder(),
+                ),
+                items: reasons
+                    .map((r) => DropdownMenuItem(value: r.key, child: Text(r.value)))
+                    .toList(),
+                onChanged: (v) => setDialogState(() => selectedCode = v),
+              ),
+              if (isOther) ...[
+                const SizedBox(height: 10),
+                TextField(
+                  controller: otherController,
+                  maxLines: 2,
+                  decoration: InputDecoration(
+                    hintText: 'decline.other_reason_hint'.tr(),
+                    border: const OutlineInputBorder(),
+                  ),
+                  onChanged: (_) => setDialogState(() {}),
+                ),
+              ],
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('common.cancel'.tr()),
+            ),
+            TextButton(
+              onPressed: canSubmit
+                  ? () => Navigator.pop(ctx, {
+                        'reason_code': selectedCode!,
+                        'reason_text': otherController.text.trim(),
+                      })
+                  : null,
+              child: Text('decline.confirm'.tr(), style: const TextStyle(color: Color(0xFFA6192E))),
+            ),
+          ],
+        );
+      },
+    ),
+  );
+}
+
 // Иконка открытия endDrawer с бейджем суммарного количества непрочитанного
 // (уведомления + сообщения в чатах). Подписывается на UnreadCountsService.
 class MenuIconWithBadge extends StatelessWidget {

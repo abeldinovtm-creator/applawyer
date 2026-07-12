@@ -121,11 +121,15 @@
     "review_left": "Отзыв оставлен",
     "dialog_title": "Оцените работу юриста",
     "rating_required": "Поставьте оценку",
-    "comment_hint": "Комментарий (необязательно)",
+    "comment_hint": "Комментарий о сервисе и общении (без деталей дела)",
     "submit": "Отправить",
     "submitted": "Спасибо за отзыв!",
     "anonymous_checkbox": "Оставить отзыв анонимно",
-    "anonymous_author": "Аноним"
+    "anonymous_author": "Аноним",
+    "criteria_communication": "Коммуникация",
+    "criteria_timeliness": "Соблюдение сроков",
+    "criteria_professionalism": "Вежливость и профессионализм",
+    "criteria_payment_transparency": "Прозрачность оплаты"
   },
   "specialist": {
     "lawyer": "Юрист",
@@ -265,5 +269,23 @@
     "search_hint": "Город, область, страна",
     "online": "Онлайн (любой регион)",
     "all_regions": "Все регионы Казахстана"
+  },
+  "decline": {
+    "reason_label": "Причина",
+    "reason_other": "Другое",
+    "other_reason_hint": "Опишите причину",
+    "confirm": "Отказаться",
+    "client_title": "Отказаться от юриста?",
+    "client_button": "Отказаться от юриста",
+    "client_reason_not_responding": "Не отвечает",
+    "client_reason_price": "Не устраивает цена",
+    "client_reason_changed_mind": "Передумал",
+    "success_client": "Вы отказались от юриста. Заявка снова активна.",
+    "lawyer_title": "Отказаться от заявки?",
+    "lawyer_button": "Отказаться от заявки",
+    "lawyer_reason_specialization": "Не моя специализация",
+    "lawyer_reason_conflict": "Конфликт интересов",
+    "lawyer_reason_unresponsive": "Клиент не выходит на связь",
+    "success_lawyer": "Вы отказались от заявки. Она снова активна."
   }
 }

@@ -41,7 +41,8 @@ class LawyerProfileViewScreen extends StatelessWidget {
     final supabase = Supabase.instance.client;
     final raw = await supabase
         .from('reviews')
-        .select('rating, comment, created_at, client_id, is_anonymous')
+        .select(
+            'rating, communication_rating, timeliness_rating, professionalism_rating, payment_transparency_rating, comment, created_at, client_id, is_anonymous')
         .eq('lawyer_id', lawyerId)
         .order('created_at', ascending: false);
     final reviews = List<Map<String, dynamic>>.from(raw as List);
@@ -255,6 +256,12 @@ class LawyerProfileViewScreen extends StatelessWidget {
                       final displayAuthor = (authorName != null && authorName.isNotEmpty)
                           ? authorName
                           : 'review.anonymous_author'.tr();
+                      final criteria = <String, num?>{
+                        'review.criteria_communication': r['communication_rating'] as num?,
+                        'review.criteria_timeliness': r['timeliness_rating'] as num?,
+                        'review.criteria_professionalism': r['professionalism_rating'] as num?,
+                        'review.criteria_payment_transparency': r['payment_transparency_rating'] as num?,
+                      };
                       return Padding(
                         padding: const EdgeInsets.only(bottom: 12),
                         child: Column(
@@ -269,6 +276,18 @@ class LawyerProfileViewScreen extends StatelessWidget {
                                   style: TextStyle(fontSize: 12, color: Colors.grey[600], fontWeight: FontWeight.w600),
                                 ),
                               ],
+                            ),
+                            const SizedBox(height: 4),
+                            Wrap(
+                              spacing: 10,
+                              runSpacing: 2,
+                              children: criteria.entries
+                                  .where((e) => e.value != null)
+                                  .map((e) => Text(
+                                        '${e.key.tr()}: ${e.value}/5',
+                                        style: TextStyle(fontSize: 11, color: Colors.grey[600]),
+                                      ))
+                                  .toList(),
                             ),
                             if (comment.isNotEmpty) ...[
                               const SizedBox(height: 4),

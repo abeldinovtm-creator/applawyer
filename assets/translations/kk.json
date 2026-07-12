@@ -121,11 +121,15 @@
     "review_left": "Пікір қалдырылды",
     "dialog_title": "Заңгердің жұмысын бағалаңыз",
     "rating_required": "Бағаны қойыңыз",
-    "comment_hint": "Пікір (міндетті емес)",
+    "comment_hint": "Қызмет пен қарым-қатынас туралы пікір (іс мәліметтерінсіз)",
     "submit": "Жіберу",
     "submitted": "Пікіріңізге рахмет!",
     "anonymous_checkbox": "Пікірді анонимді қалдыру",
-    "anonymous_author": "Аноним"
+    "anonymous_author": "Аноним",
+    "criteria_communication": "Байланыс",
+    "criteria_timeliness": "Мерзімдерді сақтау",
+    "criteria_professionalism": "Сыпайылық пен кәсібилік",
+    "criteria_payment_transparency": "Төлемнің ашықтығы"
   },
   "specialist": {
     "lawyer": "Заңгер",
@@ -265,5 +269,23 @@
     "search_hint": "Қала, аудан, ел",
     "online": "Онлайн (кез келген аймақ)",
     "all_regions": "Қазақстанның барлық аймақтары"
+  },
+  "decline": {
+    "reason_label": "Себебі",
+    "reason_other": "Басқа",
+    "other_reason_hint": "Себебін сипаттаңыз",
+    "confirm": "Бас тарту",
+    "client_title": "Заңгерден бас тартасыз ба?",
+    "client_button": "Заңгерден бас тарту",
+    "client_reason_not_responding": "Жауап бермейді",
+    "client_reason_price": "Баға сай келмейді",
+    "client_reason_changed_mind": "Ойымнан қайттым",
+    "success_client": "Сіз заңгерден бас тарттыңыз. Өтінім қайта белсенді.",
+    "lawyer_title": "Өтінімнен бас тартасыз ба?",
+    "lawyer_button": "Өтінімнен бас тарту",
+    "lawyer_reason_specialization": "Менің мамандығым емес",
+    "lawyer_reason_conflict": "Мүдделер қақтығысы",
+    "lawyer_reason_unresponsive": "Клиент байланысқа шықпайды",
+    "success_lawyer": "Сіз өтінімнен бас тарттыңыз. Ол қайта белсенді."
   }
 }

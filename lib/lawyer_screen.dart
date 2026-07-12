@@ -139,6 +139,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
       _casesFuture = _supabase
           .from('cases')
           .select()
+          .eq('status', 'open')
           .order('id', ascending: false)
           .then((value) {
             var list = List<Map<String, dynamic>>.from(value);
@@ -239,6 +240,37 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
           .update({'lawyer_confirmed_completion_at': DateTime.now().toIso8601String()})
           .eq('id', caseId);
       _refreshInProgress();
+    } catch (e) {
+      if (mounted) {
+        showAppSnackBar(context, 'Ошибка: $e', kind: SnackKind.error);
+      }
+    }
+  }
+
+  Future<void> _declineCase(String caseId) async {
+    final result = await showDeclineReasonDialog(
+      context,
+      title: 'decline.lawyer_title'.tr(),
+      reasons: [
+        MapEntry('not_my_specialization', 'decline.lawyer_reason_specialization'.tr()),
+        MapEntry('conflict_of_interest', 'decline.lawyer_reason_conflict'.tr()),
+        MapEntry('client_unresponsive', 'decline.lawyer_reason_unresponsive'.tr()),
+        MapEntry('other', 'decline.reason_other'.tr()),
+      ],
+    );
+    if (result == null) return;
+
+    try {
+      await _supabase.rpc('lawyer_decline_case', params: {
+        'p_case_id': caseId,
+        'p_reason_code': result['reason_code'],
+        'p_reason_text': (result['reason_text'] ?? '').isEmpty ? null : result['reason_text'],
+      });
+      if (mounted) {
+        showAppSnackBar(context, 'decline.success_lawyer'.tr());
+        _refreshInProgress();
+        _refreshCases();
+      }
     } catch (e) {
       if (mounted) {
         showAppSnackBar(context, 'Ошибка: $e', kind: SnackKind.error);
@@ -1119,7 +1151,7 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                           textAlign: TextAlign.center,
                           style: TextStyle(color: Colors.grey[600], fontSize: 12),
                         )
-                      else
+                      else ...[
                         SizedBox(
                           width: double.infinity,
                           child: OutlinedButton.icon(
@@ -1133,6 +1165,21 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
                             label: Text('lawyer.confirm_completion'.tr()),
                           ),
                         ),
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          width: double.infinity,
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              foregroundColor: Colors.grey[700],
+                              side: BorderSide(color: Colors.grey.shade400),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                            ),
+                            onPressed: () => _declineCase(caseId),
+                            icon: const Icon(Icons.remove_circle_outline, size: 16),
+                            label: Text('decline.lawyer_button'.tr()),
+                          ),
+                        ),
+                      ],
                     ],
                   ),
                 ),
