@@ -128,6 +128,8 @@ Future<void> main() async {
 }
 
 class MyApp extends StatelessWidget {
+  const MyApp({super.key});
+
   @override
   Widget build(BuildContext context) {
     final session = Supabase.instance.client.auth.currentSession;
