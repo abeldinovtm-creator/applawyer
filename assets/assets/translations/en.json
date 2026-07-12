@@ -186,7 +186,8 @@
     "confirm_completion": "Confirm completion",
     "confirm_completion_title": "Confirm the work is complete?",
     "confirm_completion_body": "The case closes only after both sides confirm — you and the lawyer. The platform commission is then deducted.",
-    "waiting_lawyer_confirmation": "You've confirmed. Waiting for the lawyer's confirmation"
+    "waiting_lawyer_confirmation": "You've confirmed. Waiting for the lawyer's confirmation",
+    "waiting_lawyer_to_finish": "The lawyer hasn't marked the case as completed yet"
   },
   "case": {
     "describe_title": "Describe your case",
