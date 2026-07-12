@@ -121,11 +121,15 @@
     "review_left": "Review submitted",
     "dialog_title": "Rate the lawyer's work",
     "rating_required": "Please set a rating",
-    "comment_hint": "Comment (optional)",
+    "comment_hint": "Comment about service and communication (no case details)",
     "submit": "Submit",
     "submitted": "Thank you for your review!",
     "anonymous_checkbox": "Leave the review anonymously",
-    "anonymous_author": "Anonymous"
+    "anonymous_author": "Anonymous",
+    "criteria_communication": "Communication",
+    "criteria_timeliness": "Timeliness",
+    "criteria_professionalism": "Politeness and professionalism",
+    "criteria_payment_transparency": "Payment transparency"
   },
   "specialist": {
     "lawyer": "Lawyer",
@@ -265,5 +269,23 @@
     "search_hint": "City, region, country",
     "online": "Online (any region)",
     "all_regions": "All regions of Kazakhstan"
+  },
+  "decline": {
+    "reason_label": "Reason",
+    "reason_other": "Other",
+    "other_reason_hint": "Describe the reason",
+    "confirm": "Decline",
+    "client_title": "Decline this lawyer?",
+    "client_button": "Decline lawyer",
+    "client_reason_not_responding": "Not responding",
+    "client_reason_price": "Price doesn't work for me",
+    "client_reason_changed_mind": "Changed my mind",
+    "success_client": "You've declined the lawyer. The case is active again.",
+    "lawyer_title": "Decline this case?",
+    "lawyer_button": "Decline case",
+    "lawyer_reason_specialization": "Not my specialization",
+    "lawyer_reason_conflict": "Conflict of interest",
+    "lawyer_reason_unresponsive": "Client is unresponsive",
+    "success_lawyer": "You've declined the case. It's active again."
   }
 }
