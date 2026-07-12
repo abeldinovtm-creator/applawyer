@@ -23,6 +23,7 @@ class ConversationListScreen extends StatefulWidget {
 class _ConversationListScreenState extends State<ConversationListScreen> {
   final _supabase = Supabase.instance.client;
   int _refreshKey = 0;
+  late Future<List<Map<String, dynamic>>> _future = _load();
 
   Future<List<Map<String, dynamic>>> _load() async {
     final convRaw = await _supabase
@@ -95,13 +96,13 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
   Future<void> _updateStatus(String convId, String status) async {
     try {
       await _supabase.from('conversations').update({'status': status}).eq('id', convId);
-      if (mounted) setState(() => _refreshKey++);
+      if (mounted) setState(() { _refreshKey++; _future = _load(); });
     } catch (e) {
       // Триггер conversations_auto_reject_others_on_accept может отклонить
       // принятие, если по этой заявке гонкой уже принят другой отклик.
       if (mounted) {
         showAppSnackBar(context, 'chat.accept_race_error'.tr(), kind: SnackKind.error);
-        setState(() => _refreshKey++);
+        setState(() { _refreshKey++; _future = _load(); });
       }
     }
   }
@@ -125,7 +126,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         key: ValueKey(_refreshKey),
-        future: _load(),
+        future: _future,
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -147,7 +148,7 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
             );
           }
           return RefreshIndicator(
-            onRefresh: () async => setState(() => _refreshKey++),
+            onRefresh: () async => setState(() { _refreshKey++; _future = _load(); }),
             child: ListView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),
@@ -432,6 +433,7 @@ class LawyerConversationListScreen extends StatefulWidget {
 class _LawyerConversationListScreenState extends State<LawyerConversationListScreen> {
   final _supabase = Supabase.instance.client;
   int _refreshKey = 0;
+  late Future<List<Map<String, dynamic>>> _future = _load();
 
   Future<List<Map<String, dynamic>>> _load() async {
     final uid = _supabase.auth.currentUser?.id;
@@ -472,7 +474,7 @@ class _LawyerConversationListScreenState extends State<LawyerConversationListScr
       ),
       body: FutureBuilder<List<Map<String, dynamic>>>(
         key: ValueKey(_refreshKey),
-        future: _load(),
+        future: _future,
         builder: (context, snap) {
           if (snap.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -487,7 +489,7 @@ class _LawyerConversationListScreenState extends State<LawyerConversationListScr
             );
           }
           return RefreshIndicator(
-            onRefresh: () async => setState(() => _refreshKey++),
+            onRefresh: () async => setState(() { _refreshKey++; _future = _load(); }),
             child: ListView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
               padding: const EdgeInsets.all(16),

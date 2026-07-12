@@ -38,6 +38,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
   bool _isLoading = false;
   // Ключ для принудительного перестроения FutureBuilder после удаления
   int _refreshKey = 0;
+  late Future<List<Map<String, dynamic>>> _ordersFuture = _fetchMyOrders();
 
   Future<List<Map<String, dynamic>>> _fetchMyOrders() async {
     final user = _supabase.auth.currentUser;
@@ -194,7 +195,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
       });
       if (mounted) {
         showAppSnackBar(context, 'review.submitted'.tr());
-        setState(() => _refreshKey++);
+        setState(() { _refreshKey++; _ordersFuture = _fetchMyOrders(); });
       }
     } catch (e) {
       if (mounted) {
@@ -227,7 +228,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
       });
       if (mounted) {
         showAppSnackBar(context, 'decline.success_client'.tr());
-        setState(() => _refreshKey++);
+        setState(() { _refreshKey++; _ordersFuture = _fetchMyOrders(); });
       }
     } catch (e) {
       if (mounted) {
@@ -238,10 +239,14 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
     }
   }
 
-  // Дело закрывается только после подтверждения ОБЕИХ сторон — эта функция
-  // ставит только сторону клиента. Остальное (status='completed', списание
-  // комиссии) делает серверный триггер, когда юрист подтвердит тоже
-  // (см. supabase/migrations/20260703_escrow_commission_dual_confirmation.sql).
+  // Дело закрывается только после подтверждения ОБЕИХ сторон, причём первым
+  // подтверждает юрист (инициатива от него) — кнопка клиенту показывается
+  // только когда lawyer_confirmed_completion_at уже установлен (см. build()
+  // ниже), а сервер (cases_guard_completion_columns) дополнительно
+  // отклонит попытку клиента подтвердить раньше юриста. Эта функция ставит
+  // только сторону клиента; status='completed' и списание комиссии делает
+  // серверный триггер (см. supabase/migrations/20260703_escrow_commission_dual_confirmation.sql,
+  // 20260712_lawyer_initiates_completion.sql).
   Future<void> _confirmCompletion(String caseId) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -270,7 +275,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
           .update({'client_confirmed_completion_at': DateTime.now().toIso8601String()})
           .eq('id', caseId);
       if (mounted) {
-        setState(() => _refreshKey++);
+        setState(() { _refreshKey++; _ordersFuture = _fetchMyOrders(); });
       }
     } catch (e) {
       if (mounted) {
@@ -309,7 +314,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
 
       if (mounted) {
         showAppSnackBar(context, 'client.order_deleted'.tr());
-        setState(() => _refreshKey++);
+        setState(() { _refreshKey++; _ordersFuture = _fetchMyOrders(); });
       }
     } catch (e) {
       if (mounted) {
@@ -367,7 +372,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
           ? const Center(child: CircularProgressIndicator())
           : FutureBuilder<List<Map<String, dynamic>>>(
               key: ValueKey(_refreshKey),
-              future: _fetchMyOrders(),
+              future: _ordersFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -394,6 +399,7 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                     final int totalBudget = ((order['budget'] ?? 0) as num).toInt();
                     final bool hasAcceptedLawyer = order['_hasAcceptedLawyer'] == true;
                     final bool clientConfirmed = order['client_confirmed_completion_at'] != null;
+                    final bool lawyerConfirmed = order['lawyer_confirmed_completion_at'] != null;
                     final String caseId = order['id'].toString();
                     final bool isUnread = UnreadCountsService.instance.unreadCaseIds.value.contains(caseId);
 
@@ -507,11 +513,24 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                                             style: TextStyle(color: Colors.grey[600], fontSize: 12),
                                           ),
                                         )
-                                      else if (hasAcceptedLawyer) ...[
+                                      else if (hasAcceptedLawyer && lawyerConfirmed) ...[
                                         TextButton.icon(
                                           onPressed: () => _confirmCompletion(order['id'].toString()),
                                           icon: const Icon(Icons.check_circle_outline, color: Colors.green, size: 18),
                                           label: Text('client.confirm_completion'.tr(), style: const TextStyle(color: Colors.green)),
+                                        ),
+                                        TextButton.icon(
+                                          onPressed: () => _declineLawyer(order['id'].toString()),
+                                          icon: Icon(Icons.person_remove_outlined, color: Colors.grey[700], size: 18),
+                                          label: Text('decline.client_button'.tr(), style: TextStyle(color: Colors.grey[700])),
+                                        ),
+                                      ] else if (hasAcceptedLawyer) ...[
+                                        Padding(
+                                          padding: const EdgeInsets.symmetric(horizontal: 8),
+                                          child: Text(
+                                            'client.waiting_lawyer_to_finish'.tr(),
+                                            style: TextStyle(color: Colors.grey[600], fontSize: 12),
+                                          ),
                                         ),
                                         TextButton.icon(
                                           onPressed: () => _declineLawyer(order['id'].toString()),

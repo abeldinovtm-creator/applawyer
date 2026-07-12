@@ -13,10 +13,24 @@ import 'main.dart';
 import 'services/unread_counts_service.dart';
 import 'widgets.dart';
 
-class AppDrawer extends StatelessWidget {
+class AppDrawer extends StatefulWidget {
   final String role;
 
   const AppDrawer({super.key, required this.role});
+
+  @override
+  State<AppDrawer> createState() => _AppDrawerState();
+}
+
+class _AppDrawerState extends State<AppDrawer> {
+  // Инициализируется один раз для этого State — не на каждой перестройке
+  // родительского экрана (Scaffold.drawer пересоздаёт AppDrawer как виджет
+  // при любом setState на экране, но Flutter переиспользует этот State,
+  // если бы future был получен инлайн в build(), запрос к Supabase уходил
+  // бы заново при каждом ребилде родителя, даже если Drawer не открыт).
+  late final Future<bool> _isRealLawyerFuture = _isRealLawyer();
+
+  String get role => widget.role;
 
   @override
   Widget build(BuildContext context) {
@@ -100,7 +114,7 @@ class AppDrawer extends StatelessWidget {
               )
             else
               FutureBuilder<bool>(
-                future: _isRealLawyer(),
+                future: _isRealLawyerFuture,
                 builder: (context, snap) {
                   if (snap.data != true) return const SizedBox.shrink();
                   return Padding(

@@ -23,10 +23,20 @@ String _trCategory(String cat) {
   return key != null ? key.tr() : cat;
 }
 
-class LawyerProfileViewScreen extends StatelessWidget {
+class LawyerProfileViewScreen extends StatefulWidget {
   final Map<String, dynamic> profile;
 
   const LawyerProfileViewScreen({Key? key, required this.profile}) : super(key: key);
+
+  @override
+  State<LawyerProfileViewScreen> createState() => _LawyerProfileViewScreenState();
+}
+
+class _LawyerProfileViewScreenState extends State<LawyerProfileViewScreen> {
+  late final Future<List<Map<String, dynamic>>> _categoryStatsFuture = _fetchCategoryStats();
+  late final Future<List<Map<String, dynamic>>> _reviewsFuture = _fetchReviews();
+
+  Map<String, dynamic> get profile => widget.profile;
 
   Future<List<Map<String, dynamic>>> _fetchCategoryStats() async {
     final lawyerId = profile['id']?.toString();
@@ -185,7 +195,7 @@ class LawyerProfileViewScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             FutureBuilder<List<Map<String, dynamic>>>(
-              future: _fetchCategoryStats(),
+              future: _categoryStatsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -222,7 +232,7 @@ class LawyerProfileViewScreen extends StatelessWidget {
             ),
             const SizedBox(height: 12),
             FutureBuilder<List<Map<String, dynamic>>>(
-              future: _fetchReviews(),
+              future: _reviewsFuture,
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
