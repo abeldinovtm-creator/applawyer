@@ -2,7 +2,6 @@ import 'package:easy_localization/easy_localization.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'lawyer_screen.dart';
 import 'main.dart';
 import 'widgets.dart';
 import 'test_mode_banner.dart';
@@ -125,45 +124,34 @@ class _AuthScreenState extends State<AuthScreen> {
     }
   }
 
+  // Ждём, пока триггер создаст строку profiles после signUp (иначе AuthRouter
+  // ниже может на долю секунды увидеть пустой профиль и решить, что роль — 'client').
   Future<void> _navigateBasedOnRole() async {
     final supabase = Supabase.instance.client;
     final user = supabase.auth.currentUser;
     if (user == null) return;
 
-    String role = _selectedRole;
-    String lawyerSubtype = _selectedLawyerSubtype;
-
     for (int attempt = 0; attempt < 3; attempt++) {
       try {
         final data = await supabase
             .from('profiles')
-            .select('role, lawyer_subtype')
+            .select('role')
             .eq('id', user.id)
             .maybeSingle();
-        if (data != null && data['role'] != null) {
-          role = data['role'].toString();
-          lawyerSubtype = data['lawyer_subtype']?.toString() ?? 'lawyer';
-          break;
-        }
+        if (data != null && data['role'] != null) break;
       } catch (_) {}
       if (attempt < 2) await Future.delayed(const Duration(milliseconds: 800));
     }
 
     if (!mounted) return;
 
-    if (role == 'lawyer') {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (context) => LawyerDashboardScreen(lawyerSubtype: lawyerSubtype),
-        ),
-      );
-    } else {
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const CategorySelectionScreen()),
-      );
-    }
+    // AuthRouter сам определит роль и покажет диалог согласия с условиями
+    // альфа-тестирования, если profiles.alpha_terms_accepted_at ещё пусто —
+    // это должно произойти сразу после регистрации, до первого входа в приложение.
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const AuthRouter()),
+    );
   }
 
   @override

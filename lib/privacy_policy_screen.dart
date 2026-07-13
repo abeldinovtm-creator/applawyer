@@ -64,3 +64,35 @@ class TermsOfServiceScreen extends StatelessWidget {
     );
   }
 }
+
+class PersonalDataConsentScreen extends StatelessWidget {
+  const PersonalDataConsentScreen({Key? key}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    final lang = context.locale.languageCode;
+
+    final title = lang == 'kk'
+        ? 'Дербес деректерді өңдеуге келісім'
+        : lang == 'en'
+            ? 'Personal Data Processing Consent'
+            : 'Согласие на обработку персональных данных';
+
+    final body = lang == 'kk'
+        ? 'Мәтін дайындалуда...'
+        : lang == 'en'
+            ? 'Text is being prepared...'
+            : 'Текст готовится...';
+
+    return Scaffold(
+      appBar: AppBar(title: Text(title)),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20),
+        child: Text(
+          body,
+          style: const TextStyle(fontSize: 14, height: 1.7, color: Colors.black87),
+        ),
+      ),
+    );
+  }
+}

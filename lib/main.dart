@@ -19,7 +19,7 @@ import 'settings_screen.dart';
 import 'notifications_screen.dart';
 import 'services/route_persistence.dart';
 import 'test_mode_banner.dart';
-import 'test_mode_dialog.dart';
+import 'alpha_terms_dialog.dart';
 
 // anon key — публичный ключ (виден всем в собранном web-бандле на applawyer.online),
 // защита данных идёт через RLS, а не через секретность ключа.
@@ -223,15 +223,15 @@ class _AuthRouterState extends State<AuthRouter> {
     _profileFuture = user != null
         ? Supabase.instance.client
             .from('profiles')
-            .select('role, active_role, lawyer_subtype, preferred_language, test_mode_acknowledged')
+            .select('role, active_role, lawyer_subtype, preferred_language, alpha_terms_accepted_at')
             .eq('id', user.id)
             .maybeSingle()
         : Future.value(null);
   }
 
-  // Диалог согласия с тестовым режимом показан за время жизни этого State —
-  // защита от повторного показа при перестройках виджета до завершения upsert.
-  bool _testModeDialogShown = false;
+  // Диалог согласия с условиями альфа-тестирования показан за время жизни этого
+  // State — защита от повторного показа при перестройках виджета до завершения upsert.
+  bool _alphaTermsDialogShown = false;
 
   @override
   Widget build(BuildContext context) {
@@ -278,11 +278,11 @@ class _AuthRouterState extends State<AuthRouter> {
           }
         }
 
-        final testModeAcknowledged = data?['test_mode_acknowledged'] == true;
-        if (!_testModeDialogShown && !testModeAcknowledged) {
-          _testModeDialogShown = true;
+        final alphaTermsAccepted = data?['alpha_terms_accepted_at'] != null;
+        if (!_alphaTermsDialogShown && !alphaTermsAccepted) {
+          _alphaTermsDialogShown = true;
           WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (mounted) showTestModeDialog(context);
+            if (mounted) showAlphaTermsDialog(context);
           });
         }
 

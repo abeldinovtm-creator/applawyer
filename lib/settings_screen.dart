@@ -359,6 +359,13 @@ class _SettingsScreenState extends State<SettingsScreen> {
                     trailing: const Icon(Icons.chevron_right, color: Colors.grey),
                     onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const TermsOfServiceScreen())),
                   ),
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: const Icon(Icons.fact_check_outlined, color: const Color(0xFFA6192E)),
+                    title: Text('profile.personal_data_consent'.tr()),
+                    trailing: const Icon(Icons.chevron_right, color: Colors.grey),
+                    onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const PersonalDataConsentScreen())),
+                  ),
 
                   const SizedBox(height: 24),
                   _sectionHeader('profile.danger_zone'.tr()),
