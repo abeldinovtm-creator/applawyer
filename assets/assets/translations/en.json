@@ -17,6 +17,16 @@
     "checkbox_label": "Understood, I won't upload real documents",
     "confirm_btn": "Got it"
   },
+  "alpha_terms": {
+    "dialog_title": "Alpha Testing Terms",
+    "body": "The platform is currently in alpha testing. Functionality may change, and technical issues or temporary data unavailability are possible. We recommend not uploading clients' confidential documents until testing is complete.",
+    "links_intro": "By continuing, you agree to the:",
+    "link_terms": "Terms of Service",
+    "link_privacy": "Privacy Policy",
+    "link_pdn": "Personal Data Processing Consent",
+    "checkbox_label": "I have read and agree to the terms",
+    "confirm_btn": "Continue"
+  },
   "payment": {
     "amount": "Amount",
     "amount_hint": "Enter the amount in tenge"
@@ -94,6 +104,7 @@
     "documents": "Documents",
     "privacy_policy": "Privacy Policy",
     "terms_of_service": "Terms of Service",
+    "personal_data_consent": "Personal Data Processing Consent",
     "danger_zone": "Danger zone",
     "delete_account": "Delete account",
     "delete_confirm_title": "Delete account?",
