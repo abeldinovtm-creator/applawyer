@@ -7,6 +7,7 @@ import 'region_picker_screen.dart';
 import 'main.dart';
 import 'widgets.dart';
 import 'services/route_persistence.dart';
+import 'services/lawyer_stats_service.dart';
 
 String _trCategory(String cat) {
   const map = {
@@ -59,7 +60,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _editing = false;
   int _completedCases = 0;
   int _activeCases = 0;
-  List<Map<String, dynamic>> _categoryStats = [];
+  List<LawyerCategoryStat> _categoryStats = [];
 
   bool get _isLawyer => _role == 'lawyer';
 
@@ -124,38 +125,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final user = _supabase.auth.currentUser;
     if (user == null) return;
     try {
-      final raw = await _supabase.rpc('get_lawyer_category_stats', params: {'p_lawyer_id': user.id});
-      if (mounted) setState(() => _categoryStats = List<Map<String, dynamic>>.from(raw as List));
+      final stats = await LawyerStatsService.fetchCategoryStats(user.id);
+      if (mounted) setState(() => _categoryStats = stats);
     } catch (_) {}
   }
 
-  // Счётчик завершённых/незавершённых дел юриста: считаем по заявкам,
-  // где отклик юриста был принят клиентом (conversations.status == accepted).
+  // Счётчик завершённых/незавершённых дел юриста.
   Future<void> _loadCaseStats() async {
     final user = _supabase.auth.currentUser;
     if (user == null) return;
     try {
-      final convRaw = await _supabase
-          .from('conversations')
-          .select('case_id')
-          .eq('lawyer_id', user.id)
-          .eq('status', 'accepted');
-      final caseIds = List<Map<String, dynamic>>.from(convRaw as List)
-          .map((c) => c['case_id'].toString())
-          .toList();
-
-      if (caseIds.isEmpty) {
-        if (mounted) setState(() { _completedCases = 0; _activeCases = 0; });
-        return;
-      }
-
-      final casesRaw = await _supabase.from('cases').select('status').inFilter('id', caseIds);
-      final cases = List<Map<String, dynamic>>.from(casesRaw as List);
-      final completed = cases.where((c) => c['status'] == 'completed').length;
+      final counts = await LawyerStatsService.fetchCaseCounts(user.id);
       if (mounted) {
         setState(() {
-          _completedCases = completed;
-          _activeCases = cases.length - completed;
+          _completedCases = counts.completed;
+          _activeCases = counts.active;
         });
       }
     } catch (_) {}
@@ -404,9 +388,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     if (_isLawyer) ...[
                       Row(
                         children: [
-                          Expanded(child: _statCard('profile.completed_cases'.tr(), _completedCases, Colors.green)),
+                          Expanded(
+                            child: StatCard(
+                              label: 'profile.completed_cases'.tr(),
+                              value: '$_completedCases',
+                              color: Colors.green,
+                            ),
+                          ),
                           const SizedBox(width: 10),
-                          Expanded(child: _statCard('profile.active_cases'.tr(), _activeCases, Colors.orange)),
+                          Expanded(
+                            child: StatCard(
+                              label: 'profile.active_cases'.tr(),
+                              value: '$_activeCases',
+                              color: Colors.orange,
+                            ),
+                          ),
                         ],
                       ),
                       if (_categoryStats.isNotEmpty) ...[
@@ -420,10 +416,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           spacing: 8,
                           runSpacing: 8,
                           children: _categoryStats.map((s) {
-                            final category = s['category']?.toString() ?? '';
-                            final count = (s['completed_count'] as num?)?.toInt() ?? 0;
                             return Chip(
-                              label: Text('${_trCategory(category)} · $count', style: const TextStyle(fontSize: 12)),
+                              label: Text('${_trCategory(s.category)} · ${s.completedCount}',
+                                  style: const TextStyle(fontSize: 12)),
                               backgroundColor: const Color(0xFFFAE8EB),
                               labelStyle: const TextStyle(color: Color(0xFFA6192E)),
                               materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
@@ -655,24 +650,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ),
               ),
             ),
-    );
-  }
-
-  Widget _statCard(String label, int count, Color color) {
-    return Container(
-      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
-      decoration: BoxDecoration(
-        color: color.withOpacity(0.08),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: color.withOpacity(0.3)),
-      ),
-      child: Column(
-        children: [
-          Text('$count', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
-          const SizedBox(height: 4),
-          Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
-        ],
-      ),
     );
   }
 

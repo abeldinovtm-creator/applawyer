@@ -187,6 +187,35 @@ class StarRatingDisplay extends StatelessWidget {
   }
 }
 
+// Карточка с числом и подписью — сводная статистика (завершённые/активные
+// дела, заработок и т.п.). Используется в профиле и на экране статистики.
+class StatCard extends StatelessWidget {
+  final String label;
+  final String value;
+  final Color color;
+
+  const StatCard({super.key, required this.label, required this.value, required this.color});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 10),
+      decoration: BoxDecoration(
+        color: color.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: color.withOpacity(0.3)),
+      ),
+      child: Column(
+        children: [
+          Text(value, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: color)),
+          const SizedBox(height: 4),
+          Text(label, textAlign: TextAlign.center, style: TextStyle(fontSize: 12, color: Colors.grey[700])),
+        ],
+      ),
+    );
+  }
+}
+
 // Диалог отказа с выбором причины (dropdown) — общий для отказа клиента от
 // юриста и отказа юриста от заявки. Возвращает {'reason_code', 'reason_text'}
 // или null при отмене. reason_text обязателен, только если выбрана причина

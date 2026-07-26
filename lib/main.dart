@@ -17,6 +17,7 @@ import 'widgets.dart';
 import 'profile_screen.dart';
 import 'settings_screen.dart';
 import 'notifications_screen.dart';
+import 'statistics_screen.dart';
 import 'services/route_persistence.dart';
 import 'test_mode_banner.dart';
 import 'alpha_terms_dialog.dart';
@@ -187,6 +188,11 @@ class MyApp extends StatelessWidget {
             return [
               homeRoute,
               MaterialPageRoute(settings: const RouteSettings(name: '/notifications'), builder: (_) => const NotificationsScreen()),
+            ];
+          case '/statistics':
+            return [
+              homeRoute,
+              MaterialPageRoute(settings: const RouteSettings(name: '/statistics'), builder: (_) => const StatisticsScreen()),
             ];
           default:
             return [homeRoute];
