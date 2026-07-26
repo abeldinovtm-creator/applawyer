@@ -183,6 +183,7 @@
     "statistics_earnings_by_category": "Earnings by category",
     "statistics_no_earnings": "No payouts yet",
     "statistics_cancelled": "Cancelled",
+    "statistics_no_cases_yet": "No case data yet",
     "own_case": "This is your request",
     "confirm_completion": "Confirm completion",
     "confirm_completion_title": "Confirm the work is complete?",

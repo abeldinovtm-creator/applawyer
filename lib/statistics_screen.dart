@@ -139,7 +139,13 @@ class _StatisticsScreenState extends State<StatisticsScreen> {
                 ],
               ),
               const SizedBox(height: 16),
-              _CompletedVsCancelledChart(completed: data.counts.completed, cancelled: data.cancelled),
+              if (data.counts.completed == 0 && data.cancelled == 0)
+                Text(
+                  'lawyer.statistics_no_cases_yet'.tr(),
+                  style: TextStyle(color: Colors.grey[600], fontSize: 14),
+                )
+              else
+                _CompletedVsCancelledChart(completed: data.counts.completed, cancelled: data.cancelled),
               const SizedBox(height: 12),
               if (data.rating.count > 0)
                 Container(
