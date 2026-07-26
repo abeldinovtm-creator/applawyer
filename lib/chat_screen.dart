@@ -184,13 +184,13 @@ class _ConversationListScreenState extends State<ConversationListScreen> {
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 14),
-                  elevation: 2,
+                  elevation: 0,
                   color: isUnread ? const Color(0xFFFFF3F3) : null,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                     side: isUnread
                         ? const BorderSide(color: Color(0xFFA6192E), width: 1.5)
-                        : BorderSide.none,
+                        : BorderSide(color: Colors.grey.shade300),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(14),
@@ -521,13 +521,13 @@ class _LawyerConversationListScreenState extends State<LawyerConversationListScr
 
                 return Card(
                   margin: const EdgeInsets.only(bottom: 12),
-                  elevation: 2,
+                  elevation: 0,
                   color: isUnread ? const Color(0xFFFFF3F3) : null,
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14),
                     side: isUnread
                         ? const BorderSide(color: Color(0xFFA6192E), width: 1.5)
-                        : BorderSide.none,
+                        : BorderSide(color: Colors.grey.shade300),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(14),
@@ -776,9 +776,9 @@ class _ChatScreenState extends State<ChatScreen> {
   Widget _inputBar() {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 4, offset: Offset(0, -2))],
+        border: Border(top: BorderSide(color: Colors.grey.shade300)),
       ),
       child: SafeArea(
         child: Row(

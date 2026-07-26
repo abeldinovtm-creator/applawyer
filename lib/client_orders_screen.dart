@@ -410,9 +410,9 @@ class _ClientOrdersScreenState extends State<ClientOrdersScreen> {
                         borderRadius: BorderRadius.circular(12),
                         side: isUnread
                             ? const BorderSide(color: Color(0xFFA6192E), width: 1.5)
-                            : BorderSide.none,
+                            : BorderSide(color: Colors.grey.shade300),
                       ),
-                      elevation: 3,
+                      elevation: 0,
                       child: Padding(
                         padding: const EdgeInsets.all(16),
                         child: Column(

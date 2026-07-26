@@ -875,8 +875,11 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
 
                       return Card(
                         margin: const EdgeInsets.only(bottom: 16),
-                        elevation: 3,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        elevation: 0,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          side: BorderSide(color: Colors.grey.shade300),
+                        ),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
                           child: Column(
@@ -1023,13 +1026,13 @@ class _LawyerDashboardScreenState extends State<LawyerDashboardScreen>
 
               return Card(
                 margin: const EdgeInsets.only(bottom: 14),
-                elevation: 3,
+                elevation: 0,
                 color: isUnread ? const Color(0xFFFFF3F3) : null,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                   side: isUnread
                       ? const BorderSide(color: Color(0xFFA6192E), width: 1.5)
-                      : BorderSide.none,
+                      : BorderSide(color: Colors.grey.shade300),
                 ),
                 child: Padding(
                   padding: const EdgeInsets.all(16),

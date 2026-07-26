@@ -159,6 +159,18 @@ class MyApp extends StatelessWidget {
         progressIndicatorTheme: const ProgressIndicatorThemeData(
           color: Color(0xFFA6192E),
         ),
+        // На iOS дефолтный CupertinoPageTransitionsBuilder держит одновременно
+        // скомпонованными старый и новый полноэкранные маршруты во время
+        // анимации открытия и интерактивного свайпа назад — на Flutter Web
+        // (CanvasKit) в Safari это заметно лагает. ZoomPageTransitionsBuilder
+        // на всех платформах избавляет от этой двойной композиции.
+        pageTransitionsTheme: const PageTransitionsTheme(
+          builders: {
+            TargetPlatform.android: ZoomPageTransitionsBuilder(),
+            TargetPlatform.iOS: ZoomPageTransitionsBuilder(),
+            TargetPlatform.macOS: ZoomPageTransitionsBuilder(),
+          },
+        ),
       ),
       // Верхнеуровневые экраны без параметров (Профиль/Настройки/Уведомления)
       // сами пишут своё имя в localStorage при открытии и стирают при
@@ -492,9 +504,12 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                           final cat = categories[index];
                           final isUnavailable = _unavailableCategories?.contains(cat['id']) ?? false;
                           return Card(
-                            elevation: 1,
+                            elevation: 0,
                             color: isUnavailable ? Colors.grey[100] : null,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                              side: BorderSide(color: Colors.grey.shade300),
+                            ),
                             child: InkWell(
                               onTap: () => isUnavailable
                                   ? showAppSnackBar(context, 'category.unavailable'.tr(), kind: SnackKind.warning)
@@ -549,9 +564,12 @@ class _CategorySelectionScreenState extends State<CategorySelectionScreen> {
                         final cat = categories[index];
                         final isUnavailable = _unavailableCategories?.contains(cat['id']) ?? false;
                         return Card(
-                          elevation: 2,
+                          elevation: 0,
                           color: isUnavailable ? Colors.grey[100] : null,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            side: BorderSide(color: Colors.grey.shade300),
+                          ),
                           child: InkWell(
                             onTap: () => isUnavailable
                                 ? showAppSnackBar(context, 'category.unavailable'.tr(), kind: SnackKind.warning)
