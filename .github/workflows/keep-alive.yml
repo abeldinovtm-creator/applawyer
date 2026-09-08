@@ -1,0 +1,21 @@
+name: Supabase Keep-Alive
+
+# Free-tier Supabase проекты уходят в паузу после ~недели без активности —
+# приложение падает на входе с "Failed to fetch", пока проект не восстановят
+# вручную из Dashboard. Этот воркфлоу раз в несколько дней делает лёгкий
+# запрос к БД, чтобы проект считался активным и не засыпал.
+on:
+  schedule:
+    - cron: '0 6 */3 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          curl -sS -o /dev/null -w "HTTP %{http_code}\n" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/commission_rates?select=category&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}"
